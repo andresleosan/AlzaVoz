@@ -1,0 +1,56 @@
+@import "tailwindcss";
+@source "../**/*.{ts,tsx}";
+
+:root {
+  /* Fondos Base - Modo Oscuro Profundo Oficial DESIGN.md */
+  --bg-canvas: #0B0F19;
+  --bg-surface-elevated: #111827;
+  --bg-surface-glass: rgba(17, 24, 39, 0.85);
+  --bg-surface-hover: #1F2937;
+
+  /* Bordes */
+  --border-subtle: #1F2937;
+  --border-focus: #374151;
+  --border-glow: rgba(59, 130, 246, 0.4);
+
+  /* Texto y Contrastes */
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+  --text-inverse: #0B0F19;
+
+  /* Modos Dinámicos de Alza Bot */
+  --mode-standard: #06B6D4;
+  --mode-standard-glow: rgba(6, 182, 212, 0.35);
+
+  --mode-defender: #EF4444;
+  --mode-defender-glow: rgba(239, 68, 68, 0.45);
+
+  --mode-violet: #8B5CF6;
+  --mode-violet-glow: rgba(139, 92, 246, 0.40);
+
+  --mode-radar: #10B981;
+  --mode-radar-glow: rgba(16, 185, 129, 0.35);
+}
+
+body {
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Números tabulares para cronómetros, decibelios y coordenadas */
+.font-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Área táctil mínima Fitts' Law para UX bajo estrés */
+.touch-target-min {
+  min-height: 56px;
+  min-width: 56px;
+}

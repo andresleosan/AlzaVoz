@@ -1,0 +1,29 @@
+/**
+ * Configuration for Cloudflare Workers & Pages deployment
+ * AlzaVoz - Medellín
+ */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "alzavoz",
+  "compatibility_date": "2024-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": ".next",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "alzavoz-db",
+      "database_id": "alzavoz-db-id-placeholder"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "EVIDENCIAS",
+      "bucket_name": "alzavoz-evidencias"
+    }
+  ],
+  "vars": {
+    "CONCEJAL_WHATSAPP": "+573234306794",
+    "MEDELLIN_EMERGENCY_POLICE": "123",
+    "LINEA_PURPURA": "155"
+  }
+}

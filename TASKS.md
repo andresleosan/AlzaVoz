@@ -9,9 +9,9 @@
 
 ---
 
-### [ ] Tarea 1: Setup del Proyecto Next.js, Cloudflare, PWA y Organización de Assets [Modelo: 3.8 Flash | Esfuerzo: Low]
-- **Objetivo:** Inicializar el proyecto con Next.js (App Router), TypeScript estricto (`noImplicitAny`, cero `any`), Tailwind CSS y pnpm. Configurar Cloudflare Pages/Workers (`wrangler.jsonc` o `wrangler.toml`). Procesar, renombrar y optimizar las imágenes oficiales en `public/assets/brand/` y `public/assets/alzabot/`. Generar `manifest.json`, favicons, iconos PWA y metadatos OpenGraph.
-- **Criterios de Éxito:** Build limpio con `pnpm build`, assets organizados y accesibles, PWA instalable sin errores en consola.
+### [x] Tarea 1: Setup del Proyecto Next.js, Cloudflare, PWA y Organización de Assets [Modelo: 3.8 Flash | Esfuerzo: Low]
+- **Descripción:** Inicialización de Next.js (App Router), TypeScript estricto (`noImplicitAny`), Tailwind CSS v4 con PostCSS y pnpm. Configuración de Cloudflare (`wrangler.jsonc`). Organización canónica de activos visuales de Alza Bot en `public/assets/` y PWA (`manifest.json`, favicons, iconos). Suite de pruebas de humo E2E con Playwright ejecutada exitosamente.
+- **Estado:** Completada.
 
 ---
 
