@@ -66,3 +66,4 @@
 ### [ ] Tarea 10: Seguridad Integral, Anti-Jailbreak, Rate Limiting E2E y Despliegue [Modelo: Argon | Esfuerzo: Low]
 - **Objetivo:** Aplicar las directivas de blindaje contra Prompt Injection y manipulación de rol en Alza Bot (rechazo de código COBOL/tareas ajenas, contención de identidad inmutable). Configurar reglas de Rate Limiting en Cloudflare WAF para endpoints `/api/denuncias/*`. Ejecutar suite completa de pruebas E2E con Playwright (flujos de SOS, denuncia anónima, sonómetro y panel privado) y preparar despliegue en Cloudflare Pages (`alzavoz.pages.dev`).
 - **Criterios de Éxito:** Cero vulnerabilidades en pruebas de inyección, tests Playwright en verde al 100% y despliegue funcional en producción.
+

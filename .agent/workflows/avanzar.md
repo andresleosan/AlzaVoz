@@ -41,3 +41,4 @@ Cada vez que el usuario ejecute `/avanzar`, cumple estrictamente estos 6 pasos:
    - **Modelo y Modalidad a seleccionar:** **[Elegir 1 de los 6: 3.8 Flash (Low) | 3.8 Flash (Medium) | 3.8 Flash (High) | Argon (Low) | Argon (Medium) | Argon (High)]**
    - **Motivo:** [Explicación de 1 línea de por qué este nivel exacto es el punto óptimo entre calidad y ahorro de tokens]
    ---
+

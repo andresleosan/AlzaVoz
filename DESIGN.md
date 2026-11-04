@@ -123,3 +123,4 @@ Todos los archivos de imagen presentes en el proyecto han sido mapeados a ubicac
 - **Microcopia Firme y Respetuosa:** Textos de guía directos, sin redundancias ni tecnicismos engorrosos. 
   - *Ejemplo SOS:* *"Estás en: Cra 43A # 1-50, El Poblado. Dicta esta dirección al 123."*
   - *Ejemplo Retén:* *"Tienes derecho a grabar según el Art. 21 del Código Nacional de Policía (Ley 1801). Mantén la calma."*
+

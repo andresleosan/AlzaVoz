@@ -12,3 +12,4 @@
 - **Última Tarea Completada:** Tarea 0 (Cimentación Estratégica, DESIGN.md, TASKS.md, MEMORY.md y skill /avanzar).
 - **Tarea Actual / En Cola:** Tarea 1 (Setup Next.js, Cloudflare, PWA y Organización de Assets).
 - **Próximo Modelo Recomendado:** 3.8 Flash (Low).
+
