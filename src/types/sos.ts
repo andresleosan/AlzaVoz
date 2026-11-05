@@ -34,3 +34,4 @@ export interface TrustedContact {
   createdAt: number;
   isCivicOfficial?: boolean;
 }
+

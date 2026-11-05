@@ -14,6 +14,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { AlzaBotAvatar } from "@/components/AlzaBotAvatar";
 import { SosEmergencyPanel } from "@/components/sos/SosEmergencyPanel";
+import { LegalDefenderPanel } from "@/components/defender/LegalDefenderPanel";
 import { useAppMode } from "@/context/AppModeContext";
 import { MODES_CONFIG, type AppMode } from "@/types/mode";
 
@@ -251,6 +252,11 @@ export default function HomePage() {
         {/* Módulo SOS de Emergencia Inteligente */}
         <div id="sos-panico" className="scroll-mt-16">
           <SosEmergencyPanel />
+        </div>
+
+        {/* Módulo Alza Bot Defensor Legal & Choques Solo Latas */}
+        <div id="defensor-reten" className="scroll-mt-16">
+          <LegalDefenderPanel />
         </div>
 
         {/* Línea Directa WhatsApp Concejal */}
