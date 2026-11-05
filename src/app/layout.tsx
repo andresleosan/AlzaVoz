@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
+import { AppModeProvider } from "@/context/AppModeContext";
 
 export const viewport: Viewport = {
   themeColor: "#06B6D4",
@@ -51,9 +52,11 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark h-full bg-[#0B0F19]">
       <body className="h-full flex flex-col bg-[#0B0F19] text-[#F9FAFB] antialiased selection:bg-cyan-500/30">
-        <main className="flex-1 w-full max-w-md mx-auto flex flex-col relative overflow-x-hidden">
-          {children}
-        </main>
+        <AppModeProvider>
+          <div className="flex-1 w-full max-w-md mx-auto flex flex-col relative overflow-x-hidden">
+            {children}
+          </div>
+        </AppModeProvider>
       </body>
     </html>
   );

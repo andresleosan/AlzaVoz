@@ -54,3 +54,15 @@ body {
   min-height: 56px;
   min-width: 56px;
 }
+
+/* Modo Antiespía / Camuflaje de Privacidad (DESIGN.md Sección 5.2) */
+.privacy-peep-active [data-sensitive="true"] {
+  filter: blur(8px);
+  user-select: none;
+  transition: filter 0.2s ease-in-out;
+}
+
+.privacy-peep-active [data-sensitive="true"]:active,
+.privacy-peep-active [data-sensitive="true"]:focus {
+  filter: blur(0);
+}

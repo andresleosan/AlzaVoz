@@ -7,16 +7,16 @@ test.describe("AlzaVoz Cimentación & PWA Setup", () => {
     // 1. Verificar título y metadatos
     await expect(page).toHaveTitle(/AlzaVoz & Alza Bot/i);
 
-    // 2. Verificar cabecera e indicador de Alza Bot en vivo
-    const heading = page.locator("h1");
-    await expect(heading).toContainText("AlzaVoz");
-    await expect(page.locator("text=100% En Vivo")).toBeVisible();
+    // 2. Verificar cabecera e identidad oficial
+    const brand = page.locator("header");
+    await expect(brand).toContainText("AlzaVoz");
+    await expect(brand).toContainText("Medellín");
 
     // 3. Verificar los 4 módulos de alta urgencia (UX bajo estrés)
-    const sosButton = page.locator('a:has-text("Botón SOS")');
-    const legalButton = page.locator('a:has-text("Defensor Legal")');
-    const violetaButton = page.locator('a:has-text("Escudo Violeta")');
-    const radarButton = page.locator('a:has-text("Radar Barrial")');
+    const sosButton = page.locator('a[href="#sos-panico"]');
+    const legalButton = page.locator('a[href="#defensor-reten"]');
+    const violetaButton = page.locator('a[href="#escudo-violeta"]');
+    const radarButton = page.locator('a[href="#radar-comunitario"]');
 
     await expect(sosButton).toBeVisible();
     await expect(legalButton).toBeVisible();
@@ -43,3 +43,4 @@ test.describe("AlzaVoz Cimentación & PWA Setup", () => {
     expect(iconRes.status()).toBe(200);
   });
 });
+
