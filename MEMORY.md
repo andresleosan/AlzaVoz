@@ -9,6 +9,6 @@
 - **Canal WhatsApp:** WhatsApp oficial Concejal (+57 3234306794) + Alza Bot SIM.
 
 ## Estado del Proyecto
-- **Última Tarea Completada:** Tarea 2 (Sistema de Diseño UX Bajo Estrés, Avatar Dinámico de Alza Bot, Antiespía y Tests E2E Playwright).
-- **Tarea Actual / En Cola:** Tarea 3 (Bloque 1 - Parte A: Botón SOS Inteligente de Emergencia y Alerta Rápida).
+- **Última Tarea Completada:** Tarea 3 (Bloque 1 - Parte A: Botón SOS Inteligente de Emergencia y Alerta Rápida, Lectura GPS gigante para el 123, Contactos de Confianza y Tests E2E Playwright).
+- **Tarea Actual / En Cola:** Tarea 4 (Bloque 1 - Parte B: Alza Bot Defensor Legal en Vivo y Choques "Solo Latas").
 - **Próximo Modelo Recomendado:** 3.8 Flash (High).

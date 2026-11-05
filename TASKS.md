@@ -21,9 +21,10 @@
 
 ---
 
-### [ ] Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia y Alerta Rápida [Modelo: 3.8 Flash | Esfuerzo: High]
+### [x] Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia y Alerta Rápida [Modelo: 3.8 Flash | Esfuerzo: High]
 - **Objetivo:** Construir el módulo de pánico inteligente con lectura GPS en vivo y geocodificación inversa para Medellín (mostrando barrio y dirección exacta en tipografía gigante para lectura rápida al 123). Implementar marcación directa de emergencia (Policía 123, Ambulancia, Bomberos, Tránsito, Línea Púrpura), gestión de contactos de confianza en `localStorage` y botón de alerta silenciosa por WhatsApp (+57 3234306794) con enlace de localización.
 - **Criterios de Éxito:** Detección precisa de ubicación, marcado telefónico sin latencia y despacho de mensaje de auxilio en WhatsApp a contactos guardados.
+- **Estado:** Completada. Implementado módulo SOS con lectura de dirección gigante en alta legibilidad, selector offline de las 16 comunas de Medellín, 5 marcadores telefónicos (Fitts' Law >= 56px), gestor de contactos de confianza y alerta silenciosa a WhatsApp. 12 pruebas E2E aprobadas en Playwright.
 
 ---
 
