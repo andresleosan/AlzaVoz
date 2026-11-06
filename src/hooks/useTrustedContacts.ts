@@ -5,12 +5,12 @@ import { type TrustedContact } from "@/types/sos";
 
 const STORAGE_KEY = "alzavoz_trusted_contacts";
 
-export const OFFICIAL_CIVIC_CONTACT: TrustedContact = {
+export const CIVIC_SUPPORT_CONTACT: TrustedContact = {
   id: "official-concejal",
-  name: "Despacho Concejal Medellín (AlzaVoz)",
+  name: "Apoyo AlzaVoz",
   phone: "+573234306794",
-  relationship: "Canal Oficial de Apoyo Cívico",
-  isCivicOfficial: true,
+  relationship: "Contacto de apoyo de la app",
+  isAppSupport: true,
   createdAt: 0,
 };
 
@@ -111,13 +111,15 @@ export function useTrustedContacts() {
     try {
       const parsed = JSON.parse(rawStored) as TrustedContact[];
       if (Array.isArray(parsed) && parsed.length > 0) {
-        const hasOfficial = parsed.some((c) => c.id === OFFICIAL_CIVIC_CONTACT.id);
-        return hasOfficial ? parsed : [OFFICIAL_CIVIC_CONTACT, ...parsed];
+        const hasSupport = parsed.some((c) => c.id === CIVIC_SUPPORT_CONTACT.id);
+        return hasSupport
+          ? parsed.map((c) => c.id === CIVIC_SUPPORT_CONTACT.id ? CIVIC_SUPPORT_CONTACT : c)
+          : [CIVIC_SUPPORT_CONTACT, ...parsed];
       }
     } catch {
-      // Fallback a contacto oficial
+      // Mantener el contacto de apoyo si el almacenamiento no está disponible.
     }
-    return [OFFICIAL_CIVIC_CONTACT];
+    return [CIVIC_SUPPORT_CONTACT];
   }, [rawStored]);
 
   const saveContacts = useCallback((updated: TrustedContact[]) => {
@@ -144,7 +146,7 @@ export function useTrustedContacts() {
         phone: cleanPhone,
         relationship: relationship.trim().replace(/[<>]/g, "") || "Familiar / Amigo",
         createdAt: Date.now(),
-        isCivicOfficial: false,
+        isAppSupport: false,
       };
 
       const updated = [...contacts, newContact];
@@ -156,7 +158,7 @@ export function useTrustedContacts() {
 
   const removeContact = useCallback(
     (id: string) => {
-      if (id === OFFICIAL_CIVIC_CONTACT.id) return;
+      if (id === CIVIC_SUPPORT_CONTACT.id) return;
       const updated = contacts.filter((c) => c.id !== id);
       saveContacts(updated);
     },

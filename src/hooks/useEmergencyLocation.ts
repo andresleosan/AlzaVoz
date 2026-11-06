@@ -3,55 +3,49 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { type GeoLocationState } from "@/types/sos";
 import {
-  MEDELLIN_COMUNAS,
   type MedellinZone,
-  resolveMedellinComunaOffline,
   reverseGeocodeMedellin,
 } from "@/utils/medellinGeo";
 
-const DEFAULT_MEDELLIN_ZONE = MEDELLIN_COMUNAS[9]; // Comuna 10 - La Candelaria
+const UNKNOWN_LOCATION: GeoLocationState = {
+  latitude: null,
+  longitude: null,
+  accuracy: null,
+  neighborhood: "Ubicación sin confirmar",
+  address: "Dirección exacta sin confirmar",
+  comunaName: "",
+  comunaNumber: null,
+  timestamp: null,
+  source: null,
+  status: "idle",
+  errorMessage: null,
+};
 
 export function useEmergencyLocation() {
-  const [state, setState] = useState<GeoLocationState>({
-    latitude: DEFAULT_MEDELLIN_ZONE.centerLat,
-    longitude: DEFAULT_MEDELLIN_ZONE.centerLon,
-    accuracy: 15,
-    neighborhood: DEFAULT_MEDELLIN_ZONE.popularName,
-    address: DEFAULT_MEDELLIN_ZONE.defaultReference,
-    comunaName: DEFAULT_MEDELLIN_ZONE.name,
-    comunaNumber: DEFAULT_MEDELLIN_ZONE.number,
-    timestamp: null,
-    status: "idle",
-    errorMessage: null,
-  });
+  const [state, setState] = useState<GeoLocationState>(UNKNOWN_LOCATION);
 
   const [copied, setCopied] = useState<boolean>(false);
   const isMountedRef = useRef<boolean>(true);
+  const requestIdRef = useRef(0);
+  const invalidatePendingRequest = useCallback(() => { ++requestIdRef.current; }, []);
 
   const applyCoordinates = useCallback(
-    async (lat: number, lon: number, accuracy: number | null) => {
-      // 1. Inmediata resolución offline para no retrasar la UI ni 1 milisegundo
-      const offline = resolveMedellinComunaOffline(lat, lon);
-
-      if (!isMountedRef.current) return;
-      setState((prev) => ({
-        ...prev,
+    async (lat: number, lon: number, accuracy: number | null, requestId: number) => {
+      if (!isMountedRef.current || requestId !== requestIdRef.current) return;
+      setState({
+        ...UNKNOWN_LOCATION,
         latitude: lat,
         longitude: lon,
-        accuracy: accuracy ?? 20,
-        neighborhood: offline.zone.popularName,
-        address: offline.zone.defaultReference,
-        comunaName: offline.zone.name,
-        comunaNumber: offline.zone.number,
+        accuracy,
         timestamp: Date.now(),
+        source: "gps",
         status: "success",
-        errorMessage: null,
-      }));
+      });
 
-      // 2. Enriquecimiento asíncrono con reverse geocoding
+      // La dirección del mapa llega después de las coordenadas del dispositivo.
       try {
         const enriched = await reverseGeocodeMedellin(lat, lon);
-        if (isMountedRef.current) {
+        if (isMountedRef.current && requestId === requestIdRef.current) {
           setState((prev) => ({
             ...prev,
             neighborhood: enriched.neighborhood,
@@ -61,34 +55,36 @@ export function useEmergencyLocation() {
           }));
         }
       } catch {
-        // Mantiene la resolución offline
+        // Conserva las coordenadas medidas, sin inventar una dirección.
       }
     },
     []
   );
 
   const refreshLocation = useCallback(() => {
+    const requestId = ++requestIdRef.current;
     if (typeof window === "undefined" || !("geolocation" in navigator)) {
-      setState((prev) => ({
-        ...prev,
+      setState({
+        ...UNKNOWN_LOCATION,
         status: "error",
         errorMessage: "Geolocalización no soportada en este dispositivo",
-      }));
+      });
       return;
     }
 
-    setState((prev) => ({ ...prev, status: "loading", errorMessage: null }));
+    setState({ ...UNKNOWN_LOCATION, status: "loading" });
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         applyCoordinates(
           pos.coords.latitude,
           pos.coords.longitude,
-          pos.coords.accuracy
+          pos.coords.accuracy,
+          requestId
         );
       },
       (err) => {
-        if (!isMountedRef.current) return;
+        if (!isMountedRef.current || requestId !== requestIdRef.current) return;
         let msg = "No se pudo obtener la ubicación GPS";
         if (err.code === err.PERMISSION_DENIED) {
           msg = "Permiso de GPS no concedido";
@@ -96,11 +92,11 @@ export function useEmergencyLocation() {
           msg = "Tiempo de espera agotado buscando señal GPS";
         }
 
-        setState((prev) => ({
-          ...prev,
+        setState({
+          ...UNKNOWN_LOCATION,
           status: err.code === err.PERMISSION_DENIED ? "denied" : "error",
           errorMessage: msg,
-        }));
+        });
       },
       {
         enableHighAccuracy: true,
@@ -112,25 +108,28 @@ export function useEmergencyLocation() {
 
   // Selección manual rápida de Comuna (ideal para sótanos, túneles o fallas de GPS)
   const setManualZone = useCallback((zone: MedellinZone) => {
+    ++requestIdRef.current;
     setState({
-      latitude: zone.centerLat,
-      longitude: zone.centerLon,
-      accuracy: 50,
+      ...UNKNOWN_LOCATION,
       neighborhood: zone.popularName,
-      address: zone.defaultReference,
       comunaName: zone.name,
       comunaNumber: zone.number,
       timestamp: Date.now(),
+      source: "manual",
       status: "success",
-      errorMessage: null,
     });
   }, []);
 
   // Formato para dictar al 123 o compartir
   const getDictationText = useCallback(() => {
-    const latStr = state.latitude ? state.latitude.toFixed(4) : "6.2486";
-    const lonStr = state.longitude ? state.longitude.toFixed(4) : "-75.5670";
-    return `Estoy en Medellín: ${state.neighborhood}. Referencia: ${state.address}. Coordenadas: ${latStr}, ${lonStr}.`;
+    if (state.source === "manual") {
+      return `Zona elegida manualmente: ${state.comunaName} (${state.neighborhood}). Dirección exacta sin confirmar; indicar un punto de referencia al operador.`;
+    }
+    if (state.source === "gps" && state.latitude !== null && state.longitude !== null) {
+      const precision = state.accuracy === null ? "" : ` Precisión reportada: ±${Math.round(state.accuracy)}m.`;
+      return `Ubicación GPS aproximada: ${state.latitude.toFixed(4)}, ${state.longitude.toFixed(4)}.${precision} Referencia del mapa: ${state.address}. Confirma la dirección con el operador.`;
+    }
+    return "Ubicación sin confirmar. Indicar la dirección o un punto de referencia al operador.";
   }, [state]);
 
   const copyLocationText = useCallback(async () => {
@@ -177,9 +176,10 @@ export function useEmergencyLocation() {
 
     return () => {
       isMountedRef.current = false;
+      invalidatePendingRequest();
       clearTimeout(timer);
     };
-  }, [refreshLocation]);
+  }, [refreshLocation, invalidatePendingRequest]);
 
   return {
     location: state,

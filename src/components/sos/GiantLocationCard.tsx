@@ -47,8 +47,16 @@ export function GiantLocationCard({
     setShowZonePicker(false);
   };
 
-  const latStr = location.latitude ? location.latitude.toFixed(4) : "6.2486";
-  const lonStr = location.longitude ? location.longitude.toFixed(4) : "-75.5670";
+  const hasGps = location.source === "gps" && location.latitude !== null && location.longitude !== null;
+  const statusText = location.status === "loading"
+    ? "Sincronizando GPS..."
+    : location.source === "manual"
+    ? "Zona elegida manualmente"
+    : hasGps
+    ? "Ubicación GPS aproximada"
+    : location.status === "denied"
+    ? "Permiso de ubicación denegado"
+    : "Ubicación sin confirmar";
 
   return (
     <section
@@ -63,19 +71,15 @@ export function GiantLocationCard({
               className={`inline-flex h-2 w-2 rounded-full ${
                 location.status === "loading"
                   ? "bg-amber-500"
-                  : location.status === "denied"
-                  ? "bg-red-500"
-                  : "bg-emerald-500"
+                  : hasGps
+                  ? "bg-emerald-500"
+                  : "bg-amber-500"
               }`}
             />
           </span>
 
           <span className="text-sm font-medium leading-relaxed text-gray-300">
-            {location.status === "loading"
-              ? "Sincronizando GPS..."
-              : location.status === "denied"
-              ? "GPS Denegado (Usando Comuna)"
-              : "Ubicación en Tiempo Real"}
+            {statusText}
           </span>
         </div>
 
@@ -98,7 +102,7 @@ export function GiantLocationCard({
       <div className="flex items-start gap-2">
         <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
         <p className="text-sm font-medium leading-relaxed text-gray-300">
-          Lee esto directamente al operador cuando marque el 123:
+          Confirma tu dirección o un punto cercano con el operador del 123.
         </p>
       </div>
 
@@ -121,7 +125,7 @@ export function GiantLocationCard({
 
         <div className="border-t border-gray-800 pt-4">
           <span className="text-sm text-gray-400">
-            Dirección o Punto de Referencia
+            {hasGps ? "Dirección aproximada del mapa" : "Dirección"}
           </span>
           <p
             data-sensitive="true"
@@ -131,20 +135,21 @@ export function GiantLocationCard({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-800 pt-4 text-sm text-gray-400">
+        {hasGps && <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-800 pt-4 text-sm text-gray-400">
           <span>
             GPS:{" "}
             <span
               data-sensitive="true"
               className="text-gray-200 font-semibold font-tabular"
             >
-              {latStr}, {lonStr}
+              {location.latitude!.toFixed(4)}, {location.longitude!.toFixed(4)}
             </span>
           </span>
-          <span className="text-sm text-gray-400">
-            Precisión: ±{location.accuracy ?? 15}m
-          </span>
-        </div>
+          {location.accuracy !== null && <span className="text-sm text-gray-400">
+            Precisión: ±{Math.round(location.accuracy)}m
+          </span>}
+        </div>}
+        {location.errorMessage && <p className="text-sm leading-relaxed text-amber-300">{location.errorMessage}. Puedes elegir una comuna como referencia.</p>}
       </div>
 
       {/* Acciones: Copiar Dirección y Selector de Comuna */}
@@ -163,7 +168,7 @@ export function GiantLocationCard({
           ) : (
             <>
               <Copy className="w-5 h-5 text-black" />
-              <span>Copiar Ubicación Exacta</span>
+              <span>Copiar información de ubicación</span>
             </>
           )}
         </button>

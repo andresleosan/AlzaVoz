@@ -62,7 +62,7 @@ export function LegalConsultationCard({
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-400">
           <span>{response.category.toUpperCase()}</span>
           <span>
-            {response.source === "deepseek-ai" ? "IA DeepSeek Jurídica" : "Base Cívica Certificada"}
+            {response.source === "deepseek-ai" ? "Orientación con IA" : "Guía cívica de referencia"}
           </span>
         </div>
       </div>

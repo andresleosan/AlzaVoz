@@ -192,7 +192,7 @@ export function resolveMedellinComunaOffline(
 }
 
 /**
- * Intenta geocodificación inversa con timeout estricto de 2.5s y fallback instantáneo.
+ * Consulta una dirección aproximada con un plazo de 2.5s.
  */
 export async function reverseGeocodeMedellin(
   lat: number,
@@ -201,16 +201,14 @@ export async function reverseGeocodeMedellin(
   neighborhood: string;
   address: string;
   comunaName: string;
-  comunaNumber: number;
+  comunaNumber: number | null;
 }> {
-  const offlineMatch = resolveMedellinComunaOffline(lat, lon);
-
-  // Fallback base
+  // Un punto de referencia de una comuna no es la ubicación de la persona.
   const result = {
-    neighborhood: offlineMatch.zone.popularName,
-    address: offlineMatch.zone.defaultReference,
-    comunaName: offlineMatch.zone.name,
-    comunaNumber: offlineMatch.zone.number,
+    neighborhood: "Barrio sin confirmar",
+    address: "Dirección exacta sin confirmar",
+    comunaName: "",
+    comunaNumber: null,
   };
 
   try {
@@ -244,17 +242,17 @@ export async function reverseGeocodeMedellin(
         const suburb =
           data.address.suburb ||
           data.address.neighbourhood ||
-          offlineMatch.zone.popularName;
-        const district = data.address.city_district || offlineMatch.zone.name;
+          "";
+        const district = data.address.city_district || "";
 
-        result.neighborhood = `${suburb}, ${district}`;
+        result.neighborhood = [suburb, district].filter(Boolean).join(", ") || "Barrio sin confirmar";
         if (road) {
-          result.address = `${road} (${suburb})`;
+          result.address = suburb ? `${road} (${suburb})` : road;
         }
       }
     }
   } catch {
-    // Si falla o se agota el timeout, usamos de inmediato la resolución offline sin bloquear al usuario
+    // Sin respuesta válida, la dirección permanece sin confirmar.
   }
 
   return result;

@@ -7,7 +7,6 @@ import {
   Phone,
   MessageCircle,
   Trash2,
-  ShieldCheck,
   Check,
   AlertCircle,
 } from "lucide-react";
@@ -95,7 +94,7 @@ export function TrustedContactsCard({
       </div>
 
       <p className="text-sm leading-relaxed text-gray-400">
-        Guarda tus seres queridos o abogado para alertarlos al instante por llamada o WhatsApp con tu ubicación GPS.
+        Guarda tus contactos para llamarles o preparar un mensaje con la ubicación disponible. Tú confirmas el envío en WhatsApp.
       </p>
 
       {/* Formulario de Agregar Contacto */}
@@ -205,12 +204,6 @@ export function TrustedContactsCard({
                   <p className="break-words text-base font-semibold text-white">
                     {contact.name}
                   </p>
-                  {contact.isCivicOfficial && (
-                    <span className="flex items-center gap-1 text-xs font-medium text-emerald-300">
-                      <ShieldCheck className="w-3 h-3 text-emerald-300" />
-                      Oficial
-                    </span>
-                  )}
                 </div>
 
                 <div className="mt-1 space-y-1 text-sm leading-relaxed text-gray-400">
@@ -243,7 +236,7 @@ export function TrustedContactsCard({
                   <span>WhatsApp</span>
                 </a>
 
-                {!contact.isCivicOfficial && (
+                {!contact.isAppSupport && (
                   <button
                     type="button"
                     onClick={() => handleRemove(contact.id)}

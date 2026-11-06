@@ -42,7 +42,7 @@ test.describe("Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia
     // Textos de lectura gigante con data-sensitive="true"
     const sensitiveFields = locationCard.locator('[data-sensitive="true"]');
     const count = await sensitiveFields.count();
-    expect(count).toBeGreaterThanOrEqual(3);
+    expect(count).toBeGreaterThanOrEqual(2);
 
     // Selector rápido de Comuna (desplegable de 16 comunas)
     const zonePickerToggle = page.locator('button[aria-label="Cambiar comuna manualmente"]');
@@ -56,7 +56,7 @@ test.describe("Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia
 
     // Verificar actualización instantánea de barrio y dirección
     await expect(locationCard).toContainText("El Poblado / Provenza");
-    await expect(locationCard).toContainText("Cra 43A con Calle 10");
+    await expect(locationCard).toContainText("Dirección exacta sin confirmar");
 
     // Probar botón de copiar ubicación
     const copyBtn = page.locator('button[aria-label="Copiar dirección para dictar o enviar"]');
@@ -94,7 +94,7 @@ test.describe("Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia
     }
   });
 
-  test("4. Botón de Alerta Silenciosa por WhatsApp al Despacho del Concejal (+57 3234306794)", async ({
+  test("4. Botón de WhatsApp al contacto de apoyo de la app", async ({
     page,
   }) => {
     const silentWaBtn = page.locator('a:has-text("Alerta Silenciosa WhatsApp")');
@@ -114,8 +114,9 @@ test.describe("Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia
     );
     await expect(contactsSection).toBeVisible();
 
-    // 1. Canal Oficial está presente por defecto
-    await expect(contactsSection).toContainText("Despacho Concejal Medellín");
+    // 1. Contacto de apoyo sin atribuir aval institucional
+    await expect(contactsSection).toContainText("Apoyo AlzaVoz");
+    await expect(contactsSection).not.toContainText("Oficial");
     await expect(contactsSection).toContainText("+573234306794");
 
     // 2. Abrir formulario de agregar contacto

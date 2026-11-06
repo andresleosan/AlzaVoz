@@ -7,6 +7,7 @@ export interface GeoLocationState {
   comunaName: string;
   comunaNumber: number | null;
   timestamp: number | null;
+  source: "gps" | "manual" | null;
   status: "idle" | "loading" | "success" | "denied" | "error";
   errorMessage: string | null;
 }
@@ -32,6 +33,6 @@ export interface TrustedContact {
   phone: string;
   relationship: string;
   createdAt: number;
-  isCivicOfficial?: boolean;
+  isAppSupport?: boolean;
 }
 

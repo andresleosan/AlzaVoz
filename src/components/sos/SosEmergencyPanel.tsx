@@ -22,6 +22,7 @@ export function SosEmergencyPanel() {
     refreshLocation,
     setManualZone,
     copyLocationText,
+    getDictationText,
     copied,
   } = useEmergencyLocation();
 
@@ -36,7 +37,7 @@ export function SosEmergencyPanel() {
   const [shareSuccess, setShareSuccess] = useState<boolean>(false);
 
   // Formato para mensaje de WhatsApp
-  const rawLocationText = `${location.neighborhood} (${location.address})`;
+  const rawLocationText = getDictationText();
   const officialWaUrl = getWhatsAppLink(
     "+573234306794",
     rawLocationText,
