@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { AlzaBotAvatar } from '@/components/AlzaBotAvatar';
+import { useAppMode } from '@/context/AppModeContext';
 import { createSession, downloadClip, recoverSession } from '@/lib/recording/client';
 import { ClipRecorder, emptyCapture, type CaptureState } from '@/lib/recording/recorder';
 import type { CaptureMode, ClipReceipt, RecordingSession } from '@/lib/recording/contracts';
@@ -11,6 +11,7 @@ const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 f
 const time = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
 
 export function RecordingPanel() {
+  const { setNavigationLocked } = useAppMode();
   const [mode, setMode] = useState<CaptureMode>('video');
   const [session, setSession] = useState<RecordingSession | null>(null);
   const [state, setState] = useState<CaptureState>(emptyCapture);
@@ -28,6 +29,11 @@ export function RecordingPanel() {
   const pending = state.clips.filter(c => c.status === 'pending' || c.status === 'sending');
   const active = state.phase === 'recording' || state.phase === 'requesting' || state.phase === 'stopping';
   const recoveryKey = session ? `${session.id}.${session.secret}` : '';
+
+  useEffect(() => {
+    setNavigationLocked(active || pending.length > 0 || busy);
+    return () => setNavigationLocked(false);
+  }, [active, pending.length, busy, setNavigationLocked]);
 
   useEffect(() => {
     const abort = new AbortController();
@@ -104,13 +110,13 @@ export function RecordingPanel() {
   }
 
   return (
-    <section aria-labelledby="recording-title" className="mx-auto w-full max-w-xl space-y-5 pb-28 text-base text-gray-100">
+    <section aria-labelledby="recording-title" className="mx-auto w-full max-w-3xl space-y-5 pb-28 text-base text-gray-100">
       <div className="flex items-center gap-4">
-        <AlzaBotAvatar mode="defender" size="md" showLivePulse={false} />
         <h1 id="recording-title" className="text-2xl font-bold">Graba y conserva</h1>
       </div>
       <p className="leading-relaxed">Guardamos clips de unos 3 segundos. Solo están a salvo en el almacenamiento los que muestran <strong>Recibido</strong>.</p>
       <p className="text-sm leading-relaxed text-gray-300">Al cerrar la pestaña o apagar el equipo, la captura se interrumpe. Puede haber pausas entre clips. Los pendientes viven solo en esta pestaña.</p>
+      {(active || pending.length > 0 || busy) && <p role="status" className="rounded-xl border border-gray-600 p-4 text-sm leading-relaxed">Para cambiar de herramienta, detén la grabación y espera a que se reciban los clips pendientes. Salir rápido sigue disponible.</p>}
       {!session && <fieldset disabled={busy} className="space-y-2"><legend className="mb-2 font-semibold">Qué quieres grabar</legend><div className="grid grid-cols-2 gap-3">
         <button type="button" aria-pressed={mode === 'video'} className={`${control} ${mode === 'video' ? 'bg-gray-700 border-amber-200' : 'bg-gray-900'}`} onClick={() => setMode('video')}>Video y audio</button>
         <button type="button" aria-pressed={mode === 'audio'} className={`${control} ${mode === 'audio' ? 'bg-gray-700 border-amber-200' : 'bg-gray-900'}`} onClick={() => setMode('audio')}>Solo audio</button>
@@ -155,7 +161,7 @@ export function RecordingPanel() {
       </form></details>}
       {session && !active && !pending.length && <button type="button" className={`${control} w-full`} disabled={busy} onClick={reset}>Nueva grabación · guarda la clave anterior</button>}
       <p className="text-sm text-gray-300">Límites: 100 clips, 2 MiB por clip y 16 MiB pendientes. WebM en navegadores compatibles. Bloquear la pantalla puede retrasar o interrumpir la captura.</p>
-      <div className="fixed inset-x-0 bottom-24 z-40 mx-auto max-w-md border-t border-gray-700 bg-[#0B0F19] px-4 py-3">
+      <div className="recording-controls z-40 border-t border-gray-700 bg-[#0B0F19] px-4 py-3">
         {active ? <button type="button" className={`${control} w-full bg-red-800`} onClick={() => controller.current?.stop()} disabled={state.phase === 'stopping'}>{state.phase === 'requesting' ? 'Cancelar solicitud de permiso' : 'Detener grabación'}</button>
           : pending.length ? <button type="button" className={`${control} w-full bg-amber-900`} onClick={() => controller.current?.retry()}>Reintentar {pending.length} pendientes</button>
             : !session ? <button type="button" className={`${control} w-full bg-red-800`} disabled={busy} onClick={() => void start()}>{busy ? 'Preparando almacenamiento…' : 'Iniciar grabación'}</button>

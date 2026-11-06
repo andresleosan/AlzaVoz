@@ -8,11 +8,13 @@ import {
   type ReactNode,
 } from "react";
 import { type AppMode, MODES_CONFIG, type ModeConfig } from "@/types/mode";
+import { usePathname } from "next/navigation";
 
 interface AppModeContextValue {
   mode: AppMode;
   modeConfig: ModeConfig;
-  setMode: (mode: AppMode) => void;
+  isNavigationLocked: boolean;
+  setNavigationLocked: (locked: boolean) => void;
   isCamouflaged: boolean;
   toggleCamouflage: () => void;
   setCamouflage: (active: boolean) => void;
@@ -28,8 +30,10 @@ export function AppModeProvider({
   children: ReactNode;
   initialMode?: AppMode;
 }) {
-  const [mode, setModeState] = useState<AppMode>(initialMode);
+  const pathname = usePathname();
+  const mode: AppMode = pathname === "/sos" || pathname === "/defender" ? "defender" : initialMode;
   const [isCamouflaged, setIsCamouflaged] = useState<boolean>(false);
+  const [isNavigationLocked, setNavigationLocked] = useState(false);
 
   const triggerHaptic = useCallback((durationMs: number = 40) => {
     if (typeof window !== "undefined" && "navigator" in window && "vibrate" in navigator) {
@@ -40,11 +44,6 @@ export function AppModeProvider({
       }
     }
   }, []);
-
-  const setMode = useCallback((newMode: AppMode) => {
-    setModeState(newMode);
-    triggerHaptic(30);
-  }, [triggerHaptic]);
 
   const toggleCamouflage = useCallback(() => {
     setIsCamouflaged((prev) => {
@@ -65,7 +64,8 @@ export function AppModeProvider({
       value={{
         mode,
         modeConfig,
-        setMode,
+        isNavigationLocked,
+        setNavigationLocked,
         isCamouflaged,
         toggleCamouflage,
         setCamouflage,

@@ -141,11 +141,12 @@ test.describe("Tarea 4: Bloque 1 (Parte B): Alza Bot Defensor Legal en Vivo y Ch
     await expect(page.locator('button[aria-label="Compartir acta por WhatsApp"]')).toBeVisible();
   });
 
-  test("6. Integración en HomePage mediante ancla #defensor-reten", async ({
+  test("6. El acceso de inicio abre el flujo de defensor en su propia pantalla", async ({
     page,
   }) => {
-    await page.goto("/#defensor-reten");
-    const panelOnHome = page.locator('#defensor-reten section[aria-label="Defensor Legal en Vivo y Choques Solo Latas"]');
-    await expect(panelOnHome).toBeVisible();
+    await page.goto("/");
+    await page.locator('main a[href="/defender"]').click();
+    await expect(page).toHaveURL(/\/defender\/?$/);
+    await expect(page.locator('section[aria-label="Defensor Legal en Vivo y Choques Solo Latas"]')).toBeVisible();
   });
 });

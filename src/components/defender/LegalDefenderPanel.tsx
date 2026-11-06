@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useCallback, useTransition } from "react";
-import Image from "next/image";
 import {
   Scale,
   Car,
   Search,
-  Sparkles,
   Camera,
   ShieldAlert,
   Wine,
@@ -14,8 +12,8 @@ import {
   FileText,
   Loader2,
   HelpCircle,
+  X,
 } from "lucide-react";
-import { AlzaBotAvatar } from "@/components/AlzaBotAvatar";
 import { LegalConsultationCard } from "@/components/defender/LegalConsultationCard";
 import { SoloLatasAssistant } from "@/components/defender/SoloLatasAssistant";
 import { LEGAL_PRESETS, LEGAL_RESPONSES_REPOSITORY, findLocalLegalResponse } from "@/data/legalKnowledgeBase";
@@ -143,41 +141,20 @@ export function LegalDefenderPanel({
   return (
     <section
       aria-label="Defensor Legal en Vivo y Choques Solo Latas"
-      className={`space-y-4 ${className}`}
+      className={`space-y-6 ${className}`}
     >
       {/* Banner Principal del Defensor Legal */}
-      <div className="relative rounded-2xl overflow-hidden border border-red-500/40 bg-[#111827] p-4 shadow-[0_0_25px_rgba(239,68,68,0.3)]">
-        <div className="absolute inset-0 opacity-20 pointer-events-none">
-          <Image
-            src="/assets/alzabot/bot-defender-scene.jpg"
-            alt=""
-            fill
-            className="object-cover"
-            priority
-          />
-        </div>
-
-        <div className="relative z-10 flex items-center gap-3.5">
-          <AlzaBotAvatar mode="defender" size="lg" interactive showLivePulse />
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
-              <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-red-400 font-mono">
-                Alza Bot Defensor Legal
-              </span>
-            </div>
-            <h2 className="text-base sm:text-lg font-bold text-white truncate">
-              Asistencia Jurídica en Vía Pública
-            </h2>
-            <p className="text-[11px] text-gray-300 leading-tight">
-              Ley 769 (Tránsito), Ley 1801 (Policía - Art. 21) y Ley 2251 (Solo Latas).
-            </p>
-          </div>
-        </div>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-semibold text-white sm:text-3xl">
+          Asistencia Jurídica en Vía Pública
+        </h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-gray-400">
+          Ley 769 (Tránsito), Ley 1801 (Policía - Art. 21) y Ley 2251 (Solo Latas).
+        </p>
       </div>
 
       {/* Selector Táctil de Pestañas (Fitts' Law >= 56px) */}
-      <div className="grid grid-cols-2 gap-2 bg-black/40 p-1.5 rounded-xl border border-gray-800">
+      <div className="grid grid-cols-2 gap-2 rounded-xl border border-gray-800 bg-gray-900/50 p-1.5 sm:max-w-lg">
         <button
           type="button"
           onClick={() => {
@@ -185,9 +162,9 @@ export function LegalDefenderPanel({
             setActiveTab("consultor");
           }}
           aria-pressed={activeTab === "consultor"}
-          className={`touch-target-min min-h-[56px] flex items-center justify-center gap-2 px-3 rounded-lg text-xs font-bold transition active:scale-95 ${
+          className={`touch-target-min flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
             activeTab === "consultor"
-              ? "bg-red-600 text-white shadow-lg shadow-red-900/50"
+              ? "bg-gray-700 text-white"
               : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/40"
           }`}
         >
@@ -202,9 +179,9 @@ export function LegalDefenderPanel({
             setActiveTab("sololatas");
           }}
           aria-pressed={activeTab === "sololatas"}
-          className={`touch-target-min min-h-[56px] flex items-center justify-center gap-2 px-3 rounded-lg text-xs font-bold transition active:scale-95 ${
+          className={`touch-target-min flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
             activeTab === "sololatas"
-              ? "bg-amber-500 text-black shadow-lg shadow-amber-900/50"
+              ? "bg-gray-700 text-white"
               : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/40"
           }`}
         >
@@ -215,123 +192,124 @@ export function LegalDefenderPanel({
 
       {/* CONTENIDO PESTAÑA 1: CONSULTOR DE RETENES Y LEYES */}
       {activeTab === "consultor" && (
-        <div className="space-y-4">
-          {/* Buscador Rápido con IA DeepSeek */}
-          <form
-            onSubmit={handleCustomSearch}
-            className="flex gap-2"
-            aria-label="Buscar asesoría jurídica rápida"
-          >
-            <div className="relative flex-1">
-              <input
-                type="text"
-                value={userQuery}
-                onChange={(e) => setUserQuery(e.target.value)}
-                placeholder="¿Qué te dice el policía o agente de tránsito?"
-                aria-label="Pregunta sobre retén o procedimiento policial"
-                className="w-full min-h-[52px] bg-gray-900/90 border border-gray-700 focus:border-red-500 rounded-xl px-3.5 pr-9 text-xs sm:text-sm text-white placeholder-gray-500 focus:outline-none transition"
-              />
-              {userQuery && (
-                <button
-                  type="button"
-                  onClick={() => setUserQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading || !userQuery.trim()}
-              aria-label="Consultar a Alza Bot Defensor"
-              className={`touch-target-min min-h-[52px] px-4 flex items-center justify-center rounded-xl font-bold text-xs transition active:scale-95 ${
-                isLoading || !userQuery.trim()
-                  ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
-                  : "bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/40"
-              }`}
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+          <div className="min-w-0 space-y-6">
+            {/* Buscador Rápido con IA DeepSeek */}
+            <form
+              onSubmit={handleCustomSearch}
+              className="flex gap-2"
+              aria-label="Buscar asesoría jurídica rápida"
             >
-              {isLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <Search className="w-5 h-5" />
-              )}
-            </button>
-          </form>
-
-          {/* Presets Rápidos de 1 Toque (Ergonomía de Alto Estrés) */}
-          <section aria-label="Casos Rápidos de Retén">
-            <div className="flex items-center justify-between mb-2 px-1">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">
-                Casos Frecuentes en Vía Pública
-              </h3>
-              <span className="text-[10px] text-amber-400 flex items-center gap-1 font-mono">
-                <Sparkles className="w-3 h-3" />
-                Respuesta 0ms
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {LEGAL_PRESETS.map((preset) => {
-                const isSelected = selectedPresetId === preset.id;
-                return (
+              <div className="relative min-w-0 flex-1">
+                <input
+                  type="text"
+                  value={userQuery}
+                  onChange={(e) => setUserQuery(e.target.value)}
+                  placeholder="¿Qué te dice el policía o agente de tránsito?"
+                  aria-label="Pregunta sobre retén o procedimiento policial"
+                  className="min-h-14 w-full rounded-xl border border-gray-700 bg-gray-900 px-3.5 pr-12 text-base text-white placeholder-gray-400 focus:border-red-400 focus:outline-none"
+                />
+                {userQuery && (
                   <button
-                    key={preset.id}
                     type="button"
-                    onClick={() => handleSelectPreset(preset)}
-                    aria-pressed={isSelected}
-                    className={`touch-target-min min-h-[58px] flex items-center gap-2.5 p-3 rounded-xl border text-left transition active:scale-95 ${
-                      isSelected
-                        ? "bg-red-950/60 border-red-500/80 text-white ring-1 ring-red-500 shadow-[0_0_15px_rgba(239,68,68,0.3)]"
-                        : "bg-gray-900/50 border-gray-800 text-gray-300 hover:bg-gray-800/60"
-                    }`}
+                    onClick={() => setUserQuery("")}
+                    aria-label="Borrar la pregunta"
+                    className="absolute right-0 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-white"
                   >
-                    <div className="w-9 h-9 rounded-lg bg-black/60 border border-gray-800 flex items-center justify-center shrink-0">
-                      {renderPresetIcon(preset.iconName)}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold truncate leading-tight">
-                        {preset.label}
-                      </p>
-                      <p className="text-[10px] text-gray-400 truncate mt-0.5">
-                        {preset.shortDescription}
-                      </p>
-                    </div>
+                    <X className="h-4 w-4" />
                   </button>
-                );
-              })}
-            </div>
-          </section>
+                )}
+              </div>
 
-          {/* Renderizado de Asesoría en los 3 Bloques Obligatorios */}
-          {isLoading ? (
-            <div className="rounded-2xl border border-red-500/40 bg-gray-900/60 p-8 flex flex-col items-center justify-center gap-3 text-center">
-              <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
-              <p className="text-sm font-bold text-white">
-                Alza Bot analizando legislación colombiana...
-              </p>
-              <p className="text-xs text-gray-400">
-                Estructurando Cita de Norma, Guion de Lectura y Checklist de Grabación.
-              </p>
-            </div>
-          ) : (
-            <LegalConsultationCard response={activeResponse} />
-          )}
+              <button
+                type="submit"
+                disabled={isLoading || !userQuery.trim()}
+                aria-label="Consultar a Alza Bot Defensor"
+                className={`touch-target-min flex items-center justify-center rounded-xl px-4 text-sm font-semibold transition-colors ${
+                  isLoading || !userQuery.trim()
+                    ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
+                    : "bg-red-700 text-white hover:bg-red-600"
+                }`}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Search className="w-5 h-5" />
+                )}
+              </button>
+            </form>
 
-          {/* Tip de Contacto Directo */}
-          <div className="rounded-xl border border-gray-800 bg-gray-900/40 p-3 flex items-center justify-between text-xs text-gray-400">
-            <span className="flex items-center gap-1.5">
-              <HelpCircle className="w-4 h-4 text-cyan-400 shrink-0" />
-              ¿Arbitrariedad grave en retén? Documenta y solicita personero.
-            </span>
-            <button
-              type="button"
-              onClick={() => handleSelectPreset(LEGAL_PRESETS[0])}
-              className="text-red-400 hover:text-red-300 font-bold shrink-0 ml-2"
-            >
-              Ver Art. 21
-            </button>
+            {/* Presets Rápidos de 1 Toque (Ergonomía de Alto Estrés) */}
+            <section aria-label="Casos Rápidos de Retén">
+              <div className="mb-3">
+                <h3 className="text-base font-semibold text-white">
+                  Casos Frecuentes en Vía Pública
+                </h3>
+              </div>
+
+              <div className="grid gap-2">
+                {LEGAL_PRESETS.map((preset) => {
+                  const isSelected = selectedPresetId === preset.id;
+                  return (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleSelectPreset(preset)}
+                      aria-pressed={isSelected}
+                      className={`touch-target-min flex items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
+                        isSelected
+                          ? "border-red-500/70 bg-red-950/30 text-white"
+                          : "bg-gray-900/50 border-gray-800 text-gray-300 hover:bg-gray-800/60"
+                      }`}
+                    >
+                      <div className="flex w-6 shrink-0 items-center justify-center">
+                        {renderPresetIcon(preset.iconName)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold leading-snug">
+                          {preset.label}
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                          {preset.shortDescription}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          </div>
+
+          <div className="min-w-0 space-y-6">
+            {/* Renderizado de Asesoría en los 3 Bloques Obligatorios */}
+            {isLoading ? (
+              <div className="rounded-2xl border border-red-500/40 bg-gray-900/60 p-8 flex flex-col items-center justify-center gap-3 text-center">
+                <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
+                <p className="text-sm font-bold text-white">
+                  Alza Bot analizando legislación colombiana...
+                </p>
+                <p className="text-sm leading-relaxed text-gray-400">
+                  Estructurando Cita de Norma, Guion de Lectura y Checklist de Grabación.
+                </p>
+              </div>
+            ) : (
+              <LegalConsultationCard response={activeResponse} />
+            )}
+
+            {/* Tip de Contacto Directo */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-800 pt-4 text-sm text-gray-400">
+              <span className="flex items-center gap-1.5">
+                <HelpCircle className="w-4 h-4 text-cyan-400 shrink-0" />
+                ¿Arbitrariedad grave en retén? Documenta y solicita personero.
+              </span>
+              <button
+                type="button"
+                onClick={() => handleSelectPreset(LEGAL_PRESETS[0])}
+                className="min-h-14 shrink-0 rounded-lg px-3 font-semibold text-red-400 hover:bg-gray-900 hover:text-red-300"
+              >
+                Ver Art. 21
+              </button>
+            </div>
           </div>
         </div>
       )}

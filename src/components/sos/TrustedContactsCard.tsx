@@ -69,12 +69,12 @@ export function TrustedContactsCard({
   return (
     <section
       aria-label="Contactos de Confianza y Red de Apoyo"
-      className="rounded-2xl border border-gray-800 bg-gray-900/60 p-4 space-y-3"
+      className="space-y-4 border-t border-gray-800 pt-6"
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-red-400" />
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-200">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <Users className="h-5 w-5 shrink-0 text-gray-400" />
+          <h2 className="text-base font-semibold text-white">
             Red de Contactos de Confianza
           </h2>
         </div>
@@ -87,14 +87,14 @@ export function TrustedContactsCard({
           }}
           aria-expanded={showAddForm}
           aria-label="Agregar nuevo contacto de confianza"
-          className="touch-target-min min-h-[44px] px-3 flex items-center gap-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-semibold active:scale-95 transition"
+          className="touch-target-min flex shrink-0 items-center gap-2 rounded-lg bg-gray-800 px-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-gray-700"
         >
           <UserPlus className="w-4 h-4 text-red-400" />
           <span>{showAddForm ? "Cancelar" : "Agregar"}</span>
         </button>
       </div>
 
-      <p className="text-[11px] text-gray-400 leading-relaxed">
+      <p className="text-sm leading-relaxed text-gray-400">
         Guarda tus seres queridos o abogado para alertarlos al instante por llamada o WhatsApp con tu ubicación GPS.
       </p>
 
@@ -102,17 +102,17 @@ export function TrustedContactsCard({
       {showAddForm && (
         <form
           onSubmit={handleSubmit}
-          className="bg-black/60 rounded-xl p-3 border border-red-500/40 space-y-2.5 animate-fadeIn"
+          className="space-y-4 rounded-xl border border-gray-700 bg-gray-900/50 p-4"
         >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-red-300">
+          <div className="space-y-1">
+            <p className="text-base font-semibold text-white">
               Nuevo Contacto de Respaldo
-            </span>
-            <span className="text-[10px] text-gray-400">Guarda en tu celular</span>
+            </p>
+            <p className="text-sm text-gray-400">Guarda en tu celular</p>
           </div>
 
           {formError && (
-            <div className="bg-red-950/60 border border-red-700 text-red-300 text-xs rounded-lg p-2 flex items-center gap-1.5">
+            <div className="flex items-center gap-2 rounded-lg border border-red-700 bg-red-950/60 p-3 text-sm text-red-200">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{formError}</span>
             </div>
@@ -121,7 +121,7 @@ export function TrustedContactsCard({
           <div>
             <label
               htmlFor="contact-name"
-              className="block text-[11px] font-semibold text-gray-300 mb-1"
+              className="mb-2 block text-sm font-medium text-gray-300"
             >
               Nombre Completo
             </label>
@@ -133,15 +133,15 @@ export function TrustedContactsCard({
               placeholder="Ej: Mamá, Pareja o Abogado"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500"
+              className="min-h-14 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-base text-white placeholder-gray-400 focus:border-red-400 focus:outline-none"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid gap-4">
             <div>
               <label
                 htmlFor="contact-phone"
-                className="block text-[11px] font-semibold text-gray-300 mb-1"
+                className="mb-2 block text-sm font-medium text-gray-300"
               >
                 Celular (Colombia)
               </label>
@@ -153,14 +153,14 @@ export function TrustedContactsCard({
                 placeholder="300 123 4567"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-red-500 font-mono"
+                className="min-h-14 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-base text-white placeholder-gray-400 focus:border-red-400 focus:outline-none"
               />
             </div>
 
             <div>
               <label
                 htmlFor="contact-rel"
-                className="block text-[11px] font-semibold text-gray-300 mb-1"
+                className="mb-2 block text-sm font-medium text-gray-300"
               >
                 Parentesco
               </label>
@@ -168,7 +168,7 @@ export function TrustedContactsCard({
                 id="contact-rel"
                 value={relationship}
                 onChange={(e) => setRelationship(e.target.value)}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-2 py-2 text-xs text-white focus:outline-none focus:border-red-500"
+                className="min-h-14 w-full rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-base text-white focus:border-red-400 focus:outline-none"
               >
                 <option value="Mamá / Papá">Mamá / Papá</option>
                 <option value="Pareja">Pareja</option>
@@ -183,7 +183,7 @@ export function TrustedContactsCard({
 
           <button
             type="submit"
-            className="touch-target-min min-h-[48px] w-full mt-1 flex items-center justify-center gap-2 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs font-bold active:scale-95 transition shadow-md shadow-red-900/40"
+            className="touch-target-min flex w-full items-center justify-center gap-2 rounded-xl bg-red-700 px-3 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-600"
           >
             <Check className="w-4 h-4" />
             <span>Guardar Contacto de Confianza</span>
@@ -192,47 +192,43 @@ export function TrustedContactsCard({
       )}
 
       {/* Lista de Contactos */}
-      <div className="space-y-2">
+      <div className="divide-y divide-gray-800">
         {contacts.map((contact) => {
           const waUrl = getWhatsAppLink(contact.phone);
           return (
             <div
               key={contact.id}
-              className={`rounded-xl p-3 border flex items-center justify-between gap-2.5 transition ${
-                contact.isCivicOfficial
-                  ? "bg-emerald-950/30 border-emerald-700/60"
-                  : "bg-gray-950/80 border-gray-800"
-              }`}
+              className="space-y-3 py-4 first:pt-0"
             >
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs font-bold text-white truncate">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="break-words text-base font-semibold text-white">
                     {contact.name}
                   </p>
                   {contact.isCivicOfficial && (
-                    <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-900/80 text-emerald-300 border border-emerald-600/50">
+                    <span className="flex items-center gap-1 text-xs font-medium text-emerald-300">
                       <ShieldCheck className="w-3 h-3 text-emerald-300" />
                       Oficial
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 mt-0.5 text-[11px] text-gray-400">
-                  <span className="font-mono text-gray-300">{contact.phone}</span>
-                  <span>•</span>
-                  <span className="truncate">{contact.relationship}</span>
+                <div className="mt-1 space-y-1 text-sm leading-relaxed text-gray-400">
+                  <p className="font-tabular text-gray-300">{contact.phone}</p>
+                  <p>{contact.relationship}</p>
                 </div>
               </div>
 
               {/* Botones de Acción de 1 Toque */}
-              <div className="flex items-center gap-1.5 shrink-0">
+              <div className="flex flex-wrap items-center gap-2">
                 <a
                   href={`tel:${contact.phone}`}
                   onClick={() => triggerHaptic(40)}
                   aria-label={`Llamar a ${contact.name}`}
-                  className="touch-target-min min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 active:scale-95 transition"
+                  className="touch-target-min flex items-center justify-center gap-2 rounded-lg bg-gray-800 px-3 text-sm font-medium text-gray-200 transition-colors hover:bg-gray-700"
                 >
                   <Phone className="w-4 h-4 text-emerald-400" />
+                  <span>Llamar</span>
                 </a>
 
                 <a
@@ -241,9 +237,10 @@ export function TrustedContactsCard({
                   rel="noopener noreferrer"
                   onClick={() => triggerHaptic(40)}
                   aria-label={`Enviar alerta SOS por WhatsApp a ${contact.name}`}
-                  className="touch-target-min min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-emerald-900/60 hover:bg-emerald-800/80 border border-emerald-600/50 text-white active:scale-95 transition"
+                  className="touch-target-min flex items-center justify-center gap-2 rounded-lg border border-emerald-800 bg-emerald-950/40 px-3 text-sm font-medium text-emerald-200 transition-colors hover:bg-emerald-900/60"
                 >
                   <MessageCircle className="w-4 h-4 text-emerald-300" />
+                  <span>WhatsApp</span>
                 </a>
 
                 {!contact.isCivicOfficial && (
@@ -251,7 +248,7 @@ export function TrustedContactsCard({
                     type="button"
                     onClick={() => handleRemove(contact.id)}
                     aria-label={`Eliminar contacto ${contact.name}`}
-                    className="touch-target-min min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg bg-gray-900 hover:bg-red-950/60 text-gray-500 hover:text-red-400 active:scale-95 transition"
+                    className="touch-target-min flex items-center justify-center rounded-lg bg-gray-900 text-gray-400 transition-colors hover:bg-red-950/60 hover:text-red-300"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

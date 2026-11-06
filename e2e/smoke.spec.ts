@@ -1,46 +1,27 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("AlzaVoz Cimentación & PWA Setup", () => {
-  test("Carga Home con identidad oficial, Alza Bot y módulos táctiles de 56px", async ({ page }) => {
+test.describe("AlzaVoz: inicio y PWA", () => {
+  test("el inicio conserva la identidad y ofrece acceso a cada herramienta disponible", async ({ page }) => {
     await page.goto("/");
-
-    // 1. Verificar título y metadatos
     await expect(page).toHaveTitle(/AlzaVoz & Alza Bot/i);
+    await expect(page.locator("header")).toContainText("AlzaVoz");
+    await expect(page.locator("header")).toContainText("Medellín");
 
-    // 2. Verificar cabecera e identidad oficial
-    const brand = page.locator("header");
-    await expect(brand).toContainText("AlzaVoz");
-    await expect(brand).toContainText("Medellín");
-
-    // 3. Verificar los 4 módulos de alta urgencia (UX bajo estrés)
-    const sosButton = page.locator('a[href="#sos-panico"]');
-    const legalButton = page.locator('a[href="#defensor-reten"]');
-    const violetaButton = page.locator('a[href="#escudo-violeta"]');
-    const radarButton = page.locator('a[href="#radar-comunitario"]');
-
-    await expect(sosButton).toBeVisible();
-    await expect(legalButton).toBeVisible();
-    await expect(violetaButton).toBeVisible();
-    await expect(radarButton).toBeVisible();
-
-    // 4. Verificar accesibilidad de zona táctil mínima (Fitts' Law >= 56px de alto)
-    const box = await sosButton.boundingBox();
-    expect(box).not.toBeNull();
-    if (box) {
-      expect(box.height).toBeGreaterThanOrEqual(56);
+    for (const href of ["/sos", "/defender", "/record", "tel:155"]) {
+      await expect(page.locator(`main a[href="${href}"]`)).toBeVisible();
     }
+
+    const sos = await page.locator('main a[href="/sos"]').boundingBox();
+    expect(sos).not.toBeNull();
+    expect(sos!.height).toBeGreaterThanOrEqual(56);
   });
 
-  test("Verifica disponibilidad de manifest.json e iconos PWA", async ({ request }) => {
-    const manifestRes = await request.get("/manifest.json");
-    expect(manifestRes.status()).toBe(200);
-
-    const manifest = await manifestRes.json();
+  test("el manifiesto y los iconos PWA están disponibles", async ({ request }) => {
+    const response = await request.get("/manifest.json");
+    expect(response.status()).toBe(200);
+    const manifest = await response.json();
     expect(manifest.name).toBe("AlzaVoz & Alza Bot");
     expect(manifest.theme_color).toBe("#06B6D4");
-
-    const iconRes = await request.get("/assets/brand/icon-512.svg");
-    expect(iconRes.status()).toBe(200);
+    expect((await request.get("/assets/brand/icon-512.svg")).status()).toBe(200);
   });
 });
-

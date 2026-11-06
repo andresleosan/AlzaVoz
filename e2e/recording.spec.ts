@@ -176,6 +176,60 @@ test('la salida rápida no pide confirmación mientras graba', async ({ page }) 
   expect(dialogs).toEqual([]);
 });
 
+test('la navegación y la marca conservan la captura hasta detenerla y recibir los clips', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/record');
+  await page.getByRole('button', { name: 'Iniciar grabación', exact: true }).click();
+  await expect(page.getByText('Cámara y micrófono activos', { exact: true })).toBeVisible();
+  const key = await page.getByLabel('Clave de recuperación', { exact: true }).inputValue();
+  const home = page.getByRole('navigation', { name: 'Navegación principal', exact: true }).getByRole('link', { name: 'Inicio', exact: true });
+  const brand = page.locator('.app-sidebar').getByRole('link', { name: 'AlzaVoz · Inicio', exact: true });
+
+  for (const link of [home, brand]) {
+    await expect(link).toHaveAttribute('aria-disabled', 'true');
+    // Keyboard activation also checks that disabling is behavioral, not just a pointer style.
+    await link.press('Enter');
+    await expect(page).toHaveURL(/\/record\/?$/);
+    await expect(page.getByText('Cámara y micrófono activos', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Clave de recuperación', { exact: true })).toHaveValue(key);
+  }
+
+  await expect(page.getByTestId('received-count')).toHaveText(/^[1-9]\d*$/, { timeout: 15000 });
+  await page.getByRole('button', { name: 'Detener grabación', exact: true }).click();
+  await expect(page.getByText('Captura detenida', { exact: true })).toBeVisible();
+  await expect(page.getByTestId('pending-count')).toHaveText('0');
+  await expect(home).not.toHaveAttribute('aria-disabled', 'true');
+  await home.click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: '¿En qué necesitas ayuda?', exact: true })).toBeVisible();
+});
+
+test('los clips pendientes mantienen la navegación bloqueada hasta confirmar el reintento', async ({ page }) => {
+  await page.route('**/api/recordings/sessions/*/clips/*', route => route.request().method() === 'PUT'
+    ? route.fulfill({ status: 503, json: { error: 'Almacenamiento temporalmente no disponible.' } })
+    : route.continue());
+  await page.goto('/record');
+  await page.getByRole('button', { name: 'Iniciar grabación', exact: true }).click();
+  await expect(page.getByTestId('pending-count')).toHaveText(/^[1-9]\d*$/, { timeout: 15000 });
+  await page.getByRole('button', { name: 'Detener grabación', exact: true }).click();
+  await expect(page.getByText('Captura detenida', { exact: true })).toBeVisible();
+  const pending = await page.getByTestId('pending-count').innerText();
+  const home = page.getByRole('navigation', { name: 'Navegación móvil', exact: true }).getByRole('link', { name: 'Inicio', exact: true });
+  await expect(home).toHaveAttribute('aria-disabled', 'true');
+  await home.press('Enter');
+  await expect(page).toHaveURL(/\/record\/?$/);
+  await expect(page.getByTestId('pending-count')).toHaveText(pending);
+  await expect(page.getByTestId('received-count')).toHaveText('0');
+
+  await page.unroute('**/api/recordings/sessions/*/clips/*');
+  await page.getByRole('button', { name: /Reintentar .* pendientes/ }).click();
+  await expect(page.getByTestId('pending-count')).toHaveText('0');
+  await expect(page.getByTestId('received-count')).toHaveText(pending);
+  await expect(home).not.toHaveAttribute('aria-disabled', 'true');
+  await home.click();
+  await expect(page).toHaveURL(/\/$/);
+});
+
 test('cancelar permiso pendiente permite preparar otra grabación', async ({ page }) => {
   await page.addInitScript(() => {
     let first = true;

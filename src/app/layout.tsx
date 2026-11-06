@@ -7,8 +7,7 @@ export const viewport: Viewport = {
   themeColor: "#06B6D4",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -53,7 +52,7 @@ export default function RootLayout({
     <html lang="es" className="dark h-full bg-[#0B0F19]">
       <body className="h-full flex flex-col bg-[#0B0F19] text-[#F9FAFB] antialiased selection:bg-cyan-500/30">
         <AppModeProvider>
-          <div className="flex-1 w-full max-w-md mx-auto flex flex-col relative overflow-x-hidden">
+          <div className="flex-1 w-full">
             {children}
           </div>
         </AppModeProvider>

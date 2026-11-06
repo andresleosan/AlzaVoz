@@ -9,7 +9,6 @@ import {
   Copy,
   Check,
   AlertTriangle,
-  Sparkles,
   ShieldCheck,
 } from "lucide-react";
 import { type LegalResponse } from "@/types/defender";
@@ -53,48 +52,43 @@ export function LegalConsultationCard({
   return (
     <article
       aria-label={`Asesoría Jurídica: ${response.title}`}
-      className={`rounded-2xl border border-red-500/40 bg-gray-900/90 shadow-[0_0_25px_rgba(239,68,68,0.25)] p-4 sm:p-5 space-y-4 text-white transition-all ${className}`}
+      className={`min-w-0 space-y-6 rounded-2xl border border-gray-800 bg-gray-900/40 p-4 text-white sm:p-6 ${className}`}
     >
       {/* Cabecera del Caso */}
-      <div className="flex items-start justify-between gap-3 border-b border-gray-800 pb-3">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-red-950/80 text-red-400 border border-red-700/60">
-              {response.category.toUpperCase()}
-            </span>
-            <span className="text-[10px] text-gray-400 flex items-center gap-1 font-mono">
-              <Sparkles className="w-3 h-3 text-amber-400" />
-              {response.source === "deepseek-ai" ? "IA DeepSeek Jurídica" : "Base Cívica Certificada"}
-            </span>
-          </div>
-          <h3 className="text-base sm:text-lg font-bold text-white leading-snug">
-            {response.title}
-          </h3>
+      <div className="space-y-3">
+        <h3 className="text-xl font-semibold leading-snug text-white">
+          {response.title}
+        </h3>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-400">
+          <span>{response.category.toUpperCase()}</span>
+          <span>
+            {response.source === "deepseek-ai" ? "IA DeepSeek Jurídica" : "Base Cívica Certificada"}
+          </span>
         </div>
       </div>
 
       {/* BLOQUE 1: CITA DE NORMA EXACTA */}
       <section
         aria-label="Bloque 1: Cita de Norma Exacta"
-        className="rounded-xl border border-amber-500/40 bg-amber-950/20 p-3.5 space-y-2"
+        className="space-y-4 border-t border-gray-800 pt-6"
       >
-        <div className="flex items-center gap-2 text-amber-400 font-bold text-xs uppercase tracking-wide">
-          <Scale className="w-4 h-4 shrink-0 text-amber-400" />
+        <div className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
+          <Scale className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
           <span>1. Cita de Norma Exacta (Sustento Jurídico)</span>
         </div>
 
-        <div className="space-y-1.5 pl-6 border-l-2 border-amber-500/50">
-          <p className="text-xs sm:text-sm font-bold text-amber-200">
+        <div className="space-y-3">
+          <p className="text-base font-semibold leading-relaxed text-amber-200">
             {response.lawCitation.lawNumber}
           </p>
-          <p className="text-xs font-semibold text-amber-300/90 font-mono">
+          <p className="text-sm font-medium leading-relaxed text-gray-200">
             {response.lawCitation.article}
           </p>
-          <p className="text-xs text-gray-300 leading-relaxed">
+          <p className="text-sm leading-relaxed text-gray-300">
             {response.lawCitation.summary}
           </p>
           {response.lawCitation.officialTextExcerpt && (
-            <p className="text-[11px] text-gray-400 italic bg-black/40 p-2 rounded border border-gray-800/80">
+            <p className="text-sm italic leading-relaxed text-gray-400">
               {response.lawCitation.officialTextExcerpt}
             </p>
           )}
@@ -104,18 +98,18 @@ export function LegalConsultationCard({
       {/* BLOQUE 2: GUION RESPETUOSO Y FIRME PARA LEER AL AGENTE */}
       <section
         aria-label="Bloque 2: Guion para Leer al Agente"
-        className="rounded-xl border border-red-500/40 bg-red-950/20 p-3.5 space-y-3"
+        className="space-y-4 border-t border-gray-800 pt-6"
       >
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-red-400 font-bold text-xs uppercase tracking-wide">
-            <MessageSquareQuote className="w-4 h-4 shrink-0 text-red-400" />
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
+            <MessageSquareQuote className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
             <span>2. Guion para Leer al Agente / Policía</span>
           </div>
           <button
             type="button"
             onClick={handleCopyScript}
             aria-label="Copiar guion al portapapeles"
-            className="touch-target-min min-h-[44px] px-3 flex items-center gap-1.5 rounded-lg bg-red-900/60 hover:bg-red-800 border border-red-500/50 text-white text-xs font-semibold active:scale-95 transition"
+            className="touch-target-min flex shrink-0 items-center gap-2 rounded-lg border border-gray-700 bg-gray-800 px-3 text-sm font-medium text-white transition-colors hover:bg-gray-700"
           >
             {copiedScript ? (
               <>
@@ -124,7 +118,7 @@ export function LegalConsultationCard({
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-red-300" />
+                <Copy className="h-4 w-4 text-gray-300" />
                 <span>Copiar Guion</span>
               </>
             )}
@@ -132,16 +126,16 @@ export function LegalConsultationCard({
         </div>
 
         {/* Caja de Texto Gigante de Alta Legibilidad */}
-        <div className="bg-black/60 rounded-xl p-3.5 border border-red-500/30 text-white shadow-inner">
+        <div className="text-white">
           <p
             data-testid="agent-script-text"
-            className="text-sm sm:text-base font-semibold leading-relaxed text-gray-100 selection:bg-red-500"
+            className="text-base font-medium leading-relaxed text-gray-100"
           >
             {response.agentScript.scriptText}
           </p>
         </div>
 
-        <div className="flex items-start gap-2 text-[11px] text-gray-400 bg-gray-900/60 p-2 rounded-lg border border-gray-800">
+        <div className="flex items-start gap-2 text-sm leading-relaxed text-gray-400">
           <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold text-gray-300">Consejo de Tono: </span>
@@ -153,14 +147,14 @@ export function LegalConsultationCard({
       {/* BLOQUE 3: CHECKLIST DE PRUEBAS A GRABAR */}
       <section
         aria-label="Bloque 3: Checklist de Pruebas a Grabar"
-        className="rounded-xl border border-emerald-500/40 bg-emerald-950/20 p-3.5 space-y-3"
+        className="space-y-4 border-t border-gray-800 pt-6"
       >
-        <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs uppercase tracking-wide">
-          <CheckSquare className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
+          <CheckSquare className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
           <span>3. Checklist de Pruebas a Grabar en Vivo</span>
         </div>
 
-        <ul className="space-y-2">
+        <ul className="divide-y divide-gray-800">
           {response.evidenceChecklist.map((item) => {
             const isChecked = !!checkedItems[item.id];
             return (
@@ -169,25 +163,25 @@ export function LegalConsultationCard({
                   type="button"
                   onClick={() => toggleCheck(item.id)}
                   aria-pressed={isChecked}
-                  className={`touch-target-min min-h-[48px] w-full flex items-start gap-3 p-2.5 rounded-lg text-left transition active:scale-[0.99] border ${
+                  className={`touch-target-min flex w-full items-start gap-3 rounded-lg px-1 py-4 text-left transition-colors ${
                     isChecked
-                      ? "bg-emerald-900/40 border-emerald-500/60 text-emerald-200"
-                      : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/50"
+                      ? "bg-emerald-950/30 text-emerald-200"
+                      : "text-gray-300 hover:bg-gray-800/50"
                   }`}
                 >
                   <span className="mt-0.5 shrink-0">
                     {isChecked ? (
                       <CheckSquare className="w-5 h-5 text-emerald-400" />
                     ) : (
-                      <Square className="w-5 h-5 text-gray-500" />
+                      <Square className="h-5 w-5 text-gray-400" />
                     )}
                   </span>
-                  <div className="flex-1 text-xs sm:text-sm">
+                  <div className="min-w-0 flex-1 text-sm leading-relaxed">
                     <span className={isChecked ? "line-through opacity-80" : ""}>
                       {item.instruction}
                     </span>
                     {item.isMandatory && (
-                      <span className="ml-2 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                      <span className="ml-2 text-xs font-semibold text-amber-300">
                         [Vital]
                       </span>
                     )}
@@ -201,10 +195,10 @@ export function LegalConsultationCard({
 
       {/* Alerta Preventiva Clave */}
       {response.keyWarning && (
-        <div className="rounded-xl bg-red-950/60 border border-red-600/70 p-3 flex items-start gap-2.5 text-xs text-red-200">
-          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0 mt-0.5 animate-pulse" />
+        <div className="flex items-start gap-3 border-t border-red-900 pt-6 text-sm leading-relaxed text-red-200">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
           <div>
-            <span className="font-bold uppercase tracking-wider text-red-300">
+            <span className="font-semibold text-red-300">
               Advertencia Crucial:{" "}
             </span>
             {response.keyWarning}
