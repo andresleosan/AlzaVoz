@@ -1,11 +1,17 @@
 export const CLIP_MS = 3_000;
 export const MAX_CLIP_BYTES = 2 * 1024 * 1024;
 export const MAX_QUEUE_BYTES = 16 * 1024 * 1024;
+export const MAX_RECORDING_BYTES = 64 * 1024 * 1024;
 export const MAX_CLIPS = 100;
 export const MIME_TYPES = ['video/webm;codecs=vp8,opus', 'audio/webm;codecs=opus'] as const;
 export type RecordingMime = (typeof MIME_TYPES)[number];
 export type CaptureMode = 'video' | 'audio';
-export interface RecordingSession { id: string; secret: string; expiresAt: number; uploadUntil: number }
+export type RecordingFormat = 'continuous-webm-v1';
+export interface RecordingCompletion { clipCount: number }
+export interface RecordingSession {
+  id: string; secret: string; expiresAt: number; uploadUntil: number;
+  format?: RecordingFormat; completion?: RecordingCompletion;
+}
 export interface ClipReceipt {
   index: number;
   mime: RecordingMime;
@@ -26,7 +32,14 @@ export function isSession(value: unknown): value is RecordingSession {
   return 'id' in value && typeof value.id === 'string' && UUID.test(value.id)
     && 'secret' in value && typeof value.secret === 'string' && SECRET.test(value.secret)
     && 'expiresAt' in value && typeof value.expiresAt === 'number' && Number.isFinite(value.expiresAt)
-    && 'uploadUntil' in value && typeof value.uploadUntil === 'number' && Number.isFinite(value.uploadUntil);
+    && 'uploadUntil' in value && typeof value.uploadUntil === 'number' && Number.isFinite(value.uploadUntil)
+    && (!('format' in value) || value.format === undefined || value.format === 'continuous-webm-v1')
+    && (!('completion' in value) || value.completion === undefined || ('format' in value && value.format === 'continuous-webm-v1' && isCompletion(value.completion)));
+}
+export function isCompletion(value: unknown): value is RecordingCompletion {
+  return !!value && typeof value === 'object' && 'clipCount' in value
+    && typeof value.clipCount === 'number' && Number.isInteger(value.clipCount)
+    && value.clipCount > 0 && value.clipCount <= MAX_CLIPS;
 }
 export function isReceipt(value: unknown): value is ClipReceipt {
   if (!value || typeof value !== 'object') return false;

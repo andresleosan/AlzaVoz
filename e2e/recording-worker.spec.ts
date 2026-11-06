@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import worker from '../workers/recordings/index';
-import { sha256 } from '../src/lib/recording/contracts';
+import { MAX_CLIP_BYTES, sha256 } from '../src/lib/recording/contracts';
 
 const gateway = 'test-only-gateway-secret-not-used-remotely';
 const secret = '1'.repeat(64);
@@ -32,4 +32,33 @@ test('el límite de creación y el secreto de pasarela se verifican antes de alm
   const env = { ...await fixture(0, 0), SESSION_LIMITER: { limit: async () => ({ success: false }) } };
   expect((await worker.fetch(new Request('https://worker.test/sessions', { method: 'POST' }), env)).status).toBe(401);
   expect((await worker.fetch(new Request('https://worker.test/sessions', { method: 'POST', headers: { 'x-recording-gateway': gateway } }), env)).status).toBe(429);
+});
+
+test('una grabación continua no puede marcarse completa con más de 64 MiB', async () => {
+  const session = { hash: await sha256(new TextEncoder().encode(secret).buffer), expiresAt: Date.now() + 10000, uploadUntil: Date.now() + 10000, format: 'continuous-webm-v1' };
+  const objects = Array.from({ length: 33 }, (_, index) => ({
+    key: `recordings/${id}/clips/${String(index).padStart(3, '0')}`, etag: `clip-${index}`,
+    body: new ReadableStream<Uint8Array>(), json: async <T>() => null as T,
+    customMetadata: { receipt: JSON.stringify({ index, mime: 'video/webm;codecs=vp8,opus', startMs: index * 3000, endMs: (index + 1) * 3000, bytes: MAX_CLIP_BYTES, sha256: '0'.repeat(64), receivedAt: new Date().toISOString() }) },
+  }));
+  const env = {
+    GATEWAY_SECRET: gateway,
+    EVIDENCIAS: {
+      get: async (key: string) => key.endsWith('/session') ? { key, etag: 'session-etag', body: new ReadableStream<Uint8Array>(), json: async <T>() => session as T } : null,
+      list: async () => ({ objects, truncated: false }),
+      put: async () => { throw new Error('Una grabación demasiado grande no debe cerrarse.'); },
+    },
+  };
+  const response = await worker.fetch(new Request(`https://worker.test/sessions/${id}/complete`, {
+    method: 'POST', headers: { 'x-recording-gateway': gateway, authorization: `Bearer ${secret}` }, body: JSON.stringify({ clipCount: 33 }),
+  }), env);
+  expect(response.status).toBe(413);
+});
+
+test('el cierre de una grabación no extiende el plazo de subida', async () => {
+  const env = await fixture(Date.now() + 10000, Date.now() - 1);
+  const response = await worker.fetch(new Request(`https://worker.test/sessions/${id}/complete`, {
+    method: 'POST', headers: { 'x-recording-gateway': gateway, authorization: `Bearer ${secret}` }, body: JSON.stringify({ clipCount: 1 }),
+  }), env);
+  expect(response.status).toBe(403);
 });

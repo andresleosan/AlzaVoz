@@ -4,18 +4,49 @@ const recording = (page: Page) => page.locator('section[aria-labelledby="recordi
 const player = (page: Page) => page.locator('[data-playback]');
 const position = (page: Page) => page.getByTestId('playback-position');
 
-async function captureTwoClips(page: Page, mode: 'audio' | 'video') {
+async function recoverLegacyClips(page: Page, mode: 'audio' | 'video') {
   await page.goto('/record');
-  if (mode === 'audio') await page.getByRole('button', { name: 'Solo audio', exact: true }).click();
-  await page.getByRole('button', { name: 'Iniciar grabación', exact: true }).click();
-  await expect(page.getByTestId('received-count')).toHaveText(/^[2-9]\d*$/, { timeout: 15000 });
-  return page.getByLabel('Clave de recuperación', { exact: true }).inputValue();
-}
-
-async function stopCapture(page: Page) {
-  await page.getByRole('button', { name: 'Detener grabación', exact: true }).click();
-  await expect(page.getByText('Captura detenida', { exact: true })).toBeVisible();
-  await expect(page.getByTestId('pending-count')).toHaveText('0');
+  // Old sessions contain complete WebM files, each from a different recorder instance.
+  const clips = await page.evaluate(async mode => {
+    const mime = mode === 'video' ? 'video/webm;codecs=vp8,opus' : 'audio/webm;codecs=opus';
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: mode === 'video' });
+    const clips: string[] = [];
+    try {
+      for (let index = 0; index < 2; index++) {
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          const parts: Blob[] = [];
+          const recorder = new MediaRecorder(stream, { mimeType: mime });
+          recorder.ondataavailable = event => { if (event.data.size) parts.push(event.data); };
+          recorder.onerror = () => reject(new Error('Synthetic legacy capture failed'));
+          recorder.onstop = () => resolve(new Blob(parts, { type: mime }));
+          recorder.start();
+          setTimeout(() => recorder.stop(), 1600);
+        });
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        let binary = '';
+        for (const byte of bytes) binary += String.fromCharCode(byte);
+        clips.push(btoa(binary));
+      }
+      return { clips, mime };
+    } finally { stream.getTracks().forEach(track => track.stop()); }
+  }, mode);
+  const originHeaders = { origin: 'http://127.0.0.1:3000', 'x-recording-client': '1' };
+  // No format header intentionally creates the backwards-compatible legacy session.
+  const created = await page.request.post('/api/recordings/sessions', { headers: originHeaders });
+  expect(created.status()).toBe(201);
+  const session = await created.json();
+  for (let index = 0; index < clips.clips.length; index++) {
+    const uploaded = await page.request.put(`/api/recordings/sessions/${session.id}/clips/${index}`, {
+      headers: { ...originHeaders, authorization: `Bearer ${session.secret}`, 'content-type': clips.mime, 'x-clip-start': String(index * 1700), 'x-clip-end': String(index * 1700 + 1600) },
+      data: Buffer.from(clips.clips[index], 'base64'),
+    });
+    expect(uploaded.status()).toBe(201);
+  }
+  const key = `${session.id}.${session.secret}`;
+  await page.evaluate(key => sessionStorage.setItem('alzavoz_recording_key', key), key);
+  await page.reload();
+  await expect(page.getByTestId('received-count')).toHaveText('2');
+  return key;
 }
 
 async function startSequence(page: Page) {
@@ -33,8 +64,7 @@ async function startSequence(page: Page) {
 }
 
 test('la secuencia de audio respeta la pausa y avanza al siguiente clip sin otro clic', async ({ page }) => {
-  await captureTwoClips(page, 'audio');
-  await stopCapture(page);
+  await recoverLegacyClips(page, 'audio');
   await startSequence(page);
   await expect(page.locator('audio[data-playback]')).toBeVisible();
 
@@ -51,8 +81,8 @@ test('la secuencia de audio respeta la pausa y avanza al siguiente clip sin otro
 });
 
 test('el video recuperado reproduce todos sus clips y conserva la reproducción individual', async ({ page, context }) => {
-  const key = await captureTwoClips(page, 'video');
-  // Closing after two confirmed clips also proves that playback works without in-memory recording blobs.
+  const key = await recoverLegacyClips(page, 'video');
+  // Recover the old format in a fresh tab, without any in-memory recording blobs.
   await page.close();
   const recovered = await context.newPage();
   await recovered.goto('/record');
@@ -76,8 +106,7 @@ test('el video recuperado reproduce todos sus clips y conserva la reproducción 
 });
 
 test('un error al cargar el siguiente clip detiene la secuencia sin saltarse el fallo', async ({ page }) => {
-  await captureTwoClips(page, 'audio');
-  await stopCapture(page);
+  await recoverLegacyClips(page, 'audio');
   await page.route('**/api/recordings/sessions/*/clips/1', route => route.request().method() === 'GET'
     ? route.fulfill({ status: 503, json: { error: 'Clip de prueba temporalmente no disponible.' } })
     : route.continue());
@@ -90,8 +119,7 @@ test('un error al cargar el siguiente clip detiene la secuencia sin saltarse el 
 });
 
 test('detener la secuencia durante una descarga impide que una respuesta tardía empiece a reproducir', async ({ page }) => {
-  await captureTwoClips(page, 'audio');
-  await stopCapture(page);
+  await recoverLegacyClips(page, 'audio');
   let release!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
   let requested = false;

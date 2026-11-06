@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { downloadClip } from '@/lib/recording/client';
 import type { ClipReceipt, RecordingSession } from '@/lib/recording/contracts';
 import type { CapturedClip } from '@/lib/recording/recorder';
+import { ContinuousRecordingPlayback } from './ContinuousRecordingPlayback';
 
 const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
 const time = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
@@ -20,14 +21,19 @@ type PlaybackRun = {
 };
 type Playback = LoadedClip & { position: number; total: number };
 
-interface RecordingPlaybackProps {
+export interface RecordingPlaybackProps {
   session: RecordingSession;
   clips: CapturedClip[];
   active: boolean;
   disabled: boolean;
+  completionPending: boolean;
 }
 
-export function RecordingPlayback({ session, clips, active, disabled }: RecordingPlaybackProps) {
+export function RecordingPlayback(props: RecordingPlaybackProps) {
+  return props.session.format === 'continuous-webm-v1' ? <ContinuousRecordingPlayback {...props} /> : <LegacyRecordingPlayback {...props} />;
+}
+
+function LegacyRecordingPlayback({ session, clips, active, disabled }: RecordingPlaybackProps) {
   const [playback, setPlayback] = useState<Playback | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');

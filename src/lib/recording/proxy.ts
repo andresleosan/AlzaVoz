@@ -16,7 +16,7 @@ export async function recordingProxy(request: Request, env: RecordingGatewayEnv)
   if (!endpoint || !gateway || !appOrigin) return error(503, 'El almacenamiento aún no está disponible. No se inició la grabación.');
   const url = new URL(request.url);
   const path = url.pathname.replace(/^\/api\/recordings/, '');
-  if (!/^\/sessions(?:\/[0-9a-f-]{36}(?:\/clips(?:\/(?:0|[1-9]\d?))?)?)?$/.test(path) || url.search) return error(404, 'Ruta no disponible.');
+  if (!/^\/sessions(?:\/[0-9a-f-]{36}(?:\/clips(?:\/(?:0|[1-9]\d?))?|\/complete)?)?$/.test(path) || url.search) return error(404, 'Ruta no disponible.');
   if (request.headers.get('sec-fetch-site') === 'cross-site') return error(403, 'Origen no permitido.');
   if (request.method !== 'GET') {
     if (request.headers.get('origin') !== appOrigin || request.headers.get('x-recording-client') !== '1') return error(403, 'Origen no permitido.');
@@ -24,13 +24,13 @@ export async function recordingProxy(request: Request, env: RecordingGatewayEnv)
   const upstream = new URL(endpoint);
   if (upstream.protocol !== 'https:' && !(upstream.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(upstream.hostname))) return error(503, 'Configuración de almacenamiento no válida.');
   const headers = new Headers({ 'x-recording-gateway': gateway });
-  for (const name of ['authorization', 'content-type', 'x-clip-start', 'x-clip-end']) {
+  for (const name of ['authorization', 'content-type', 'x-clip-start', 'x-clip-end', 'x-recording-format']) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
   let body: ArrayBuffer | undefined;
   if (request.method !== 'GET') {
-    try { body = await readLimited(request, request.method === 'PUT' ? MAX_CLIP_BYTES : 0); }
+    try { body = await readLimited(request, request.method === 'PUT' ? MAX_CLIP_BYTES : path.endsWith('/complete') ? 1024 : 0); }
     catch { return error(413, 'El contenido supera el límite permitido.'); }
   }
   try {

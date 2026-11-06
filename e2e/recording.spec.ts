@@ -43,14 +43,14 @@ test('R2 autoriza, confirma bytes, deduplica y rechaza conflictos concurrentes',
   expect((await request.post('/api/recordings/sessions', { headers: { ...originHeaders, origin: 'https://untrusted.example' } })).status()).toBe(403);
 });
 
-test('grabación de video confirma y reproduce un clip independiente', async ({ page }) => {
+test('grabación de video confirma y reproduce el archivo continuo', async ({ page }) => {
   await page.goto('/record');
   await page.getByRole('button', { name: 'Iniciar grabación', exact: true }).click();
   await expect(page.getByText('Cámara y micrófono activos', { exact: true })).toBeVisible();
   await expect(page.getByTestId('received-count')).toHaveText('1', { timeout: 15000 });
   await page.getByRole('button', { name: 'Detener grabación', exact: true }).click();
   await expect(page.getByText('Captura detenida', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Reproducir clip 1', exact: true }).click();
+  await page.getByRole('button', { name: 'Reproducir toda la grabación', exact: true }).click();
   await expect(page.locator('video[data-playback]')).toBeVisible();
   await expect.poll(() => page.locator('video[data-playback]').evaluate((video: HTMLVideoElement) => video.currentTime)).toBeGreaterThan(0);
   await expect.poll(() => page.locator('video[data-playback]').evaluate((video: HTMLVideoElement) => video.ended), { timeout: 10000 }).toBe(true);
@@ -72,8 +72,11 @@ test('audio real se recupera después de cerrar abruptamente la pestaña', async
   await expect(recovery.getByTestId('received-count')).toHaveText('1');
   await expect(recovery.getByTestId('pending-count')).toHaveText('0');
   await expect(recovery.getByText(/No podemos recuperar los pendientes/)).toBeVisible();
-  await recovery.getByRole('button', { name: 'Reproducir clip 1', exact: true }).click();
+  await expect(recovery.getByRole('button', { name: 'Reproducir toda la grabación', exact: true })).toHaveCount(0);
+  await expect(recovery.getByRole('link', { name: 'Descargar grabación completa', exact: true })).toHaveCount(0);
+  await recovery.getByRole('button', { name: 'Reproducir parte recuperada', exact: true }).click();
   await expect.poll(() => recovery.locator('audio[data-playback]').evaluate((audio: HTMLAudioElement) => audio.ended), { timeout: 10000 }).toBe(true);
+  await expect(recovery.getByRole('link', { name: 'Descargar parte recuperada', exact: true })).toBeVisible();
 });
 
 test('sin conexión conserva pendientes y el reintento confirma sin duplicados', async ({ page }) => {
@@ -90,6 +93,12 @@ test('sin conexión conserva pendientes y el reintento confirma sin duplicados',
   await expect(page.getByTestId('pending-count')).toHaveText('0');
   await expect(page.getByTestId('received-count')).toHaveText('2');
   await expect(page.getByRole('button', { name: 'Reproducir toda la grabación', exact: true })).toBeEnabled();
+  const key = await page.getByLabel('Clave de recuperación', { exact: true }).inputValue();
+  const [id, secret] = key.split('.');
+  await expect.poll(async () => {
+    const listed = await page.request.get(`/api/recordings/sessions/${id}/clips`, { headers: { authorization: `Bearer ${secret}` } });
+    return (await listed.json()).completion?.clipCount;
+  }).toBe(2);
 });
 
 test('un recibo perdido se reconcilia al reintentar el mismo clip', async ({ page }) => {
@@ -271,15 +280,16 @@ test('error automático del grabador conserva un tiempo final observado', async 
   expect(data.clips[0].endMs - data.clips[0].startMs).toBeGreaterThanOrEqual(800);
 });
 
-test('clip demasiado grande detiene captura sin presentarlo como guardado', async ({ page }) => {
+test('un evento que supera la cola detiene captura sin presentarlo como guardado', async ({ page }) => {
   await page.addInitScript(() => {
     Object.defineProperty(BlobEvent.prototype, 'data', {
-      get: () => new Blob([new Uint8Array(2 * 1024 * 1024 + 1)], { type: 'video/webm;codecs=vp8,opus' }),
+      get: () => new Blob([new Uint8Array(16 * 1024 * 1024 + 1)], { type: 'video/webm;codecs=vp8,opus' }),
     });
   });
   await page.goto('/record');
   await page.getByRole('button', { name: 'Iniciar grabación', exact: true }).click();
   await expect(page.getByText('Captura detenida', { exact: true })).toBeVisible({ timeout: 15000 });
+  await page.getByText(/Detalle del envío/).click();
   await expect(page.getByText('No conservado', { exact: true })).toBeVisible();
   await expect(page.getByTestId('received-count')).toHaveText('0');
   await expect(page.getByTestId('pending-count')).toHaveText('0');
