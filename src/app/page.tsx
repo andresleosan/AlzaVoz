@@ -250,6 +250,9 @@ export default function HomePage() {
         </section>
 
         {/* Módulo SOS de Emergencia Inteligente */}
+        <Link href="/record" prefetch={false} className="touch-target-min flex items-center justify-center rounded-xl border border-red-400 bg-red-950 px-4 py-4 font-bold text-white focus-visible:outline-2 focus-visible:outline-amber-200">
+          Grabar evidencia · video o audio
+        </Link>
         <div id="sos-panico" className="scroll-mt-16">
           <SosEmergencyPanel />
         </div>
