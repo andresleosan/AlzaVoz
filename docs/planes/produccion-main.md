@@ -34,4 +34,15 @@ Las páginas implementadas son exportables: interfaces cliente y metadatos está
 - Pages local + Functions + Worker/R2 local: 35/35 pruebas E2E aprobadas, 47.3 s. Se detectó y corrigió incompatibilidad de `redirect: error` en workerd: usar `manual` y rechazar 3xx explícitamente, sin seguir redirecciones ni reenviar credenciales.
 - Cloudflare: bucket privado `alzavoz-evidencias`, lifecycle `recordings/` de siete días; Worker `alzavoz-recordings` sin URL pública, R2 y limitador enlazados. Secreto generado y guardado cifrado en Worker y Pages, nunca en Git.
 - Pages configurado con build `pnpm build:pages`, destino `out`; GitHub main conserva despliegue automático. Backend conectado desde Chrome a la misma rama usando la integración y token de Builds existentes.
-- Pendiente tras push: verificar ambos despliegues y flujo sintético por HTTPS. DeepSeek sin clave configurada usa el fallback local existente; D1/Firebase y tareas futuras no se presentan como implementados.
+- Next local + Worker/R2 local: 35/35 pruebas E2E aprobadas, 46.6 s, después del build final.
+
+## Publicación y comprobación en producción
+
+- Commit `efd86a300d9dd48b59e27f6223d2d025d3f6f6ae`, push directo a main. GitHub: solo rama main; PR #1 fusionado y ningún PR abierto.
+- Pages disparado por Git: deployment `328f7880-b066-468f-bab0-b6b4bac5a4b5`, terminado success el 2026-11-06 04:35:15 UTC. Dominio canónico https://alzavoz.pages.dev.
+- Workers Builds disparado por el mismo push: build `51b32eb0-3798-40d7-bf46-abb01c64eac8`, éxito de instalación y despliegue; versión `69b86df2-7cec-4ecd-a5d5-7a6b42672e7e`. Se usó la integración GitHub y token de Builds existentes; previews desactivados.
+- GET /, /record, /sos, /defender, manifest e imágenes: HTTP 200. MCP escritorio 1365×900 y móvil 390×844 sin desbordamiento. Captura: docs/evidencias/produccion-main.png.
+- MCP en HTTPS: video/audio sintéticos generados por canvas y oscilador (sin cámara ni micrófono físicos); dos clips recibidos, cero pendientes, reproducción 320×240 y recuperación de dos clips tras limpiar sessionStorage/recargar.
+- Clip inicial: 33958 bytes, SHA-256 `0fbe97ea5ca654cdf442bc994f16ac6ab3a049ec009c29452545a1771db92ce3`. Coinciden recibo, descarga por la API y descarga independiente vía Wrangler del bucket remoto de producción. Sesión sintética `d6dbc0e6-ebae-459c-8b7f-6cc62891aec1`; clave nunca registrada.
+- Reintento idéntico 200, lectura sin clave 401, escritura sin cabecera cliente 403; respuestas de clips no-store. Defensor 200 con fuente local-instant; consulta vacía 400. Los errores de red observados en esas peticiones negativas son esperados.
+- DeepSeek sin clave configurada usa el fallback local existente; D1/Firebase y tareas futuras no se presentan como implementados. La interfaz conserva los límites de T5; T10 y matriz de dispositivos reales siguen pendientes.
