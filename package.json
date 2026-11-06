@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",
+    "build:pages": "node scripts/build-pages.mjs",
+    "deploy:recordings": "wrangler deploy --config workers/recordings/wrangler.production.jsonc",
     "start": "next start",
     "lint": "eslint .",
     "test": "playwright test"

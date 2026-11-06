@@ -1,0 +1,10 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "alzavoz-recordings",
+  "main": "index.ts",
+  "compatibility_date": "2026-11-04",
+  "workers_dev": false,
+  "preview_urls": false,
+  "r2_buckets": [{ "binding": "EVIDENCIAS", "bucket_name": "alzavoz-evidencias" }],
+  "ratelimits": [{ "name": "SESSION_LIMITER", "namespace_id": "1006", "simple": { "limit": 30, "period": 60 } }]
+}

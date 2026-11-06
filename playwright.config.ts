@@ -12,7 +12,7 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "node scripts/recording-test-server.mjs",
+    command: `node scripts/recording-test-server.mjs${process.env.PLAYWRIGHT_PAGES === "1" ? " --pages" : ""}`,
     url: "http://127.0.0.1:3000",
     reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
     timeout: 30000,

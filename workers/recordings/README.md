@@ -1,5 +1,15 @@
 # Evidencias T5: prueba aislada
 
+## Publicación solicitada después de T5
+
+La web `https://alzavoz.pages.dev` se construye con `pnpm build:pages` (HTML en `out` + Pages Functions). El binding privado `RECORDINGS` conecta con `alzavoz-recordings`, sin endpoint público, y su bucket `alzavoz-evidencias` separado de pruebas. Conserva expiración de siete días y los límites existentes; la publicación de lo implementado no completa T10 ni la validación de dispositivos físicos.
+
+Un push a `main` activa Pages y Workers Builds. El backend usa `pnpm deploy:recordings` y `wrangler.production.jsonc`; la web usa `wrangler.jsonc`. No crear ramas para publicar. Ambos despliegues deben terminar correctamente. Los secretos `RECORDING_GATEWAY_SECRET` (Pages) y `GATEWAY_SECRET` (Worker) se guardan cifrados en Cloudflare, no en el repositorio. No configurar `RECORDING_API_URL` en producción: se usa el service binding.
+
+Para comprobar el alojamiento de Pages localmente: `pnpm build:pages`, luego `PLAYWRIGHT_PAGES=1 pnpm test` (en PowerShell: `$env:PLAYWRIGHT_PAGES='1'; pnpm test`). El runner usa solo el bucket local de pruebas.
+
+## Pruebas y contrato de grabación
+
 `pnpm build` y `node scripts/recording-test-server.mjs` arrancan Next en 127.0.0.1:3000 y el Worker con R2 **local** en 8787. El secreto de pasarela es aleatorio por ejecución, no se imprime ni se guarda. `pnpm test` arranca y detiene este mismo conjunto; los puertos deben estar libres. No reutiliza servidores a menos que se indique `PLAYWRIGHT_REUSE_SERVER=1` conscientemente.
 
 Para probar contra el bucket **remoto** privado `alzavoz-evidencias-pruebas`, con Wrangler autenticado: `node scripts/recording-test-server.mjs --remote`. Usa una sesión temporal de preview de Workers, no publica la aplicación. El bucket fue creado para T5 y tiene la regla `borrar-pruebas` para expirar `recordings/` después de siete días. Solo usar medios sintéticos. No contiene datos de otros proyectos.
