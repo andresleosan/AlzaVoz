@@ -12,7 +12,8 @@
 - Plan/evidencia: docs/planes/T005.md y docs/evidencias/T005/verificacion.md. Una ejecución previa tuvo ERR_NO_BUFFER_SPACE; repetición completa verde.
 - Pruebas locales: pnpm build; pnpm test. Prueba manual: node scripts/recording-test-server.mjs; añadir --remote usa R2 real de pruebas. Puertos 3000/8787 libres; nunca evidencia real.
 - Límites: Chromium probado con dispositivos sintéticos; no Safari/iOS ni hardware real. Cierre pierde pendientes sin recibo; guardar clave. Cola RAM 16 MiB, clip 2 MiB, máximo 100 clips.
-- T5 enviada a origin/codex/t5-grabacion-r2; implementación 3486a56, push confirmado. Sin cierre funcional pendiente; cambios locales de organización se conservan aparte.
+- T5: implementación 3486a56. El usuario solicitó integrar mediante PR en main y eliminar la rama de tarea; verificar el cierre Git y Cloudflare antes de continuar.
+- Preferencia permanente: trabajar directamente en main y hacer push a origin/main; no crear ramas salvo petición expresa. Regla persistida en AGENTS.md.
 - Próxima elegible: T6, Denuncia Confidencial y Enlace Cloudflare D1. GPT-6-Astra (High): privacidad, archivos y persistencia con permisos.
 - Plan local ampliado: 111 tareas T0–T110, ahora 6 completadas y 105 pendientes. Las 100 mejoras T11–T110 son planificación, no implementación.
 - Se preserva organización previa sin commit: workflows, PLANIFICACION.md, catálogo, plantilla, documentación y panel/scripts. TASKS se prepara en Git solo para el bloque T5; el resto queda local.
