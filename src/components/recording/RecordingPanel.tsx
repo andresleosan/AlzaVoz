@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAppMode } from '@/context/AppModeContext';
-import { createSession, downloadClip, recoverSession } from '@/lib/recording/client';
+import { createSession, recoverSession } from '@/lib/recording/client';
 import { ClipRecorder, emptyCapture, type CaptureState } from '@/lib/recording/recorder';
-import type { CaptureMode, ClipReceipt, RecordingSession } from '@/lib/recording/contracts';
+import type { CaptureMode, RecordingSession } from '@/lib/recording/contracts';
+import { RecordingPlayback } from '@/components/recording/RecordingPlayback';
 
 const KEY = 'alzavoz_recording_key';
 const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
-const time = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
 
 export function RecordingPanel() {
   const { setNavigationLocked } = useAppMode();
@@ -19,11 +19,9 @@ export function RecordingPanel() {
   const [error, setError] = useState('');
   const [key, setKey] = useState('');
   const [note, setNote] = useState('');
-  const [playback, setPlayback] = useState<{ url: string; mime: string; index: number } | null>(null);
   const controller = useRef<ClipRecorder | null>(null);
   const operation = useRef<AbortController | null>(null);
   const preview = useRef<HTMLVideoElement | null>(null);
-  const playbackUrl = useRef<string | null>(null);
   const locked = useRef(false);
   const received = state.clips.filter(c => c.status === 'received');
   const pending = state.clips.filter(c => c.status === 'pending' || c.status === 'sending');
@@ -50,7 +48,7 @@ export function RecordingPanel() {
       }).catch(() => { if (!abort.signal.aborted) setError('No pudimos recuperar la sesión anterior. Pega tu clave para reintentar.'); })
         .finally(() => { locked.current = false; });
     }
-    const cleanup = () => { operation.current?.abort(); controller.current?.dispose(); if (playbackUrl.current) URL.revokeObjectURL(playbackUrl.current); };
+    const cleanup = () => { operation.current?.abort(); controller.current?.dispose(); };
     const restore = (event: PageTransitionEvent) => { if (event.persisted) window.location.reload(); };
     window.addEventListener('pagehide', cleanup);
     window.addEventListener('pageshow', restore);
@@ -89,24 +87,10 @@ export function RecordingPanel() {
     } catch (cause) { if (!abort.signal.aborted) setError(cause instanceof Error ? cause.message : 'No se pudo recuperar.'); }
     finally { if (!abort.signal.aborted) setBusy(false); locked.current = false; }
   }
-  async function play(receipt: ClipReceipt) {
-    if (!session || busy) return;
-    setBusy(true); setError('');
-    const abort = new AbortController(); operation.current = abort;
-    try {
-      const blob = await downloadClip(session, receipt, AbortSignal.any([abort.signal, AbortSignal.timeout(20_000)]));
-      if (abort.signal.aborted) return;
-      if (playbackUrl.current) URL.revokeObjectURL(playbackUrl.current);
-      const url = URL.createObjectURL(blob); playbackUrl.current = url;
-      setPlayback({ url, mime: receipt.mime, index: receipt.index });
-    } catch (cause) { if (!abort.signal.aborted) setError(cause instanceof Error ? cause.message : 'No se pudo reproducir.'); }
-    finally { if (!abort.signal.aborted) setBusy(false); }
-  }
   function reset() {
     controller.current?.dispose(); controller.current = null;
     try { sessionStorage.removeItem(KEY); } catch { /* No persistent key to clear. */ }
-    if (playbackUrl.current) URL.revokeObjectURL(playbackUrl.current);
-    setPlayback(null); setSession(null); setState(emptyCapture()); setNote(''); setError('');
+    setSession(null); setState(emptyCapture()); setNote(''); setError('');
   }
 
   return (
@@ -144,17 +128,7 @@ export function RecordingPanel() {
         <button type="button" className={`${control} w-full`} onClick={() => void navigator.clipboard.writeText(recoveryKey).then(() => setNote('Clave copiada. Guárdala en un lugar privado.')).catch(() => setError('No se pudo copiar. Selecciona la clave en el campo y cópiala manualmente.'))}>Copiar clave privada</button>
         <p className="text-sm text-gray-300">Acceso hasta {new Date(session.expiresAt).toLocaleString('es-CO')}. Entorno de prueba: no uses evidencia real. Salir no borra lo recibido ni tus descargas.</p>
       </div>}
-      {state.clips.length > 0 && <div className="space-y-3"><h2 className="font-bold">Clips de esta grabación</h2><ol className="divide-y divide-gray-700">
-        {state.clips.map((clip, i) => <li key={clip.index} className="space-y-2 py-3">
-          <div className="flex justify-between gap-3 font-semibold"><span>Clip {clip.index + 1}</span><span>{clip.status === 'received' ? 'Recibido' : clip.status === 'sending' ? 'Enviando' : clip.status === 'lost' ? 'No conservado' : 'Pendiente'}</span></div>
-          <p className="font-tabular text-sm text-gray-300">{time(clip.startMs)}–{time(clip.endMs)} · {(clip.bytes / 1024).toFixed(1)} KiB{ i > 0 ? ` · Pausa: ${Math.max(0, clip.startMs - state.clips[i - 1].endMs)} ms` : ''}</p>
-          {clip.receipt && <button type="button" className={`${control} w-full`} disabled={busy} onClick={() => { if (clip.receipt) void play(clip.receipt); }}>Reproducir clip {clip.index + 1}</button>}
-        </li>)}
-      </ol></div>}
-      {playback && <div className="space-y-3" data-sensitive="true"><h2 className="font-bold">Clip {playback.index + 1} recuperado y verificado</h2>
-        {playback.mime.startsWith('video/') ? <video data-playback controls autoPlay playsInline src={playback.url} className="aspect-video w-full rounded-xl bg-black" /> : <audio data-playback controls autoPlay src={playback.url} className="w-full" />}
-        <a className={`${control} flex items-center justify-center`} href={playback.url} download={`alzavoz-clip-${playback.index + 1}.webm`}>Descargar este clip</a>
-      </div>}
+      {session && state.clips.length > 0 && <RecordingPlayback key={session.id} session={session} clips={state.clips} active={active} disabled={busy} />}
       {!session && <details className="border-t border-gray-700 pt-4"><summary className="min-h-14 cursor-pointer py-4 font-semibold">Recuperar una grabación anterior</summary><form className="space-y-3" onSubmit={event => { event.preventDefault(); void recover(); }}>
         <label htmlFor="recovery-input" className="block">Pega la clave privada</label><input id="recovery-input" type="password" autoComplete="off" spellCheck={false} value={key} onChange={event => setKey(event.target.value)} className="min-h-14 w-full rounded-lg border border-gray-600 bg-gray-950 px-3" />
         <button className={`${control} w-full`} disabled={busy || !key}>Recuperar clips recibidos</button>

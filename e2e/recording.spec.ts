@@ -18,7 +18,8 @@ test('R2 autoriza, confirma bytes, deduplica y rechaza conflictos concurrentes',
   const created = await request.post('/api/recordings/sessions', { headers: originHeaders });
   const session: unknown = await created.json();
   if (!isSession(session)) throw new Error('Sesión inválida');
-  const url = `/api/recordings/sessions/${session.id}/clips/0`;
+  const clipsUrl = `/api/recordings/sessions/${session.id}/clips`;
+  const url = `${clipsUrl}/0`;
   expect((await request.get(url)).status()).toBe(401);
   const headers = uploadHeaders(session);
   const uploads = await Promise.all([request.put(url, { headers, data: webm }), request.put(url, { headers, data: webm })]);
@@ -33,12 +34,12 @@ test('R2 autoriza, confirma bytes, deduplica y rechaza conflictos concurrentes',
   expect(conflict.status()).toBe(409);
   const denied = await request.get(url, { headers: { authorization: `Bearer ${'0'.repeat(64)}` } });
   expect(denied.status()).toBe(401);
-  const listed = await request.get(`/api/recordings/sessions/${session.id}/clips`, { headers });
+  const listed = await request.get(clipsUrl, { headers });
   expect((await listed.json()).clips).toEqual([receipt]);
-  expect((await request.put(url.replace('/0', '/1'), { headers, data: '<html>bad</html>' })).status()).toBe(415);
-  expect((await request.put(url.replace('/0', '/1'), { headers: { ...headers, 'x-clip-start': 'NaN' }, data: webm })).status()).toBe(400);
-  expect((await request.put(url.replace('/0', '/1'), { headers, data: Buffer.alloc(2 * 1024 * 1024 + 1) })).status()).toBe(413);
-  expect((await request.get(url.replace('/0', '/100'), { headers })).status()).toBe(404);
+  expect((await request.put(`${clipsUrl}/1`, { headers, data: '<html>bad</html>' })).status()).toBe(415);
+  expect((await request.put(`${clipsUrl}/1`, { headers: { ...headers, 'x-clip-start': 'NaN' }, data: webm })).status()).toBe(400);
+  expect((await request.put(`${clipsUrl}/1`, { headers, data: Buffer.alloc(2 * 1024 * 1024 + 1) })).status()).toBe(413);
+  expect((await request.get(`${clipsUrl}/100`, { headers })).status()).toBe(404);
   expect((await request.post('/api/recordings/sessions', { headers: { ...originHeaders, origin: 'https://untrusted.example' } })).status()).toBe(403);
 });
 
@@ -83,10 +84,12 @@ test('sin conexión conserva pendientes y el reintento confirma sin duplicados',
   await expect(page.getByTestId('received-count')).toHaveText('0');
   await page.getByRole('button', { name: 'Detener grabación', exact: true }).click();
   await expect(page.getByText('Captura detenida', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reproducir toda la grabación', exact: true })).toBeDisabled();
   await page.unroute('**/api/recordings/sessions/*/clips/*');
   await page.getByRole('button', { name: /Reintentar .* pendientes/ }).click();
   await expect(page.getByTestId('pending-count')).toHaveText('0');
   await expect(page.getByTestId('received-count')).toHaveText('2');
+  await expect(page.getByRole('button', { name: 'Reproducir toda la grabación', exact: true })).toBeEnabled();
 });
 
 test('un recibo perdido se reconcilia al reintentar el mismo clip', async ({ page }) => {
