@@ -12,15 +12,15 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "node node_modules/next/dist/bin/next start -p 3000 -H 127.0.0.1",
+    command: "node scripts/recording-test-server.mjs",
     url: "http://127.0.0.1:3000",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: process.env.PLAYWRIGHT_REUSE_SERVER === "1",
     timeout: 30000,
   },
   projects: [
     {
       name: "Mobile Chrome",
-      use: { ...devices["Pixel 5"] },
+      use: { ...devices["Pixel 5"], launchOptions: { args: ["--use-fake-device-for-media-stream", "--use-fake-ui-for-media-stream"] } },
     },
   ],
 });

@@ -35,9 +35,14 @@
 
 ---
 
-### [ ] Tarea 5: Bloque 1 (Parte C): Caja Negra de Grabación en la Nube y Enlace Cloudflare R2 [Modelo: Argon | Esfuerzo: High]
-- **Objetivo:** Desarrollar la grabadora de video y audio en el navegador (MediaRecorder API) con segmentación continua de video cada 3 segundos. Configurar y enlazar el bucket de almacenamiento en la nube Cloudflare R2 (`alzavoz-evidencias`) vinculado al proyecto `andresleosan/AlzaVoz`. Diseñar la arquitectura resiliente ante incautación, bloqueo o apagado forzoso del dispositivo móvil, con endpoints de subida segura en Cloudflare Workers y retención garantizada de los fragmentos ya transmitidos.
-- **Criterios de Éxito:** Grabación ininterrumpida que persiste fragmentos en R2 en tiempo real aunque la pestaña se cierre abruptamente.
+### [x] Tarea 5: Bloque 1 (Parte C): Caja Negra de Grabación en la Nube y Enlace Cloudflare R2 [Modelo: GPT-6-Astra | Esfuerzo: High]
+- **Área:** Emergencias
+- **Objetivo:** Desarrollar grabación de video y audio con MediaRecorder, solicitando fragmentos aproximadamente cada 3 segundos y midiendo sus tiempos reales. Enlazar R2 mediante endpoints con autorización adecuada al flujo ciudadano. Conservar y recuperar fragmentos cuya recepción confirme el servidor; comunicar pérdidas, interrupciones y límites del navegador sin prometer captura después de cerrar la pestaña o apagar el dispositivo.
+- **Dependencias:** T1, T2
+- **Criterios de Éxito:** En los formatos y dispositivos definidos, iniciar y detener produce archivos reproducibles; los fragmentos confirmados se recuperan de R2 con permisos correctos; cierre abrupto, desconexión y permisos denegados no muestran como guardados datos sin recibo.
+- **Verificación requerida:** Probar captura, subida, reproducción, fallos simulados y cierre de pestaña; contrastar archivos recibidos y recibos del servidor, sin afirmar continuidad tras el cierre.
+- **Plan y evidencia:** docs/planes/T005.md y docs/evidencias/T005/verificacion.md.
+- **Estado:** Completada en entorno de prueba. /record captura audio/video WebM en clips independientes (~3 s), registra tiempos y pausas, confirma recibos SHA-256 y recupera mediante clave privada. 35 pruebas aprobadas; MCP móvil/escritorio y R2 remoto privado con hash contrastado por CLI. Pendientes solo en RAM; cierre puede perderlos. Chromium sintético verificado; hardware real e iOS pendientes de T101. No es despliegue final.
 
 ---
 

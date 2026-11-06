@@ -5,6 +5,7 @@ build/
 dist/
 .wrangler/
 .env*.local
+**/.dev.vars*
 *.log
 .DS_Store
 Thumbs.db
