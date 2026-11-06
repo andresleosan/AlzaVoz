@@ -74,7 +74,7 @@ export async function legalResponse(request: Request, apiKey?: string) {
 
     // Llamada con timeout a DeepSeek API
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 4500);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const apiResponse = await fetch("https://api.deepseek.com/chat/completions", {
@@ -96,8 +96,6 @@ export async function legalResponse(request: Request, apiKey?: string) {
         }),
         signal: controller.signal,
       });
-
-      clearTimeout(timeoutId);
 
       if (!apiResponse.ok) {
         // Fallback local si la API responde con error de cuota o servicio
@@ -127,9 +125,10 @@ export async function legalResponse(request: Request, apiKey?: string) {
 
       return Response.json(parsed);
     } catch {
-      clearTimeout(timeoutId);
       // Resiliencia: si falla la red externa o timeout, retornar la respuesta local
       return Response.json(findLocalLegalResponse(cleanQuery));
+    } finally {
+      clearTimeout(timeoutId);
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Error interno procesando consulta";

@@ -39,4 +39,21 @@ test.describe('Contrato de DeepSeek del Defensor', () => {
       expect(body).not.toContain('test-only-key');
     } finally { globalThis.fetch = original; }
   });
+
+  test('una respuesta del proveedor que tarda cinco segundos no se descarta', async () => {
+    const original = globalThis.fetch;
+    globalThis.fetch = async (_input, init) => new Promise<Response>((resolve, reject) => {
+      const signal = init?.signal;
+      const abort = () => { clearTimeout(timer); reject(new DOMException('Aborted', 'AbortError')); };
+      const timer = setTimeout(() => {
+        signal?.removeEventListener('abort', abort);
+        resolve(Response.json({ choices: [{ message: { content: JSON.stringify(findLocalLegalResponse('derechos')) } }] }));
+      }, 5000);
+      signal?.addEventListener('abort', abort, { once: true });
+    });
+    try {
+      const response = await legalResponse(request(), 'test-only-key');
+      expect(await response.json()).toMatchObject({ source: 'deepseek-ai' });
+    } finally { globalThis.fetch = original; }
+  });
 });
