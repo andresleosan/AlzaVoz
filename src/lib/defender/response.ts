@@ -84,7 +84,8 @@ export async function legalResponse(request: Request, apiKey?: string) {
           Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
-          model: "deepseek-chat",
+          model: "deepseek-flash",
+          thinking: { type: "disabled" },
           messages: [
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: cleanQuery },
