@@ -42,4 +42,6 @@ Chromium automatizado y medios sintéticos; no Safari/iOS ni hardware físico. S
 - `pnpm test`: 88/88, 3,5 min. `PLAYWRIGHT_PAGES=1 pnpm test`: 88/88, 3,8 min.
 - Último cambio limitado al avatar: builds nuevos y `pnpm test e2e/community.spec.ts` 14/14 (58,0 s); misma suite con `PLAYWRIGHT_PAGES=1` 14/14 (58,7 s). MCP comprobó WebP 200, 5.348 bytes y `complete/naturalWidth` válidos, sin errores normales de consola.
 - `node --test scripts/actualizar-seguimiento.test.mjs`: 11/11.
-- Cierre documental y preparación exclusiva de T7; push y comprobación de los despliegues se realizan a continuación, con resultado final en el chat. No se afirma despliegue por un build local.
+- Código `0a0605006254f8c083d933180f37c5d74b907218` enviado a origin/main y SHA comprobado con fetch nuevo. Cambios previos de planificación conservados.
+- Pages deploy `35b64dd3-a98a-4cee-992a-d780094c11c0`: success para ese SHA. Worker deploy `5f478a20-c31c-433d-96b7-5219d7b13cf1`, versión `600090a7-0cb4-48cb-8652-0dc477b5001d` al 100%; contenido remoto incluye ruta y tabla T7, ausentes antes del push. La consulta de historial Workers Builds dio 403 con OAuth disponible; las APIs de deployments/content y el recorrido integrado sí permitieron verificar la publicación.
+- Lecturas de producción: `/community` 200, Worklet 200 (1.015 bytes), avatar 200 (5.348 bytes), `/api/community` 200, `no-store`, `{groups:[],days:30}`. No se realizaron POST de prueba en producción. T10 sigue pendiente.
