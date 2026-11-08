@@ -17,6 +17,7 @@ const pageNames: Record<string, string> = {
   "/record": "Grabar evidencia",
   "/report": "Denuncia confidencial",
   "/community": "Convivencia barrial",
+  "/search": "Tableros de búsqueda",
 };
 
 function Brand() {

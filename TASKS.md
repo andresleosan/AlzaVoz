@@ -68,9 +68,14 @@
 
 ---
 
-### [ ] Tarea 8: Bloque 4: Tableros de Desaparecidos y Afiches con QR en Canvas [Modelo: Argon | Esfuerzo: Medium]
-- **Objetivo:** Desarrollar los 4 tableros comunitarios: Personas desaparecidas, Personas encontradas/desorientadas, Mascotas perdidas y Mascotas encontradas. Implementar el motor de cruce inteligente con DeepSeek API analizando rasgos físicos y ubicación barrial para alertar coincidencias. Crear el generador dinámico de afiches de búsqueda descargables en formato imagen optimizada con código QR directo al expediente para WhatsApp e Instagram, con formulario de avistamientos 100% anónimo.
-- **Criterios de Éxito:** Generación de afiche en `<canvas>` con descarga instantánea, cruces semánticos precisos y recepción de pistas seguras.
+### [x] Tarea 8: Bloque 4: Tableros de Búsqueda y Afiches con QR en Canvas [Modelo: GPT-6-Astra | Esfuerzo: Medium]
+- **Área:** Comunidad
+- **Objetivo:** Desarrollar cuatro tableros de personas y mascotas perdidas o encontradas con publicación limitada a datos autorizados. Incorporar sugerencias de coincidencia de DeepSeek como hipótesis y generar afiches descargables con QR al aviso. Recibir pistas sin exigir publicación de identidad y explicar datos tratados y límites del canal.
+- **Dependencias:** T6
+- **Criterios de Éxito:** Los cuatro tipos de aviso se crean y consultan con datos de prueba; el afiche descargado contiene un QR al aviso correcto; una pista se asocia al caso sin exponer campos privados en respuestas públicas; las coincidencias se etiquetan como sugerencias, no identificaciones confirmadas.
+- **Verificación requerida:** E2E de creación, consulta, descarga, lectura de QR y aportación de pistas; probar casos no coincidentes y aislamiento de campos privados.
+- **Plan:** docs/planes/T008.md.
+- **Estado:** Completada: cuatro tableros persistentes D1, pistas privadas, sugerencias DeepSeek como hipótesis y afiche Canvas con QR decodificado. Verificación final: lint/tsc/build/build:pages; 100/100 E2E en Next y Pages, MCP móvil/escritorio. Evidencia: docs/evidencias/T008/verificacion.md.
 
 ---
 

@@ -47,7 +47,7 @@ export default function HomePage() {
 
           <section className="upcoming-tool" aria-labelledby="radar-title">
             <Radar size={20} aria-hidden="true" />
-            <div><h2 id="radar-title">Radar barrial</h2><p>Observa 15 segundos de sonido y consulta avisos por comuna.</p><Link href="/community" prefetch={false} className="contact-link">Abrir convivencia barrial <ArrowRight size={16} aria-hidden="true" /></Link></div>
+            <div><h2 id="radar-title">Radar barrial</h2><p>Observa 15 segundos de sonido y consulta avisos por comuna.</p><Link href="/community" prefetch={false} className="contact-link">Abrir convivencia barrial <ArrowRight size={16} aria-hidden="true" /></Link><Link href="/search" prefetch={false} className="contact-link">Buscar personas y mascotas <ArrowRight size={16} aria-hidden="true" /></Link></div>
           </section>
         </div>
 
