@@ -4,6 +4,10 @@ description: Retoma el contexto desde MEMORY.md en una sesión fresca, ejecuta l
 
 # PROTOCOLO DE EJECUCIÓN `/avanzar`
 
+## Control automático del repositorio
+
+Antes de leer contexto o elegir una tarea, ejecuta `node scripts/verificar-repositorio.mjs --sync` desde el checkout de AlzaVoz. Debe confirmar `origin` de lectura y escritura en `andresleosan/AlzaVoz`, rama `main` y el mismo SHA local/remoto tras un fetch nuevo. Actualiza un atraso limpio solo por fast-forward; conserva e informa los cambios sin commit. Si falla, resuelve primero el cierre pendiente, la operación Git, el atraso o la divergencia sin perder trabajo, sin stash/reset/clean automáticos ni push a ciegas. No empieces otra tarea hasta que el control pase. Después del push, ejecuta `node scripts/verificar-repositorio.mjs` y comprueba de nuevo la igualdad; esto no certifica el despliegue Cloudflare.
+
 Cada vez que el usuario ejecute `/avanzar`, cumple estrictamente estos 6 pasos:
 
 1. **Lectura Ligera de Contexto:**
