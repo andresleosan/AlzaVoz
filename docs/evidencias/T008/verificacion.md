@@ -50,4 +50,7 @@ No se probó Safari/iOS, cámara de teléfono leyendo un afiche impreso ni calid
 - `pnpm test` final: 100/100, 3,6 minutos, incluidas las dos regresiones nuevas de corrección tras validación.
 - MCP final sobre Pages: detalle 200, proyección pública correcta y envío sin origen autorizado 403; sin desbordamiento móvil.
 - `PLAYWRIGHT_PAGES=1 pnpm test` final: 100/100, 3,5 minutos. Revisión independiente final aprobada; auditoría de seguridad sin nuevos defectos concretos.
-- Pendientes únicamente commit, push y despliegues nuevos.
+- Código enviado: `b22e0e8c1f596b3eda90d8062cad9d6139949594`; `node scripts/verificar-repositorio.mjs` confirmó igualdad con origin/main tras fetch nuevo.
+- Pages `168ca2bc-7396-4aaf-b700-f555322789c8`: success para ese SHA. Worker deployment `b7079938-27b1-4ed2-aa2f-b093356c4917`, versión `a88b327a-64d7-4504-8c01-afdbd265d640` al 100%; contenido remoto incorpora search_notices y search_tips.
+- Producción `/search` 200 y `/api/search` 200, `Cache-Control: no-store`, `{notices:[]}`. Sin POST sintéticos en producción. T10 sigue pendiente; esto verifica la publicación continua de T8.
+- [Salida completa Next](next-tests.txt), [salida completa Pages](pages-tests.txt), [revisión independiente](revision.md), [auditoría de seguridad](seguridad.md). Los informes de implementación/revisión conservan sus estados históricos; este apartado registra el cierre posterior.
