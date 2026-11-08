@@ -18,6 +18,7 @@ const pageNames: Record<string, string> = {
   "/report": "Denuncia confidencial",
   "/community": "Convivencia barrial",
   "/search": "Tableros de búsqueda",
+  "/admin": "Panel de gestión",
 };
 
 function Brand() {

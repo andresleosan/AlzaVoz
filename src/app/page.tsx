@@ -64,6 +64,11 @@ export default function HomePage() {
             <p>Contacta al equipo de AlzaVoz por WhatsApp.</p>
             <a href="https://wa.me/573234306794?text=Hola%20AlzaBot%20necesito%20apoyo%20en%20Medellin" target="_blank" rel="noopener noreferrer" className="contact-link">Abrir WhatsApp <ArrowRight size={16} aria-hidden="true" /></a>
             <small>Para una emergencia, usa la línea 123.</small>
+            <div style={{ marginTop: 14, paddingTop: 10, borderTop: "1px solid #1F2937" }}>
+              <Link href="/admin" prefetch={false} className="contact-link" style={{ fontSize: "0.82rem", color: "#9CA3AF" }}>
+                Acceso equipo y defensores <ArrowRight size={14} aria-hidden="true" />
+              </Link>
+            </div>
           </section>
         </aside>
       </div>
