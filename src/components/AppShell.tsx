@@ -15,6 +15,7 @@ const pageNames: Record<string, string> = {
   "/sos": "Emergencia SOS",
   "/defender": "Defensor en retén",
   "/record": "Grabar evidencia",
+  "/report": "Denuncia confidencial",
 };
 
 function Brand() {

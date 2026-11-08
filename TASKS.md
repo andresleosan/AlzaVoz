@@ -46,9 +46,14 @@
 
 ---
 
-### [ ] Tarea 6: Bloque 2: Denuncia Confidencial Zero-Knowledge y Enlace Cloudflare D1 [Modelo: Argon | Esfuerzo: High]
-- **Objetivo:** Construir el sistema de denuncias anónimas con pipeline criptográfico en el cliente: eliminación automática de metadatos EXIF/GPS de fotos y videos en el navegador antes de subir a R2, filtro de modulación y distorsión de voz con Web Audio API para notas de voz. Configurar y enlazar la base de datos SQL relacional Cloudflare D1 (`alzavoz-db`) para persistir expedientes ALZ-XXXX. Integrar el *Botón de Salida Rápida* (camuflaje instantáneo limpiando historial) y el flujo dual de despacho: 1) WhatsApp web directo a +57 3234306794 con expediente ALZ-XXXX si el usuario lo desea, o 2) Despacho anónimo desde backend/Workers sin revelar jamás la IP ni el teléfono del ciudadano.
-- **Criterios de Éxito:** Metadatos 100% purgados antes de subida, audios distorsionados correctamente, salida rápida infalible y casos radicados con código único ALZ-XXXX en D1.
+### [x] Tarea 6: Bloque 2: Denuncia Confidencial y Enlace Cloudflare D1 [Modelo: GPT-6-Astra | Esfuerzo: High]
+- **Área:** Denuncias
+- **Objetivo:** Construir expedientes en D1 con protección desde el cliente: retirar metadatos identificables definidos para formatos admitidos, transformar opcionalmente la voz y vincular evidencias R2. Ofrecer salida rápida y elección informada entre compartir por WhatsApp o usar el backend. Definir modelo de privacidad, datos observables por cada servicio y límites reales antes de describir el flujo como anónimo o zero-knowledge.
+- **Dependencias:** T5
+- **Criterios de Éxito:** Los archivos de prueba admitidos pasan la inspección de metadatos acordada y los no soportados se rechazan o explican; la transformación de voz es perceptible sin prometer impedir identificación; los casos reciben códigos únicos; la salida informa qué limpia y qué puede permanecer; cada canal explica qué comparte.
+- **Verificación requerida:** Inspeccionar archivos, payloads y almacenamiento; probar radicación, reintento, permisos y salida con servicios simulados, sin enviar denuncias ni mensajes reales.
+- **Plan y evidencia:** docs/planes/T006.md y docs/evidencias/T006/verificacion.md.
+- **Estado:** Completada. /report en modo Escudo Violeta limpia metadatos identificables (EXIF/GPS/XMP/IPTC/COM/tEXt/LIST-INFO) en cliente y los verifica en el Worker antes de escribir en R2, aplica transformación opcional de voz con Web Audio API advirtiendo sus límites reales, vincula sesiones R2 de /record sin guardar su secreto en D1, radica expedientes con códigos únicos no secuenciales ALZ-YYYY-XXXXXX en Cloudflare D1 (`alzavoz-db-pruebas` y `alzavoz-db`), detalla qué limpia y qué puede permanecer en Salida Rápida y explica qué datos comparte y observa cada canal (D1/R2 vs WhatsApp). 74 pruebas E2E aprobadas en Next y Pages; D1 y R2 remotos verificados con hash SHA-256 contrastado por CLI.
 
 ---
 

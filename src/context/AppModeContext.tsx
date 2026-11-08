@@ -31,7 +31,12 @@ export function AppModeProvider({
   initialMode?: AppMode;
 }) {
   const pathname = usePathname();
-  const mode: AppMode = pathname === "/sos" || pathname === "/defender" ? "defender" : initialMode;
+  const mode: AppMode =
+    pathname === "/sos" || pathname === "/defender"
+      ? "defender"
+      : pathname === "/report"
+        ? "violet"
+        : initialMode;
   const [isCamouflaged, setIsCamouflaged] = useState<boolean>(false);
   const [isNavigationLocked, setNavigationLocked] = useState(false);
 

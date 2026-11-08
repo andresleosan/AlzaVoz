@@ -18,9 +18,15 @@ export function QuickEscapeButton({
     // 1. Limpieza de datos volátiles de sesión para no dejar rastros
     if (typeof window !== "undefined") {
       try {
+        window.dispatchEvent(new Event("alzavoz:escape"));
         sessionStorage.clear();
         // Limpieza de posibles borradores temporales
-        const keysToRemove = ["alzavoz_draft", "alzavoz_temp_audio", "alzavoz_sos_active"];
+        const keysToRemove = [
+          "alzavoz_draft",
+          "alzavoz_report_draft",
+          "alzavoz_temp_audio",
+          "alzavoz_sos_active",
+        ];
         keysToRemove.forEach((k) => localStorage.removeItem(k));
       } catch {
         // En caso de modo incógnito o storage deshabilitado

@@ -32,6 +32,11 @@ export default function HomePage() {
                 <div><h3>Defensor en retén</h3><p>Consulta tus derechos en un procedimiento o un choque sin lesiones.</p></div>
                 <ArrowRight size={18} className="tool-arrow" aria-hidden="true" />
               </Link>
+              <Link href="/report" prefetch={false} className="tool-entry tool-violet">
+                <HeartHandshake className="tool-icon" size={24} aria-hidden="true" />
+                <div><h3>Denuncia confidencial · Escudo Violeta</h3><p>Limpia metadatos de fotos, protege tu voz y radica con código único o por WhatsApp.</p></div>
+                <ArrowRight size={18} className="tool-arrow" aria-hidden="true" />
+              </Link>
               <a href="tel:155" className="tool-entry tool-violet">
                 <HeartHandshake className="tool-icon" size={24} aria-hidden="true" />
                 <div><h3>Línea 155 · Escudo Violeta</h3><p>Orientación telefónica ante violencias contra las mujeres.</p></div>
