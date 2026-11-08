@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='8' fill='%230b0f19'/%3E%3Cpath d='m7 30 13-22 13 22M13 25h14' fill='none' stroke='%2367e8f9' stroke-width='3'/%3E%3C/svg%3E">
+  <meta name="description" content="Seguimiento local de las tareas de AlzaVoz: avances, pendientes y criterios de entrega.">
+  <title>AlzaVoz · Tareas y avance</title>
+  <style>
+    :root { color-scheme: dark; --canvas:#0b0f19; --surface:#111827; --raised:#172131; --line:#293548; --ink:#f5f7fb; --muted:#a9b7ca; --cyan:#67e8f9; --green:#6ee7b7; --amber:#fcd34d; --radius:14px; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; scrollbar-color:#4c6079 var(--canvas); scroll-padding-top:24px; }
+    body { margin:0; background:var(--canvas); color:var(--ink); font:15px/1.6 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    ::selection { background:#18596a; color:white; }
+    button,input,select { font:inherit; }
+    button,a,summary,input,select { -webkit-tap-highlight-color:transparent; }
+    button { cursor:pointer; }
+    button:disabled { opacity:.55; cursor:wait; }
+    a { color:var(--cyan); text-underline-offset:4px; }
+    button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid var(--cyan); outline-offset:4px; }
+    h1,h2,h3,p { margin:0; }
+    h1,h2,h3 { line-height:1.2; text-wrap:balance; }
+    h1 { font-size:clamp(28px,3.5vw,40px); letter-spacing:-.035em; font-weight:720; }
+    h2 { font-size:21px; letter-spacing:-.02em; }
+    h3 { font-size:17px; }
+    small,.small { font-size:12px; }
+    .muted { color:var(--muted); }
+    .icon { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+    .skip { position:fixed; left:16px; top:-80px; z-index:10; background:var(--cyan); color:var(--canvas); padding:12px; }
+    .skip:focus { top:12px; }
+    .app { display:grid; grid-template-columns:232px minmax(0,1fr); min-height:100vh; }
+    .sidebar { position:sticky; top:0; height:100vh; border-right:1px solid var(--line); padding:32px 22px 24px; display:flex; flex-direction:column; gap:34px; background:#0e1421; }
+    .brand { display:flex; align-items:center; gap:12px; color:var(--ink); text-decoration:none; }
+    .brand-mark { width:38px; height:38px; color:var(--cyan); }
+    .brand b { display:block; font-size:23px; letter-spacing:-.04em; line-height:1.15; }
+    .brand span { font-size:12px; color:var(--muted); }
+    .nav-title { font-size:12px; color:var(--muted); margin-bottom:12px; }
+    .sidebar nav { min-height:0; overflow-y:auto; scrollbar-width:thin; }
+    .sidebar > :not(nav) { flex-shrink:0; }
+    .phase-list { display:grid; gap:6px; }
+    .phase-button { width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:11px 12px; border:1px solid transparent; color:var(--muted); background:transparent; border-radius:9px; text-align:left; font-size:13px; min-height:46px; }
+    .phase-button:hover { background:var(--surface); color:var(--ink); }
+    .phase-button[aria-pressed="true"] { background:#15313c; color:#b9f4ff; border-color:#285365; }
+    .phase-count { color:inherit; font-size:12px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .sidebar-note { border-top:1px solid var(--line); padding-top:18px; font-size:12px; color:var(--muted); }
+    .sidebar-note strong { color:var(--ink); font-weight:550; }
+    .sidebar-bottom { margin-top:auto; color:var(--muted); font-size:12px; }
+    .local-dot { width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; margin-right:7px; }
+    main { width:100%; max-width:1500px; padding:42px 44px 28px; min-width:0; margin-inline:auto; }
+    .page-header { display:flex; gap:24px; align-items:flex-start; justify-content:space-between; margin-bottom:30px; }
+    .page-header p { margin-top:10px; color:var(--muted); max-width:60ch; }
+    .header-actions { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; min-height:46px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); font-size:13px; font-weight:550; text-decoration:none; }
+    .btn:hover { background:#223047; border-color:#49617c; }
+    .btn-primary { background:var(--cyan); border-color:var(--cyan); color:#08252e; }
+    .btn-primary:hover { background:#b0f3fc; border-color:#b0f3fc; }
+    .btn-text { color:var(--muted); background:transparent; border-color:transparent; padding:8px 0; text-align:left; justify-content:flex-start; }
+    .btn-text:hover { background:transparent; border-color:transparent; color:var(--ink); text-decoration:underline; text-underline-offset:4px; }
+    .overview { padding:24px 26px; border:1px solid var(--line); border-radius:var(--radius); background:var(--surface); margin-bottom:30px; }
+    .overview-top { display:flex; align-items:baseline; justify-content:space-between; gap:20px; }
+    .overview-title { display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; }
+    .overview-title h2 { font-size:16px; font-weight:550; color:var(--muted); }
+    #progress-percent { font-size:28px; font-weight:700; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+    .summary-counts { color:var(--muted); font-size:13px; }
+    .summary-counts strong { color:var(--ink); font-size:17px; font-variant-numeric:tabular-nums; }
+    .progress-track { margin-top:18px; height:12px; background:#324054; border-radius:3px; overflow:hidden; }
+    .progress-step { display:block; height:100%; border-radius:3px; }
+    .progress-step.done { background:var(--green); }
+    .progress-step.next { outline:1px solid var(--cyan); outline-offset:-1px; background:#164152; }
+    .overview-foot { margin-top:12px; display:flex; flex-wrap:wrap; justify-content:space-between; gap:8px 20px; color:var(--muted); font-size:12px; }
+    .compact-next { display:none; }
+    @media(max-width:1000px) { .compact-next { display:inline-flex; margin-top:14px; min-height:46px; } }
+    .work-area { display:grid; grid-template-columns:minmax(0,1fr) 292px; gap:28px; align-items:start; }
+    .tasks-heading { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:16px; }
+    #result-count { color:var(--muted); font-size:12px; }
+    .filters { display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:18px; }
+    .status-filters { display:flex; gap:4px; padding:4px; background:var(--surface); border:1px solid var(--line); border-radius:10px; flex-wrap:wrap; }
+    .status-filter { border:0; border-radius:6px; background:transparent; color:var(--muted); padding:8px 11px; min-height:40px; font-size:12px; }
+    .status-filter:hover { color:var(--ink); background:#1d2b40; }
+    .status-filter[aria-pressed="true"] { background:#2d4056; color:white; }
+    .search-wrap { position:relative; flex:1 1 180px; }
+    .search-wrap .icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); width:17px; }
+    #search { width:100%; min-height:46px; padding:10px 12px 10px 38px; background:var(--canvas); border:1px solid var(--line); border-radius:9px; color:var(--ink); font-size:13px; caret-color:var(--cyan); }
+    #search::placeholder { color:#9baec5; }
+    .task-list { border-top:1px solid var(--line); }
+    .task { border-bottom:1px solid var(--line); scroll-margin-top:20px; }
+    .task summary { display:grid; grid-template-columns:36px minmax(0,1fr) 18px; gap:12px; align-items:start; padding:20px 8px 20px 0; list-style:none; cursor:pointer; }
+    .task summary::-webkit-details-marker { display:none; }
+    .task summary:hover { background:#101927; }
+    .task-id { font-size:15px; font-variant-numeric:tabular-nums; color:#93a6be; margin-top:3px; }
+    .task-header { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:7px; }
+    .task-title { font-size:15px; font-weight:650; line-height:1.45; }
+    .task-description { color:var(--muted); font-size:13px; max-width:72ch; line-height:1.7; }
+    .task-meta { display:flex; gap:10px; margin-top:10px; align-items:center; flex-wrap:wrap; }
+    .badge { display:inline-flex; align-items:center; gap:5px; padding:3px 8px; border-radius:6px; background:#223047; color:#c0cfe0; font-size:10px; font-weight:650; white-space:nowrap; }
+    .badge.done { color:#b2f7d7; background:#15392f; }
+    .badge.next { color:#b3f2ff; background:#153c4b; }
+    .phase-label { font-size:11px; color:var(--muted); }
+    .chevron { margin-top:4px; width:16px; color:#a9b7ca; transition:transform .15s ease; }
+    details[open] .chevron { transform:rotate(90deg); }
+    .task-detail { margin-left:48px; padding:0 12px 24px 0; max-width:74ch; }
+    .detail-block { margin-top:18px; }
+    .detail-block h3 { font-size:12px; color:var(--cyan); margin-bottom:7px; font-weight:600; }
+    .detail-block p { color:#c9d4e3; font-size:13px; white-space:pre-line; overflow-wrap:anywhere; }
+    .detail-block .source-label { margin-top:7px; font-size:11px; color:var(--muted); }
+    .empty { padding:46px 20px; text-align:center; border-bottom:1px solid var(--line); }
+    .empty h3 { margin-bottom:10px; }
+    .empty p { color:var(--muted); font-size:13px; margin-bottom:14px; }
+    .rail { display:grid; gap:28px; }
+    .next-panel { background:#102630; border:1px solid #28515e; border-radius:var(--radius); padding:23px; }
+    .next-panel h2 { color:#b6e8ee; font-size:13px; font-weight:550; margin-bottom:14px; }
+    .next-panel h3 { font-size:21px; line-height:1.35; margin-bottom:12px; letter-spacing:-.02em; }
+    .next-panel p { font-size:13px; color:#bfdae0; }
+    .next-panel .btn { margin-top:20px; width:100%; background:#a4edfa; border-color:#a4edfa; color:#0d2c37; }
+    .next-number { color:#a9d8e3; font-size:12px; margin-bottom:8px; display:block; }
+    .rail-section { padding-inline:3px; }
+    .rail-section h2 { font-size:15px; margin-bottom:14px; }
+    .rail-section p { font-size:12px; color:var(--muted); }
+    .project-points { margin:0; padding:0; list-style:none; }
+    .project-points li { padding:11px 0; border-bottom:1px solid var(--line); }
+    .project-points strong { display:block; font-size:12px; font-weight:600; margin-bottom:3px; }
+    .project-points span { display:block; font-size:12px; color:var(--muted); }
+    .update-help { margin-top:14px; padding-top:14px; border-top:1px solid var(--line); }
+    .path { overflow-wrap:anywhere; font-family:ui-monospace,"Cascadia Code",monospace; font-size:11px; color:#d5dfec; display:block; padding-top:8px; }
+    .footnotes { margin-top:34px; padding-top:22px; border-top:1px solid var(--line); display:grid; grid-template-columns:1fr 1fr; gap:30px; }
+    .footnotes h2 { font-size:13px; margin-bottom:8px; }
+    .footnotes p { color:var(--muted); font-size:12px; max-width:74ch; }
+    .footnotes p+p { margin-top:8px; }
+    .footer { margin-top:28px; font-size:11px; color:var(--muted); display:flex; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+    #notice { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); width:max-content; max-width:calc(100% - 32px); z-index:20; background:#d7f5f4; color:#102d34; border-radius:10px; padding:14px 20px; box-shadow:0 8px 32px #0005; font-size:13px; }
+    #notice.error { background:#ffdbd8; color:#501b18; }
+    [hidden] { display:none!important; }
+    noscript { display:block; padding:40px; color:var(--ink); }
+    @media(min-width:1600px) { main { padding-inline:60px; } .work-area { gap:40px; grid-template-columns:minmax(0,1fr) 320px; } }
+    @media(max-width:1200px) { .app { grid-template-columns:200px minmax(0,1fr); } .sidebar { padding-inline:16px; } main { padding:30px 26px; } .work-area { grid-template-columns:minmax(0,1fr) 252px; gap:22px; } .header-actions { max-width:180px; } }
+    @media(max-width:1000px) { .work-area { grid-template-columns:minmax(0,1fr); } .rail { grid-template-columns:1fr 1fr; align-items:start; } .rail-section:last-child { grid-column:1/-1; } .rail { margin-top:8px; } .header-actions { max-width:initial; } .page-header { flex-direction:column; gap:18px; } .header-actions { justify-content:flex-start; } }
+    @media(max-width:700px) { .app { display:block; } .sidebar { position:static; height:auto; padding:18px 20px 14px; gap:18px; border-right:0; border-bottom:1px solid var(--line); } .brand-mark { width:32px; height:32px; } .brand b { font-size:21px; } .sidebar nav { overflow:hidden; } .nav-title,.sidebar-note,.sidebar-bottom { display:none; } .phase-list { display:flex; overflow-x:auto; gap:7px; padding:3px 3px 8px; } .phase-button { width:auto; min-height:42px; flex:none; padding:8px 12px; border-color:var(--line); } main { padding:25px 20px; } h1 { font-size:30px; } .page-header { margin-bottom:24px; } .page-header p { font-size:14px; } .header-actions { width:100%; } .header-actions .btn { flex:1; font-size:12px; } .overview { padding:19px; margin-bottom:25px; } .overview-top { align-items:flex-start; flex-direction:column; gap:8px; } .summary-counts { font-size:12px; } .summary-counts strong { font-size:15px; } .rail { grid-template-columns:1fr; gap:24px; } .rail-section:last-child { grid-column:auto; } .footnotes { grid-template-columns:1fr; gap:20px; } .task summary { grid-template-columns:28px minmax(0,1fr) 14px; gap:9px; } .task-detail { margin-left:37px; } .task-description { font-size:12px; } .task-title { font-size:14px; } .filters { gap:10px; } .status-filters { width:100%; } .status-filter { flex:1; padding-inline:8px; } .search-wrap { flex-basis:100%; } .tasks-heading { flex-wrap:wrap; } }
+    @media(prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .chevron { transition:none; } }
+    @media print { :root { color-scheme:light; --canvas:white; --surface:white; --ink:#111827; --muted:#475569; --line:#cbd5e1; --cyan:#075985; } body { font-size:11pt; background:white; color:#111827; } .app { display:block; } main { max-width:none; padding:0; } .sidebar,.header-actions,.filters,.rail,#notice,.footer,.skip { display:none!important; } .work-area { display:block; } .overview { padding:14px; margin-bottom:20px; } .task { break-inside:avoid; } .task summary { padding-block:14px; } .task-detail { padding-bottom:14px; } .task-description,.detail-block p,.detail-block h3 { color:#334155; } .badge,.badge.done,.badge.next { color:#111827; background:#edf2f7; } .overview-title h2,.summary-counts,.overview-foot { color:#475569; } .footnotes { gap:20px; } .progress-step { print-color-adjust:exact; -webkit-print-color-adjust:exact; } .page-header { margin-bottom:20px; } h1 { font-size:25px; } }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#task-heading">Ir a las tareas</a>
+  <svg style="display:none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M4 15l2 3a7 7 0 0 0 12-1"/></symbol><symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol><symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol><symbol id="i-print" viewBox="0 0 24 24"><path d="M7 8V3h10v5M7 17H4V8h16v9h-3M7 14h10v7H7z"/><path d="M17 11h.01"/></symbol><symbol id="i-save" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M5 16v5h14v-5"/></symbol></svg>
+  <div class="app">
+    <aside class="sidebar" aria-label="Navegación del proyecto">
+      <a href="#" class="brand" aria-label="AlzaVoz, vista de todas las tareas" id="brand-home"><svg class="brand-mark" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="m7 28 13-20 13 20M12 28h16M15 22h10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><div><b>AlzaVoz</b><span>Seguimiento del proyecto</span></div></a>
+      <nav aria-label="Filtrar por área"><p class="nav-title">Áreas del proyecto</p><div class="phase-list" id="phase-list"></div></nav>
+      <a class="btn" href="ideas.html" data-project-link>Ver las 100 mejoras<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+      <div class="sidebar-note"><strong>Un paso a la vez.</strong><br>Abre cada tarea para revisar su objetivo, criterios y estado registrado.</div>
+      <div class="sidebar-bottom"><span class="local-dot"></span>Archivo local<br>Disponible sin conexión</div>
+    </aside>
+    <main id="main">
+      <header class="page-header"><div><h1>Tareas y avance</h1><p>Lo que ya está resuelto, lo que falta y el siguiente paso de AlzaVoz.</p></div><div class="header-actions"><button class="btn btn-primary" id="sync-button"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>Actualizar ahora</button><button class="btn" id="print-button"><svg class="icon" aria-hidden="true"><use href="#i-print"/></svg>Imprimir vista</button></div></header>
+      <section class="overview" aria-labelledby="overview-heading"><div class="overview-top"><div class="overview-title"><h2 id="overview-heading">Avance del plan</h2><span id="progress-percent"></span></div><p class="summary-counts" id="summary-counts"></p></div><div id="progress-track" class="progress-track" role="img"></div><div class="overview-foot"><span id="progress-explanation"></span><span id="source-date"></span></div><a class="btn compact-next" id="compact-next" href="#task-5">Siguiente disponible · Tarea 5 →</a></section>
+      <div class="work-area">
+        <section aria-labelledby="task-heading"><div class="tasks-heading"><h2 id="task-heading" tabindex="-1">Todas las tareas</h2><span id="result-count" role="status" aria-live="polite"></span></div><div class="filters"><div class="status-filters" role="group" aria-label="Filtrar por estado"><button class="status-filter" data-status="all" aria-pressed="true">Todas</button><button class="status-filter" data-status="pending" aria-pressed="false">Pendientes</button><button class="status-filter" data-status="done" aria-pressed="false">Completadas</button></div><label class="search-wrap"><svg class="icon" aria-hidden="true"><use href="#i-search"/></svg><input type="search" id="search" placeholder="Buscar una tarea…" aria-label="Buscar por nombre, número o contenido"></label></div><div class="task-list" id="task-list"></div><div class="empty" id="empty" hidden><h3>No hay tareas en esta vista</h3><p>Prueba otro término o quita los filtros para ver el plan completo.</p><button class="btn" id="clear-filters">Quitar filtros</button></div></section>
+        <aside class="rail" aria-label="Próximo paso y contexto">
+          <section class="next-panel"><h2 id="next-label">Siguiente en la secuencia</h2><span class="next-number" id="next-number"></span><h3 id="next-title"></h3><p id="next-description"></p><button class="btn" id="next-button">Ver la tarea<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></button></section>
+          <section class="rail-section"><h2>Qué estás construyendo</h2><ul class="project-points"><li><strong>Protección ciudadana en Medellín</strong><span>Auxilio, evidencias, denuncias y apoyo comunitario.</span></li><li><strong>Una interfaz para momentos difíciles</strong><span>Prioridad móvil, botones grandes, lectura clara y controles de privacidad.</span></li><li><strong>Alza Bot como acompañante</strong><span>Orientación y cuatro modos visuales según el contexto.</span></li></ul></section>
+          <section class="rail-section" id="update-section"><h2>Actualización automática</h2><p id="sync-help">Al cerrar una tarea con <strong>/avanzar</strong>, este panel recibe el nuevo estado. Si lo dejas abierto, comprueba los cambios cada 5 segundos.</p><p class="update-help" id="sync-status" role="status" aria-live="polite">Comprobando el estado del seguimiento…</p><p id="export-help" class="update-help">Puedes guardar una copia independiente del estado actual. Las copias descargadas conservan ese momento del plan.</p><button class="btn btn-text" id="export-button"><svg class="icon" aria-hidden="true"><use href="#i-save"/></svg>Guardar copia del HTML</button></section>
+        </aside>
+      </div>
+      <section class="footnotes" aria-label="Fuentes y alcance"><div><h2>Cómo leer el progreso</h2><p id="count-note"></p><p>Cada tarea cuenta lo mismo: el porcentaje no representa horas de trabajo. «Siguiente» es la primera pendiente con dependencias resueltas; no indica que ya esté en ejecución. Las 100 mejoras amplían el total del plan y se implementarán una por una.</p><p><a href="PLANIFICACION.md" data-project-link>Consultar el proceso y los planes por tarea</a></p></div><div><h2>Fuente y verificación</h2><p>Los estados y detalles proceden de <strong>TASKS.md</strong>. El contexto visual sigue <strong>DESIGN.md</strong>. Las pruebas mencionadas son resultados históricos registrados, no una nueva verificación de la aplicación.</p><p>Los criterios son metas del plan. Este panel permite consultar y actualizar su copia; no modifica el archivo original ni certifica integraciones o garantías de seguridad.</p></div></section>
+      <footer class="footer"><span>AlzaVoz & Alza Bot · Medellín</span><span id="footer-source">Fuente: TASKS.md</span></footer>
+    </main>
+  </div>
+  <div id="notice" role="status" aria-live="polite" hidden></div>
+  <noscript>Activa JavaScript en tu navegador para ver y filtrar las tareas de este archivo local.</noscript>
+  <script type="application/json" id="initial-data">{"markdown":"# PLAN MAESTRO DE TAREAS: ALZAVOZ & ALZA BOT (MEDELLÍN)\n## Plan de Desarrollo Secuencial Atómico (10 Tareas)\n\n---\n\n### [x] Tarea 0: Cimentación Estratégica, Guía de Diseño y Pipeline de Automatización\n- **Descripción:** Inspección exhaustiva de imágenes en raíz, elaboración de `DESIGN.md` con lineamientos \"UX Bajo Estrés\", plan de 10 tareas en `TASKS.md`, memoria operativa compacta `MEMORY.md`, workflow del comando `/avanzar` y commit fundacional.\n- **Estado:** Completada.\n\n---\n\n### [x] Tarea 1: Setup del Proyecto Next.js, Cloudflare, PWA y Organización de Assets [Modelo: 3.8 Flash | Esfuerzo: Low]\n- **Descripción:** Inicialización de Next.js (App Router), TypeScript estricto (`noImplicitAny`), Tailwind CSS v4 con PostCSS y pnpm. Configuración de Cloudflare (`wrangler.jsonc`). Organización canónica de activos visuales de Alza Bot en `public/assets/` y PWA (`manifest.json`, favicons, iconos). Suite de pruebas de humo E2E con Playwright ejecutada exitosamente.\n- **Estado:** Completada.\n\n---\n\n### [x] Tarea 2: Arquitectura del Sistema de Diseño \"UX Bajo Estrés\" y Avatar Dinámico de Alza Bot [Modelo: 3.8 Flash | Esfuerzo: Medium]\n- **Descripción:** Shell de la aplicación Mobile-First con navegación ergonómica inferior fija al alcance del pulgar (`BottomNav` con botones táctiles >= 56px cumpliendo Fitts' Law). Componente `\u003cAlzaBotAvatar />` que reacciona de forma dinámica a los 4 modos visuales (Estándar/Cian, Defensor/Rojo, Violeta/Púrpura y Radar/Esmeralda) con auras de respiración, indicadores en vivo y micro-interacciones. Botones de Salida Rápida de Pánico (Escape) y conmutador de privacidad antiespía (\"Zero-Peeping\" desenfocando datos sensibles). 6 pruebas E2E en Playwright aprobadas al 100%.\n- **Estado:** Completada.\n\n---\n\n### [x] Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia y Alerta Rápida [Modelo: 3.8 Flash | Esfuerzo: High]\n- **Objetivo:** Construir el módulo de pánico inteligente con lectura GPS en vivo y geocodificación inversa para Medellín (mostrando barrio y dirección exacta en tipografía gigante para lectura rápida al 123). Implementar marcación directa de emergencia (Policía 123, Ambulancia, Bomberos, Tránsito, Línea Púrpura), gestión de contactos de confianza en `localStorage` y botón de alerta silenciosa por WhatsApp (+57 3234306794) con enlace de localización.\n- **Criterios de Éxito:** Detección precisa de ubicación, marcado telefónico sin latencia y despacho de mensaje de auxilio en WhatsApp a contactos guardados.\n- **Estado:** Completada. Implementado módulo SOS con lectura de dirección gigante en alta legibilidad, selector offline de las 16 comunas de Medellín, 5 marcadores telefónicos (Fitts' Law >= 56px), gestor de contactos de confianza y alerta silenciosa a WhatsApp. 12 pruebas E2E aprobadas en Playwright.\n\n---\n\n### [x] Tarea 4: Bloque 1 (Parte B): Alza Bot Defensor Legal en Vivo y Choques \"Solo Latas\" [Modelo: 3.8 Flash | Esfuerzo: High]\n- **Objetivo:** Implementar la interfaz y lógica del Defensor en Vivo asistido por DeepSeek API especializado en legislación colombiana (Ley 769 de 2002, Ley 1801 de 2016 y Ley 2251 de 2022). Respuestas estructuradas en 3 secciones: 1) Cita de norma exacta, 2) Guion respetuoso y firme para leer al agente, 3) Checklist de pruebas a grabar. Integrar el asistente interactivo de choques simples con captura fotográfica guiada y generación de acta rápida de conciliación.\n- **Criterios de Éxito:** Respuestas jurídicas precisas en menos de 3 segundos, estructura de 3 bloques respetada y flujo guiado de choques completable en carretera.\n- **Estado:** Completada. Implementado panel del Defensor Legal en Vivo (`/defender` y `#defensor-reten`) con presets rápidos y búsqueda asistida (Ley 769, 1801 y 2251), estructura rígida de 3 bloques (Norma, Guion y Checklist de grabación) y asistente interactivo de choques 'Solo Latas' con captura de 4 fotos y generación instantánea de acta de retiro para aseguradoras. 18 pruebas E2E aprobadas en Playwright al 100%.\n\n---\n\n### [x] Tarea 5: Bloque 1 (Parte C): Caja Negra de Grabación en la Nube y Enlace Cloudflare R2 [Modelo: GPT-6-Astra | Esfuerzo: High]\n- **Área:** Emergencias\n- **Objetivo:** Desarrollar grabación de video y audio con MediaRecorder, solicitando fragmentos aproximadamente cada 3 segundos y midiendo sus tiempos reales. Enlazar R2 mediante endpoints con autorización adecuada al flujo ciudadano. Conservar y recuperar fragmentos cuya recepción confirme el servidor; comunicar pérdidas, interrupciones y límites del navegador sin prometer captura después de cerrar la pestaña o apagar el dispositivo.\n- **Dependencias:** T1, T2\n- **Criterios de Éxito:** En los formatos y dispositivos definidos, iniciar y detener produce archivos reproducibles; los fragmentos confirmados se recuperan de R2 con permisos correctos; cierre abrupto, desconexión y permisos denegados no muestran como guardados datos sin recibo.\n- **Verificación requerida:** Probar captura, subida, reproducción, fallos simulados y cierre de pestaña; contrastar archivos recibidos y recibos del servidor, sin afirmar continuidad tras el cierre.\n- **Plan y evidencia:** docs/planes/T005.md y docs/evidencias/T005/verificacion.md.\n- **Estado:** Completada en entorno de prueba. /record captura audio/video WebM en clips independientes (~3 s), registra tiempos y pausas, confirma recibos SHA-256 y recupera mediante clave privada. 35 pruebas aprobadas; MCP móvil/escritorio y R2 remoto privado con hash contrastado por CLI. Pendientes solo en RAM; cierre puede perderlos. Chromium sintético verificado; hardware real e iOS pendientes de T101. No es despliegue final.\n\n---\n\n### [x] Tarea 6: Bloque 2: Denuncia Confidencial y Enlace Cloudflare D1 [Modelo: GPT-6-Astra | Esfuerzo: High]\n- **Área:** Denuncias\n- **Objetivo:** Construir expedientes en D1 con protección desde el cliente: retirar metadatos identificables definidos para formatos admitidos, transformar opcionalmente la voz y vincular evidencias R2. Ofrecer salida rápida y elección informada entre compartir por WhatsApp o usar el backend. Definir modelo de privacidad, datos observables por cada servicio y límites reales antes de describir el flujo como anónimo o zero-knowledge.\n- **Dependencias:** T5\n- **Criterios de Éxito:** Los archivos de prueba admitidos pasan la inspección de metadatos acordada y los no soportados se rechazan o explican; la transformación de voz es perceptible sin prometer impedir identificación; los casos reciben códigos únicos; la salida informa qué limpia y qué puede permanecer; cada canal explica qué comparte.\n- **Verificación requerida:** Inspeccionar archivos, payloads y almacenamiento; probar radicación, reintento, permisos y salida con servicios simulados, sin enviar denuncias ni mensajes reales.\n- **Plan y evidencia:** docs/planes/T006.md y docs/evidencias/T006/verificacion.md.\n- **Estado:** Completada. /report en modo Escudo Violeta limpia metadatos identificables (EXIF/GPS/XMP/IPTC/COM/tEXt/LIST-INFO) en cliente y los verifica en el Worker antes de escribir en R2, aplica transformación opcional de voz con Web Audio API advirtiendo sus límites reales, vincula sesiones R2 de /record sin guardar su secreto en D1, radica expedientes con códigos únicos no secuenciales ALZ-YYYY-XXXXXX en Cloudflare D1 (`alzavoz-db-pruebas` y `alzavoz-db`), detalla qué limpia y qué puede permanecer en Salida Rápida y explica qué datos comparte y observa cada canal (D1/R2 vs WhatsApp). 74 pruebas E2E aprobadas en Next y Pages; D1 y R2 remotos verificados con hash SHA-256 contrastado por CLI.\n\n---\n\n### [x] Tarea 7: Bloque 3: Convivencia y Alerta Barrial (Sonómetro Web) [Modelo: GPT-6-Astra | Esfuerzo: Medium]\n- **Área:** Comunidad\n- **Objetivo:** Implementar observación acústica durante 15 segundos con Web Audio API, mostrando método, limitaciones y datos de captura. Investigar calibración y comparación antes de atribuir decibelios absolutos o certificación. Incorporar fecha y ubicación barrial elegida o confirmada y agrupar reportes por zonas y categorías, sin publicar ubicaciones individuales.\n- **Dependencias:** T1, T2\n- **Criterios de Éxito:** La captura inicia y termina con permiso y explica qué representa la lectura; ausencia de micrófono o calibración tiene un estado claro; reportes sintéticos se agregan por zona y categoría sin exponer coordenadas individuales; el mapa funciona en móvil.\n- **Verificación requerida:** Probar señales conocidas, dispositivos del alcance, permisos y temporización; verificar consultas y agregados con datos sintéticos y documentar límites de medición.\n- **Plan y evidencia:** docs/planes/T007.md y docs/evidencias/T007/verificacion.md.\n- **Estado:** Completada. /community observa 15 s con AudioWorklet, informa RMS en dBFS sin calibración acústica, descarta audio y libera micrófono ante interrupciones. Envío voluntario de comuna/categoría/día con UUID idempotente a D1; mapa SVG y tabla de agregados de 30 días sin datos individuales. 88/88 pruebas Next y Pages; repetición 14/14 de T7 en ambos modos tras optimizar avatar, MCP móvil/escritorio y señales sintéticas. No certifica presión sonora ni infracciones.\n\n---\n\n### [ ] Tarea 8: Bloque 4: Tableros de Desaparecidos y Afiches con QR en Canvas [Modelo: Argon | Esfuerzo: Medium]\n- **Objetivo:** Desarrollar los 4 tableros comunitarios: Personas desaparecidas, Personas encontradas/desorientadas, Mascotas perdidas y Mascotas encontradas. Implementar el motor de cruce inteligente con DeepSeek API analizando rasgos físicos y ubicación barrial para alertar coincidencias. Crear el generador dinámico de afiches de búsqueda descargables en formato imagen optimizada con código QR directo al expediente para WhatsApp e Instagram, con formulario de avistamientos 100% anónimo.\n- **Criterios de Éxito:** Generación de afiche en `\u003ccanvas>` con descarga instantánea, cruces semánticos precisos y recepción de pistas seguras.\n\n---\n\n### [ ] Tarea 9: Bloque 5: Panel Privado del Concejal & Enlace Firebase Auth [Modelo: Argon | Esfuerzo: Low]\n- **Objetivo:** Construir el panel administrativo protegido vinculando la autenticación oficial de **Firebase Auth** del proyecto `alzavoz-3e805` (Proyecto ID: `alzavoz-3e805`, Número: `897775972477`) exclusivo para el equipo legal y político del Concejal. Tabla de gestión de casos en Cloudflare D1 con filtros por comuna, nivel de riesgo y categoría. Visor multimedia de evidencias con URLs firmadas temporales de Cloudflare R2, actualización de estados de radicado y generador con IA (DeepSeek) de *Derechos de Petición y Oficios Oficiales* dirigidos a la Secretaría de Movilidad, MEVAL, ICBF, Fiscalía o Personería.\n- **Criterios de Éxito:** Autenticación estricta con rutas protegidas vía Firebase SDK / Tokens, descarga segura de pruebas desde R2 y generación de documentos jurídicos listos para radicar.\n\n---\n\n### [ ] Tarea 10: Despliegue en Cloudflare Pages, Pipeline CI/CD y Seguridad Integral [Modelo: Argon | Esfuerzo: Low]\n- **Objetivo:** Configurar el pipeline definitivo de despliegue continuo en **Cloudflare Pages** conectado al repositorio GitHub `andresleosan/AlzaVoz` en rama `main` (Build command: `npx next build`, Build output: `out` con static export / Edge runtime). Aplicar directivas de blindaje contra Prompt Injection y manipulación de rol en Alza Bot. Configurar reglas de Rate Limiting en Cloudflare WAF para endpoints `/api/denuncias/*`. Ejecutar suite completa de pruebas E2E con Playwright (flujos de SOS, denuncia anónima, sonómetro y panel privado) validando el despliegue funcional en producción (`alzavoz.pages.dev`).\n- **Criterios de Éxito:** Cero vulnerabilidades en pruebas de inyección, tests Playwright en verde al 100% y despliegue automatizado activo en Cloudflare Pages ante cada `git push`.\n\n","date":"2026-11-08T03:42:31.424Z","label":"Actualizado automáticamente desde TASKS.md","referenceMarkdown":"# PLAN MAESTRO DE TAREAS: ALZAVOZ & ALZA BOT (MEDELLÍN)\n## Plan de Desarrollo Secuencial Atómico (10 Tareas)\n\n---\n\n### [x] Tarea 0: Cimentación Estratégica, Guía de Diseño y Pipeline de Automatización\n- **Descripción:** Inspección exhaustiva de imágenes en raíz, elaboración de `DESIGN.md` con lineamientos \"UX Bajo Estrés\", plan de 10 tareas en `TASKS.md`, memoria operativa compacta `MEMORY.md`, workflow del comando `/avanzar` y commit fundacional.\n- **Estado:** Completada.\n\n---\n\n### [x] Tarea 1: Setup del Proyecto Next.js, Cloudflare, PWA y Organización de Assets [Modelo: 3.8 Flash | Esfuerzo: Low]\n- **Descripción:** Inicialización de Next.js (App Router), TypeScript estricto (`noImplicitAny`), Tailwind CSS v4 con PostCSS y pnpm. Configuración de Cloudflare (`wrangler.jsonc`). Organización canónica de activos visuales de Alza Bot en `public/assets/` y PWA (`manifest.json`, favicons, iconos). Suite de pruebas de humo E2E con Playwright ejecutada exitosamente.\n- **Estado:** Completada.\n\n---\n\n### [x] Tarea 2: Arquitectura del Sistema de Diseño \"UX Bajo Estrés\" y Avatar Dinámico de Alza Bot [Modelo: 3.8 Flash | Esfuerzo: Medium]\n- **Descripción:** Shell de la aplicación Mobile-First con navegación ergonómica inferior fija al alcance del pulgar (`BottomNav` con botones táctiles >= 56px cumpliendo Fitts' Law). Componente `\u003cAlzaBotAvatar />` que reacciona de forma dinámica a los 4 modos visuales (Estándar/Cian, Defensor/Rojo, Violeta/Púrpura y Radar/Esmeralda) con auras de respiración, indicadores en vivo y micro-interacciones. Botones de Salida Rápida de Pánico (Escape) y conmutador de privacidad antiespía (\"Zero-Peeping\" desenfocando datos sensibles). 6 pruebas E2E en Playwright aprobadas al 100%.\n- **Estado:** Completada.\n\n---\n\n### [x] Tarea 3: Bloque 1 (Parte A): Botón SOS Inteligente de Emergencia y Alerta Rápida [Modelo: 3.8 Flash | Esfuerzo: High]\n- **Objetivo:** Construir el módulo de pánico inteligente con lectura GPS en vivo y geocodificación inversa para Medellín (mostrando barrio y dirección exacta en tipografía gigante para lectura rápida al 123). Implementar marcación directa de emergencia (Policía 123, Ambulancia, Bomberos, Tránsito, Línea Púrpura), gestión de contactos de confianza en `localStorage` y botón de alerta silenciosa por WhatsApp (+57 3234306794) con enlace de localización.\n- **Criterios de Éxito:** Detección precisa de ubicación, marcado telefónico sin latencia y despacho de mensaje de auxilio en WhatsApp a contactos guardados.\n- **Estado:** Completada. Implementado módulo SOS con lectura de dirección gigante en alta legibilidad, selector offline de las 16 comunas de Medellín, 5 marcadores telefónicos (Fitts' Law >= 56px), gestor de contactos de confianza y alerta silenciosa a WhatsApp. 12 pruebas E2E aprobadas en Playwright.\n\n---\n\n### [x] Tarea 4: Bloque 1 (Parte B): Alza Bot Defensor Legal en Vivo y Choques \"Solo Latas\" [Modelo: 3.8 Flash | Esfuerzo: High]\n- **Objetivo:** Implementar la interfaz y lógica del Defensor en Vivo asistido por DeepSeek API especializado en legislación colombiana (Ley 769 de 2002, Ley 1801 de 2016 y Ley 2251 de 2022). Respuestas estructuradas en 3 secciones: 1) Cita de norma exacta, 2) Guion respetuoso y firme para leer al agente, 3) Checklist de pruebas a grabar. Integrar el asistente interactivo de choques simples con captura fotográfica guiada y generación de acta rápida de conciliación.\n- **Criterios de Éxito:** Respuestas jurídicas precisas en menos de 3 segundos, estructura de 3 bloques respetada y flujo guiado de choques completable en carretera.\n- **Estado:** Completada. Implementado panel del Defensor Legal en Vivo (`/defender` y `#defensor-reten`) con presets rápidos y búsqueda asistida (Ley 769, 1801 y 2251), estructura rígida de 3 bloques (Norma, Guion y Checklist de grabación) y asistente interactivo de choques 'Solo Latas' con captura de 4 fotos y generación instantánea de acta de retiro para aseguradoras. 18 pruebas E2E aprobadas en Playwright al 100%.\n\n---\n\n### [ ] Tarea 5: Bloque 1 (Parte C): Caja Negra de Grabación en la Nube y Enlace Cloudflare R2 [Modelo: Argon | Esfuerzo: High]\n- **Objetivo:** Desarrollar la grabadora de video y audio en el navegador (MediaRecorder API) con segmentación continua de video cada 3 segundos. Configurar y enlazar el bucket de almacenamiento en la nube Cloudflare R2 (`alzavoz-evidencias`) vinculado al proyecto `andresleosan/AlzaVoz`. Diseñar la arquitectura resiliente ante incautación, bloqueo o apagado forzoso del dispositivo móvil, con endpoints de subida segura en Cloudflare Workers y retención garantizada de los fragmentos ya transmitidos.\n- **Criterios de Éxito:** Grabación ininterrumpida que persiste fragmentos en R2 en tiempo real aunque la pestaña se cierre abruptamente.\n\n---\n\n### [ ] Tarea 6: Bloque 2: Denuncia Confidencial Zero-Knowledge y Enlace Cloudflare D1 [Modelo: Argon | Esfuerzo: High]\n- **Objetivo:** Construir el sistema de denuncias anónimas con pipeline criptográfico en el cliente: eliminación automática de metadatos EXIF/GPS de fotos y videos en el navegador antes de subir a R2, filtro de modulación y distorsión de voz con Web Audio API para notas de voz. Configurar y enlazar la base de datos SQL relacional Cloudflare D1 (`alzavoz-db`) para persistir expedientes ALZ-XXXX. Integrar el *Botón de Salida Rápida* (camuflaje instantáneo limpiando historial) y el flujo dual de despacho: 1) WhatsApp web directo a +57 3234306794 con expediente ALZ-XXXX si el usuario lo desea, o 2) Despacho anónimo desde backend/Workers sin revelar jamás la IP ni el teléfono del ciudadano.\n- **Criterios de Éxito:** Metadatos 100% purgados antes de subida, audios distorsionados correctamente, salida rápida infalible y casos radicados con código único ALZ-XXXX en D1.\n\n---\n\n### [ ] Tarea 7: Bloque 3: Módulo de Convivencia y Alerta Barrial (Sonómetro Web) [Modelo: Argon | Esfuerzo: Medium]\n- **Objetivo:** Implementar el *Sonómetro Web* usando Web Audio API para medición certificada de decibelios ambientales durante 15 segundos en casos de ruido excesivo nocturno (+12:00 AM, Art. 33 Ley 1801). Estampar fecha, hora exacta y georreferencia barrial. Agrupar reportes de una misma cuadra y alimentar el Mapa de Calor Comunitario de Medellín (por comunas y barrios) con categorías de hurtos, fleteo y riñas, preservando privacidad sin geolocalizaciones individuales expuestas.\n- **Criterios de Éxito:** Medición acústica calibrada en navegador, agregación barrial de quejas y mapa de calor interactivo optimizado para móviles.\n\n---\n\n### [ ] Tarea 8: Bloque 4: Tableros de Desaparecidos y Afiches con QR en Canvas [Modelo: Argon | Esfuerzo: Medium]\n- **Objetivo:** Desarrollar los 4 tableros comunitarios: Personas desaparecidas, Personas encontradas/desorientadas, Mascotas perdidas y Mascotas encontradas. Implementar el motor de cruce inteligente con DeepSeek API analizando rasgos físicos y ubicación barrial para alertar coincidencias. Crear el generador dinámico de afiches de búsqueda descargables en formato imagen optimizada con código QR directo al expediente para WhatsApp e Instagram, con formulario de avistamientos 100% anónimo.\n- **Criterios de Éxito:** Generación de afiche en `\u003ccanvas>` con descarga instantánea, cruces semánticos precisos y recepción de pistas seguras.\n\n---\n\n### [ ] Tarea 9: Bloque 5: Panel Privado del Concejal & Enlace Firebase Auth [Modelo: Argon | Esfuerzo: Low]\n- **Objetivo:** Construir el panel administrativo protegido vinculando la autenticación oficial de **Firebase Auth** del proyecto `alzavoz-3e805` (Proyecto ID: `alzavoz-3e805`, Número: `897775972477`) exclusivo para el equipo legal y político del Concejal. Tabla de gestión de casos en Cloudflare D1 con filtros por comuna, nivel de riesgo y categoría. Visor multimedia de evidencias con URLs firmadas temporales de Cloudflare R2, actualización de estados de radicado y generador con IA (DeepSeek) de *Derechos de Petición y Oficios Oficiales* dirigidos a la Secretaría de Movilidad, MEVAL, ICBF, Fiscalía o Personería.\n- **Criterios de Éxito:** Autenticación estricta con rutas protegidas vía Firebase SDK / Tokens, descarga segura de pruebas desde R2 y generación de documentos jurídicos listos para radicar.\n\n---\n\n### [ ] Tarea 10: Despliegue en Cloudflare Pages, Pipeline CI/CD y Seguridad Integral [Modelo: Argon | Esfuerzo: Low]\n- **Objetivo:** Configurar el pipeline definitivo de despliegue continuo en **Cloudflare Pages** conectado al repositorio GitHub `andresleosan/AlzaVoz` en rama `main` (Build command: `npx next build`, Build output: `out` con static export / Edge runtime). Aplicar directivas de blindaje contra Prompt Injection y manipulación de rol en Alza Bot. Configurar reglas de Rate Limiting en Cloudflare WAF para endpoints `/api/denuncias/*`. Ejecutar suite completa de pruebas E2E con Playwright (flujos de SOS, denuncia anónima, sonómetro y panel privado) validando el despliegue funcional en producción (`alzavoz.pages.dev`).\n- **Criterios de Éxito:** Cero vulnerabilidades en pruebas de inyección, tests Playwright en verde al 100% y despliegue automatizado activo en Cloudflare Pages ante cada `git push`.\n\n","version":1,"autoSync":true,"revision":"5dd217e2dd8d2988b2a2c2f14a6639866f202c6c01c24df0b9b861c6157dec93"}</script>
+  <script>
+  'use strict';
+  const seed = JSON.parse(document.getElementById('initial-data').textContent);
+  const annotations = {
+    0: { title:'Plan y guía del proyecto', phase:'Base', brief:'Define el diseño, las tareas, la memoria y el flujo de trabajo /avanzar.' },
+    1: { title:'Base técnica y PWA', phase:'Base', brief:'Prepara Next.js, TypeScript, Cloudflare y los recursos visuales de Alza Bot.' },
+    2: { title:'Navegación y avatar', phase:'Interfaz', brief:'Construye la navegación móvil, los cuatro modos de Alza Bot y los controles de privacidad.' },
+    3: { title:'SOS y alerta rápida', phase:'Emergencias', brief:'Facilita ubicación, llamadas de emergencia y alertas a contactos de confianza.' },
+    4: { title:'Defensor legal y choques', phase:'Emergencias', brief:'Organiza la orientación en tres bloques y guía la captura de pruebas para choques simples.' },
+    5: { title:'Grabación segura en la nube', phase:'Emergencias', brief:'Graba audio y video en fragmentos de 3 segundos y los envía a Cloudflare R2.' },
+    6: { title:'Denuncia confidencial', phase:'Denuncias', brief:'Protege archivos y voz, registra expedientes y permite elegir el canal de denuncia.' },
+    7: { title:'Ruido y alertas barriales', phase:'Comunidad', brief:'Agrupa reportes del entorno y los presenta en un mapa comunitario de Medellín.' },
+    8: { title:'Búsquedas y afiches con QR', phase:'Comunidad', brief:'Reúne búsquedas de personas y mascotas, coincidencias y pistas anónimas.' },
+    9: { title:'Panel privado de gestión', phase:'Administración', brief:'Permite al equipo autorizado gestionar casos, consultar evidencias y preparar documentos.' },
+    10: { title:'Publicación y seguridad', phase:'Publicación', brief:'Configura la publicación continua y valida los flujos y controles de seguridad.' }
+  };
+  const phaseOrder = ['Base','Interfaz','Emergencias','Denuncias','Comunidad','Administración','Publicación','Otras'];
+  const el = id => document.getElementById(id);
+  const normalize = text => text.toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const plain = text => text.replace(/\*\*|`/g,'').replace(/\*([^*]+)\*/g,'$1').trim();
+  const create = (tag, className, text) => { const n = document.createElement(tag); if(className) n.className = className; if(text !== undefined) n.textContent = text; return n; };
+  function parseMarkdown(markdown) {
+    if(typeof markdown !== 'string' || markdown.length > 2000000) throw new Error('El archivo no es válido o supera los 2 MB. Selecciona TASKS.md.');
+    const lines = markdown.replace(/^\uFEFF/,'').replace(/\r/g,'').split('\n');
+    const tasks = []; let current = null; let activeField = null;
+    for(const line of lines) {
+      const heading = line.match(/^###\s+\[([ xX])\]\s+Tarea\s+(\d+)\s*:\s*(.+)$/i);
+      if(heading) {
+        current = { id:Number(heading[2]), done:heading[1].toLowerCase()==='x', title:heading[3].replace(/\s*\[Modelo:[^\]]+\]\s*$/i,'').trim(), fields:{} };
+        tasks.push(current); activeField = null; continue;
+      }
+      if(!current) continue;
+      if(/^#{1,3}\s/.test(line)) { current = null; activeField = null; continue; }
+      const field = line.match(/^-\s+\*\*([^*]+)\*\*\s*(.*)$/);
+      if(field) { activeField = normalize(field[1].replace(/:\s*$/,'')); current.fields[activeField] = field[2].trim(); }
+      else if(activeField && line.trim() && !/^---+$/.test(line.trim())) current.fields[activeField] += '\n' + line.trim();
+    }
+    if(!tasks.length) throw new Error('No encontré tareas con el formato «### [ ] Tarea 5: Nombre». Revisa el archivo seleccionado.');
+    if(new Set(tasks.map(t=>t.id)).size !== tasks.length) throw new Error('Hay números de tarea repetidos. Corrige TASKS.md y vuelve a cargarlo.');
+    return tasks;
+  }
+  const originalTasks = parseMarkdown(seed.referenceMarkdown || seed.markdown);
+  const signature = t => JSON.stringify({ title:t.title, description:t.fields.descripcion || '', objective:t.fields.objetivo || '', criteria:t.fields['criterios de exito'] || '' });
+  function enrich(task) {
+    const original = originalTasks.find(t=>t.id===task.id);
+    const annotation = original && signature(original)===signature(task) ? annotations[task.id] : null;
+    const description = plain(task.fields.objetivo || task.fields.descripcion || 'Abre el detalle para consultar el plan.');
+    const brief = annotation?.brief || (description.length > 190 ? description.slice(0,187)+'…' : description);
+    const dependencies = [...(task.fields.dependencias || '').matchAll(/\bT(\d+)\b/g)].map(match=>Number(match[1]));
+    return { ...task, shortTitle:annotation?.title || plain(task.title), phase:plain(task.fields.area || annotation?.phase || 'Otras'), brief, dependencies };
+  }
+  let source = { ...seed, label:seed.label || 'Copia incluida en este HTML' };
+  const autoSync = seed.autoSync === true;
+  let tasks = parseMarkdown(source.markdown).map(enrich);
+  const unmetDependencies = task => task.dependencies.filter(id=>!tasks.some(dependency=>dependency.id===id&&dependency.done));
+  const nextTask = () => tasks.find(task=>!task.done&&unmetDependencies(task).length===0);
+  let statusFilter = 'all'; let phaseFilter = 'all'; let query = ''; let toastTimer;
+  function announce(message, isError=false) { clearTimeout(toastTimer); el('notice').textContent=message; el('notice').classList.toggle('error',isError); el('notice').hidden=false; toastTimer=setTimeout(()=>{el('notice').hidden=true;},isError?10000:6000); }
+  function formatDate(date) { const parsed = /^\d{4}-\d{2}-\d{2}$/.test(date) ? new Date(date+'T12:00:00-05:00') : new Date(date); return Number.isNaN(parsed.getTime()) ? 'Fecha no disponible' : new Intl.DateTimeFormat('es-CO',{day:'numeric',month:'short',year:'numeric',timeZone:'America/Bogota'}).format(parsed); }
+  function renderOverview() {
+    const done = tasks.filter(t=>t.done).length; const pending = tasks.length-done; const next = nextTask();
+    const percent = new Intl.NumberFormat('es-CO',{maximumFractionDigits:1}).format(done/tasks.length*100);
+    el('progress-percent').textContent=percent+' %';
+    el('summary-counts').replaceChildren(create('strong','',String(done)),document.createTextNode(' completadas  ·  '),create('strong','',String(pending)),document.createTextNode(' pendientes'));
+    el('progress-explanation').textContent=done+' de '+tasks.length+' tareas marcadas como completadas';
+    el('source-date').textContent=(autoSync?'Actualizado: ':'Copia guardada: ')+formatDate(source.date);
+    const progress=create('span','progress-step done');progress.style.width=(done/tasks.length*100)+'%';el('progress-track').replaceChildren(progress);
+    el('progress-track').setAttribute('aria-label',done+' de '+tasks.length+' tareas completadas; '+percent+' por ciento');
+    el('count-note').textContent=tasks.some(t=>t.id===0) ? 'El plan contiene '+tasks.length+' entradas: la Tarea 0 de preparación y '+(tasks.length-1)+' tareas de desarrollo. El estado sigue las casillas [x] y [ ] del archivo.' : 'El plan contiene '+tasks.length+' tareas. El estado sigue las casillas [x] y [ ] del archivo.';
+    el('footer-source').textContent='Fuente: TASKS.md · '+source.label;
+    el('next-label').textContent=next?'Siguiente disponible':pending?'Dependencias pendientes':'Plan completado';
+    el('next-number').textContent=next?'Tarea '+next.id+' · '+next.phase:'';
+    el('next-title').textContent=next?next.shortTitle:pending?'Aún quedan tareas por resolver':'Todas las tareas están marcadas';
+    el('next-description').textContent=next?next.brief:pending?'Revisa las dependencias de las tareas pendientes antes de continuar.':'El panel mostrará las nuevas tareas cuando /avanzar actualice el plan.';
+    el('next-button').hidden=!next;
+    el('compact-next').hidden=!next;
+    if(next) {el('compact-next').href='#task-'+next.id;el('compact-next').textContent='Siguiente disponible · Tarea '+next.id+' →';}
+    const labels={all:'Todas',pending:'Pendientes',done:'Completadas'};const counts={all:tasks.length,pending,done};
+    document.querySelectorAll('[data-status]').forEach(button=>{button.textContent=labels[button.dataset.status]+' '+counts[button.dataset.status];button.setAttribute('aria-pressed',String(button.dataset.status===statusFilter));});
+    const phases=[...new Set([...phaseOrder,...tasks.map(t=>t.phase)])].filter(p=>tasks.some(t=>t.phase===p));
+    if(phaseFilter!=='all'&&!phases.includes(phaseFilter)) phaseFilter='all';
+    el('phase-list').replaceChildren(...['all',...phases].map(phase=>{const group=phase==='all'?tasks:tasks.filter(t=>t.phase===phase); const b=create('button','phase-button'); b.setAttribute('aria-pressed',String(phaseFilter===phase));b.append(create('span','',phase==='all'?'Vista general':phase),create('span','phase-count',group.filter(t=>t.done).length+'/'+group.length));b.addEventListener('click',()=>{phaseFilter=phase;render();});return b;}));
+  }
+  function detailBlock(title, content, note) { const block=create('div','detail-block');block.append(create('h3','',title),create('p','',plain(content)));if(note)block.append(create('p','source-label',note));return block; }
+  function taskRow(task) {
+    const next=nextTask(); const details=create('details','task');details.id='task-'+task.id;details.dataset.taskId=task.id;
+    const summary=create('summary');summary.setAttribute('aria-label','Tarea '+task.id+': '+task.shortTitle+'. '+(task.done?'Completada':'Pendiente')+'. Ver detalle.');
+    const body=create('div');const head=create('div','task-header');head.append(create('span','task-title',task.shortTitle));
+    const meta=create('div','task-meta');meta.append(create('span','badge'+(task.done?' done':''),task.done?'Completada':'Pendiente'));if(task.id===next?.id)meta.append(create('span','badge next','Siguiente'));meta.append(create('span','phase-label',task.phase));
+    const priority=task.fields['prioridad original'] || task.fields.prioridad;
+    if(priority)meta.append(create('span','phase-label',plain(priority)));
+    if(!task.done&&unmetDependencies(task).length)meta.append(create('span','phase-label','Espera dependencias'));
+    body.append(head,create('p','task-description',task.brief),meta);
+    const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','icon chevron');svg.setAttribute('aria-hidden','true');const use=document.createElementNS('http://www.w3.org/2000/svg','use');use.setAttribute('href','#i-chevron');svg.append(use);
+    summary.append(create('span','task-id',String(task.id).padStart(2,'0')),body,svg);
+    const detail=create('div','task-detail');detail.append(detailBlock('Nombre en el plan',task.title));
+    if(task.fields.objetivo || task.fields.descripcion) detail.append(detailBlock(task.fields.objetivo?'Objetivo del plan':'Descripción del plan',task.fields.objetivo || task.fields.descripcion));
+    detail.append(detailBlock('Criterios de éxito',task.fields['criterios de exito'] || 'Esta tarea no tiene criterios separados en TASKS.md; su alcance está descrito arriba.',task.fields['criterios de exito']?'Metas registradas en el plan; no equivalen a una comprobación actual.':null));
+    if(task.fields.dependencias) {
+      const missing=unmetDependencies(task);
+      detail.append(detailBlock('Dependencias',task.dependencies.length?task.dependencies.map(id=>'T'+id).join(', '):'Ninguna',missing.length?'Pendientes: '+missing.map(id=>'T'+id).join(', '):'Dependencias resueltas.'));
+    }
+    if(task.fields['verificacion requerida'])detail.append(detailBlock('Verificación requerida',task.fields['verificacion requerida']));
+    if(task.fields.plan)detail.append(detailBlock('Plan de implementación',task.fields.plan,'Se prepara antes de programar con brainstorming, writing-plans y grill-me, siguiendo DESIGN.md. La ruta prevista no demuestra que el plan ya esté redactado.'));
+    detail.append(detailBlock('Estado y evidencia registrada',task.fields.estado || (task.done?'Marcada [x] en TASKS.md, sin detalle adicional de cierre.':'Pendiente en TASKS.md. No se ha registrado un cierre para esta tarea.')));
+    details.append(summary,detail);return details;
+  }
+  function renderList() {
+    const normalized=normalize(query);const visible=tasks.filter(t=>(statusFilter==='all'||(statusFilter==='done'?t.done:!t.done))&&(phaseFilter==='all'||t.phase===phaseFilter)&&(!normalized||normalize('Tarea '+t.id+' T'+t.id+' '+t.shortTitle+' '+t.title+' '+t.brief+' '+Object.values(t.fields).join(' ')).includes(normalized)));
+    el('task-list').replaceChildren(...visible.map(taskRow));el('empty').hidden=visible.length!==0;
+    el('result-count').textContent=visible.length+' de '+tasks.length+' tareas';
+    const titles={all:'Todas las tareas',pending:'Tareas pendientes',done:'Tareas completadas'};el('task-heading').textContent=titles[statusFilter]+(phaseFilter==='all'?'':' · '+phaseFilter);
+  }
+  function render() {renderOverview();renderList();}
+  function resetFilters() {statusFilter='all';phaseFilter='all';query='';el('search').value='';render();}
+  document.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',()=>{statusFilter=b.dataset.status;render();}));
+  el('search').addEventListener('input',event=>{query=event.target.value;renderList();});
+  el('clear-filters').addEventListener('click',resetFilters);
+  el('brand-home').addEventListener('click',event=>{event.preventDefault();resetFilters();window.scrollTo({top:0,behavior:'smooth'});});
+  function revealTask(id) {if(!tasks.some(task=>task.id===id))return;resetFilters();const row=el('task-'+id);row.open=true;row.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});row.querySelector('summary').focus({preventScroll:true});}
+  function revealHash() {const match=location.hash.match(/^#task-(\d+)$/);if(match)revealTask(Number(match[1]));}
+  window.addEventListener('hashchange',revealHash);
+  el('next-button').addEventListener('click',()=>{const next=nextTask();if(next)revealTask(next.id);});
+  el('compact-next').addEventListener('click',event=>{event.preventDefault();const next=nextTask();if(next)revealTask(next.id);});
+  let syncTimer=null, syncPending=false, responseReceived=false, beforePrint=null, deferredUpdate=null;
+  function syncStatus(message) { el('sync-status').textContent=message; }
+  function applyUpdate(payload) {
+    const parsed=parseMarkdown(payload.markdown).map(enrich);
+    const opened=Array.from(document.querySelectorAll('.task[open]'),n=>n.id);
+    const focused=document.activeElement;
+    const focusId=focused?.id;
+    const focusTask=focused?.tagName==='SUMMARY'?focused.closest('.task')?.id:null;
+    const position={x:scrollX,y:scrollY};
+    source={...payload};tasks=parsed;render();
+    opened.forEach(id=>{if(el(id))el(id).open=true;});
+    if(focusId&&el(focusId))el(focusId).focus({preventScroll:true});
+    else if(focusTask&&el(focusTask))el(focusTask).querySelector('summary').focus({preventScroll:true});
+    window.scrollTo(position.x,position.y);
+    syncStatus('Al día con /avanzar. Los cambios se muestran automáticamente.');
+  }
+  window.AlzaVozSeguimiento={receive(payload){
+    if(!autoSync)return;
+    try {
+      if(!payload||payload.version!==1||payload.autoSync!==true||typeof payload.revision!=='string'||!(/^[a-f0-9]{64}$/).test(payload.revision)||typeof payload.markdown!=='string'||typeof payload.date!=='string'||!Number.isFinite(Date.parse(payload.date)))throw new Error('Datos de seguimiento no válidos.');
+      responseReceived=true;
+      if(Date.parse(payload.date)<Date.parse(source.date)){syncStatus('Se conserva la versión más reciente del plan.');return;}
+      if(payload.revision===source.revision){syncStatus('Al día con /avanzar. Los cambios se muestran automáticamente.');return;}
+      parseMarkdown(payload.markdown);
+      if(beforePrint!==null){deferredUpdate=payload;return;}
+      applyUpdate(payload);
+    }catch{syncStatus('No se pudo leer la actualización. Se conserva el último estado válido; se reintentará automáticamente.');}
+  }};
+  function pollUpdates() {
+    if(!autoSync||syncPending||document.hidden)return;
+    clearTimeout(syncTimer);syncPending=true;responseReceived=false;
+    const script=document.createElement('script');script.dataset.autoSync='true';
+    const url=new URL('seguimiento-data.js',location.href);url.searchParams.set('revision',String(Date.now()));script.src=url.href;
+    let settled=false;let timeout;
+    function finish(ok){if(settled)return;settled=true;clearTimeout(timeout);script.remove();syncPending=false;if(!ok)syncStatus('No se encontró la actualización local. Se conserva el último estado; se reintentará automáticamente.');else if(!responseReceived)syncStatus('El archivo de actualización no es compatible. Se conserva el último estado.');syncTimer=setTimeout(pollUpdates,5000);}
+    script.onload=()=>finish(true);script.onerror=()=>finish(false);timeout=setTimeout(()=>finish(false),5000);document.body.append(script);
+  }
+  el('sync-button').addEventListener('click',pollUpdates);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)pollUpdates();});
+  el('export-button').addEventListener('click',()=>{
+    const copy=document.documentElement.cloneNode(true);
+    copy.querySelectorAll('script[data-auto-sync]').forEach(script=>script.remove());
+    copy.querySelectorAll('[data-project-link]').forEach(link=>link.remove());
+    copy.querySelector('#initial-data').textContent=JSON.stringify({...source,autoSync:false,referenceMarkdown:seed.referenceMarkdown || seed.markdown}).replace(/</g,'\\u003c');
+    copy.querySelector('#notice').setAttribute('hidden','');copy.querySelector('#search').setAttribute('value','');
+    const url=URL.createObjectURL(new Blob(['<!doctype html>\n'+copy.outerHTML],{type:'text/html;charset=utf-8'}));
+    const link=create('a');link.href=url;link.download='AlzaVoz-tareas-'+new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Bogota'}).format(new Date())+'.html';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),2000);announce('Se descargó un HTML independiente con el plan completo actualizado.');
+  });
+  window.addEventListener('beforeprint',()=>{if(beforePrint===null)beforePrint=Array.from(document.querySelectorAll('.task')).map(t=>({id:t.id,open:t.open}));document.querySelectorAll('.task').forEach(t=>t.open=true);});
+  window.addEventListener('afterprint',()=>{if(beforePrint===null)return;beforePrint.forEach(t=>{const row=el(t.id);if(row)row.open=t.open;});beforePrint=null;if(deferredUpdate){const payload=deferredUpdate;deferredUpdate=null;applyUpdate(payload);}});
+  el('print-button').addEventListener('click',()=>window.print());
+  render();
+  revealHash();
+  if(autoSync)pollUpdates();
+  else {el('sync-button').hidden=true;el('sync-help').textContent='Esta copia independiente conserva el estado del plan al descargarla. Abre seguimiento.html en la carpeta del proyecto para ver nuevas actualizaciones.';syncStatus('Copia independiente · actualización automática desactivada.');}
+  </script>
+</body>
+</html>

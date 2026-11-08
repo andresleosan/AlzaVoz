@@ -23,7 +23,7 @@ const result = spawnSync(process.execPath, [resolve(root, 'node_modules/next/dis
 if (result.status !== 0) process.exit(result.status ?? 1);
 await cp(resolve(staging, 'out'), output, { recursive: true });
 // Fail before publication if the output regresses to a Next build directory.
-for (const filename of ['index.html', 'record.html', 'sos.html', 'defender.html', 'report.html']) {
+for (const filename of ['index.html', 'record.html', 'sos.html', 'defender.html', 'report.html', 'community.html']) {
   const html = await readFile(resolve(output, filename), 'utf8');
   if (!html.includes('<html')) throw new Error(`Salida HTML inválida: ${filename}`);
 }

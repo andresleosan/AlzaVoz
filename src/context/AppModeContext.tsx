@@ -36,6 +36,8 @@ export function AppModeProvider({
       ? "defender"
       : pathname === "/report"
         ? "violet"
+        : pathname === "/community"
+          ? "radar"
         : initialMode;
   const [isCamouflaged, setIsCamouflaged] = useState<boolean>(false);
   const [isNavigationLocked, setNavigationLocked] = useState(false);

@@ -14,9 +14,12 @@
 - Límites: Chromium probado con dispositivos y medios sintéticos; no Safari/iOS ni hardware físico real. No se promete anonimato absoluto ni impedir identificación forense de voz.
 - Publicación continua: Pages ejecuta pnpm build:pages → out; backend pnpm deploy:recordings → workers/recordings/wrangler.production.jsonc. Secretos cifrados solo en Cloudflare, binding privado RECORDINGS; sin URL pública del Worker.
 - Preferencia permanente: trabajar directamente en main y hacer push a origin/main; no crear ramas salvo petición expresa. Regla persistida en AGENTS.md.
-- Próxima elegible: T7, Bloque 3: Convivencia y Alerta Barrial (Sonómetro Web). GPT-6-Astra (Medium): Web Audio API 15 s, calibración honesta y agregación barrial sin coordenadas individuales.
-- Plan local ampliado: 111 tareas T0–T110, ahora 7 completadas y 104 pendientes. Las 100 mejoras T11–T110 son planificación, no implementación.
-- Se preserva organización previa sin commit: workflows, PLANIFICACION.md, catálogo, plantilla, documentación y panel/scripts. TASKS se prepara en Git solo para los bloques T0–T10; el resto queda local.
+- T7 implementada y verificada (2026-11-07): /community, AudioWorklet 15 s, RMS dBFS sin calibración física, descarte de audio y apagado del micrófono; envío opcional comuna/categoría/día con UUID idempotente a D1 y mapa/tablas de agregados de 30 días sin coordenadas individuales.
+- Evidencia T7: docs/planes/T007.md y docs/evidencias/T007/verificacion.md; lint, tsc, ambos builds, 88/88 Next y Pages; repetición 14/14 T7 en ambos tras avatar WebP (1,63 MB → 5,3 KB). MCP móvil/escritorio, seno conocido, permisos/fallos, sin errores normales de consola; migración remota solo en D1 de pruebas. No hardware físico ni certificación acústica.
+- Cierre T7: commit/push y estado de Cloudflare se verifican después del cierre documental; consultar resultado final del chat. No confundir verificación local con publicación.
+- Próxima elegible: T8, Bloque 4: Tableros de Búsqueda y Afiches con QR en Canvas. GPT-6-Astra (Medium): avisos públicos/privados, pistas, QR y sugerencias de coincidencia con varias integraciones.
+- Plan local ampliado: 111 tareas T0–T110, ahora 8 completadas y 103 pendientes. Las 100 mejoras T11–T110 son planificación, no implementación.
+- Se preserva organización previa sin commit: workflows, PLANIFICACION.md, catálogo, plantilla y documentación. TASKS prepara solo T7 sobre la versión publicada; panel/scripts requeridos se incorporan con el catálogo de Git. El panel local conserva las 111 tareas y sus referencias.
 - Panel local seguimiento.html y seguimiento-data.js: regenerar con node scripts/actualizar-seguimiento.mjs y comprobar con --check tras actualizar TASKS/MEMORY.
 - Cada avanzar ejecuta primera pendiente elegible, crea su plan con PLANTILLA.md y aplica brainstorming/writing-plans/grilling, diseño/seguridad, anti-slop/ponytail/performance y verificación final.
 - Alias: antislop→anti-slop; taste/redesign→design-taste-frontend; grill-me→grilling. Skills instaladas; no duplicarlas.

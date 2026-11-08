@@ -32,6 +32,7 @@ import {
   type SanitizedMime,
 } from '../../src/lib/report/contracts';
 import { inspectMediaMetadata } from '../../src/lib/report/sanitizer';
+import { handleCommunity } from './community';
 
 // Structural binding types keep Workers globals out of Next's DOM type environment.
 interface StoredObject {
@@ -459,6 +460,7 @@ async function handle(request: Request, env: Env): Promise<Response> {
     return error(401, 'Acceso no autorizado.');
   }
   const path = new URL(request.url).pathname;
+  if (path === '/community') return handleCommunity(request, env);
   if (path === '/reports' || path.startsWith('/reports/')) {
     return handleReports(request, env, path);
   }

@@ -57,9 +57,14 @@
 
 ---
 
-### [ ] Tarea 7: Bloque 3: Módulo de Convivencia y Alerta Barrial (Sonómetro Web) [Modelo: Argon | Esfuerzo: Medium]
-- **Objetivo:** Implementar el *Sonómetro Web* usando Web Audio API para medición certificada de decibelios ambientales durante 15 segundos en casos de ruido excesivo nocturno (+12:00 AM, Art. 33 Ley 1801). Estampar fecha, hora exacta y georreferencia barrial. Agrupar reportes de una misma cuadra y alimentar el Mapa de Calor Comunitario de Medellín (por comunas y barrios) con categorías de hurtos, fleteo y riñas, preservando privacidad sin geolocalizaciones individuales expuestas.
-- **Criterios de Éxito:** Medición acústica calibrada en navegador, agregación barrial de quejas y mapa de calor interactivo optimizado para móviles.
+### [x] Tarea 7: Bloque 3: Convivencia y Alerta Barrial (Sonómetro Web) [Modelo: GPT-6-Astra | Esfuerzo: Medium]
+- **Área:** Comunidad
+- **Objetivo:** Implementar observación acústica durante 15 segundos con Web Audio API, mostrando método, limitaciones y datos de captura. Investigar calibración y comparación antes de atribuir decibelios absolutos o certificación. Incorporar fecha y ubicación barrial elegida o confirmada y agrupar reportes por zonas y categorías, sin publicar ubicaciones individuales.
+- **Dependencias:** T1, T2
+- **Criterios de Éxito:** La captura inicia y termina con permiso y explica qué representa la lectura; ausencia de micrófono o calibración tiene un estado claro; reportes sintéticos se agregan por zona y categoría sin exponer coordenadas individuales; el mapa funciona en móvil.
+- **Verificación requerida:** Probar señales conocidas, dispositivos del alcance, permisos y temporización; verificar consultas y agregados con datos sintéticos y documentar límites de medición.
+- **Plan y evidencia:** docs/planes/T007.md y docs/evidencias/T007/verificacion.md.
+- **Estado:** Completada. /community observa 15 s con AudioWorklet, informa RMS en dBFS sin calibración acústica, descarta audio y libera micrófono ante interrupciones. Envío voluntario de comuna/categoría/día con UUID idempotente a D1; mapa SVG y tabla de agregados de 30 días sin datos individuales. 88/88 pruebas Next y Pages; repetición 14/14 de T7 en ambos modos tras optimizar avatar, MCP móvil/escritorio y señales sintéticas. No certifica presión sonora ni infracciones.
 
 ---
 
