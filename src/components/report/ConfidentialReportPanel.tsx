@@ -1,6 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import {
+  Eye,
+  Trash2,
+  MapPin,
+  Users,
+  FileText,
+  X,
+} from 'lucide-react';
 import { AlzaBotAvatar } from '@/components/AlzaBotAvatar';
 import { QuickEscapeButton } from '@/components/QuickEscapeButton';
 import {
@@ -431,6 +439,9 @@ export function ConfidentialReportPanel() {
   const [safeDays, setSafeDays] = useState<SafeContactDays>('all');
   const [safeNotes, setSafeNotes] = useState('');
 
+  // Vista previa de lo que se comparte: precisión territorial (Tarea 12 / Idea I002)
+  const [reportLocationPrecision, setReportLocationPrecision] = useState<'full' | 'commune_only' | 'none'>('full');
+
   const attemptRef = useRef<{ requestId: string; clientSecret: string } | null>(null);
   const attachmentsRef = useRef<PreparedAttachment[]>([]);
 
@@ -534,14 +545,17 @@ export function ConfidentialReportPanel() {
             safetyNotes: safeNotes.trim() || undefined,
           };
 
+    const finalCommune = reportLocationPrecision === 'none' ? RESERVED_COMMUNE : commune;
+    const finalNeighborhood = reportLocationPrecision === 'full' ? neighborhoodReference : '';
+
     try {
       const baseRecord = await createOrRecoverReport(
         {
           requestId,
           category,
           riskLevel,
-          commune,
-          neighborhoodReference,
+          commune: finalCommune,
+          neighborhoodReference: finalNeighborhood,
           summary,
           incidentDate,
           ...(recordingKey.trim() ? { recordingKey: recordingKey.trim() } : {}),
@@ -634,12 +648,14 @@ export function ConfidentialReportPanel() {
   }
 
   const fullCaseKey = submittedRecord && submittedSecret ? `${submittedRecord.code}.${submittedSecret}` : '';
+  const effectiveCommune = reportLocationPrecision === 'none' ? RESERVED_COMMUNE : commune;
+  const effectiveNeighborhood = reportLocationPrecision === 'full' ? neighborhoodReference : '';
   const whatsappData = buildReportWhatsAppUrl({
     code: submittedRecord?.code,
     category,
     riskLevel,
-    commune,
-    neighborhoodReference,
+    commune: effectiveCommune,
+    neighborhoodReference: effectiveNeighborhood,
     summary: summary.trim() || 'Solicitud de apoyo confidencial en Medellín.',
     incidentDate,
     cleanAttachmentCount: attachments.length,
@@ -996,6 +1012,191 @@ export function ConfidentialReportPanel() {
             )}
           </div>
 
+          {/* Vista previa de lo que se comparte (Tarea 12 / Idea I002) */}
+          <div
+            data-testid="report-share-preview-card"
+            className="rounded-xl border border-amber-300/40 bg-[#111827] p-5 space-y-4"
+          >
+            <div className="flex items-center gap-2">
+              <Eye className="h-5 w-5 text-amber-300 shrink-0" />
+              <div>
+                <h2 className="text-lg font-bold text-white">
+                  Vista previa de lo que se comparte
+                </h2>
+                <p className="text-xs text-gray-300">
+                  Saber quién recibirá cada dato antes de confirmar un envío.
+                </p>
+              </div>
+            </div>
+
+            {/* 1. Destinatarios */}
+            <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
+                <Users className="h-4 w-4 text-amber-300" />
+                Destinatarios autorizados para este reporte
+              </span>
+              <ul className="space-y-1.5 text-xs text-gray-200">
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <div>
+                    <strong className="text-white">Bóveda AlzaVoz (Cloudflare D1 + R2):</strong> Recepción cifrada en tránsito; el equipo cívico procesa tu caso según el nivel de riesgo ({riskLevel}) y categoría ({category}).
+                  </div>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-emerald-400 font-bold">✓</span>
+                  <div>
+                    <strong className="text-white">Regla de contacto:</strong>{' '}
+                    {contactPreference === 'no_contact' ? (
+                      <span className="text-amber-200">🚫 Sin contacto (nadie te llamará ni escribirá).</span>
+                    ) : (
+                      <span className="text-violet-200">
+                        📱 Canal {safeChannel} ({safeContactValue || 'Sin dato'}) en franja {safeTimeSlot}.
+                      </span>
+                    )}
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            {/* 2. Archivos y evidencias a transmitir */}
+            <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
+                  <FileText className="h-4 w-4 text-cyan-400" />
+                  Archivos y evidencias a transmitir ({attachments.length})
+                </span>
+                <span className="text-[11px] text-gray-400">Puedes retirar elementos antes de enviar</span>
+              </div>
+
+              {attachments.length > 0 ? (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {attachments.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      data-testid={`attachment-preview-row-${idx}`}
+                      className="flex items-center justify-between gap-3 rounded-lg border border-gray-700 bg-gray-900/60 p-2.5 text-xs text-gray-200"
+                    >
+                      <div className="min-w-0 flex-1 truncate">
+                        <p className="font-semibold text-white truncate">
+                          {item.fileName || `Evidencia ${idx + 1}`}
+                        </p>
+                        <p className="text-[11px] text-gray-400 font-tabular">
+                          {item.mime} · {(item.bytes.byteLength / 1024).toFixed(1)} KB (Limpio de EXIF)
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        data-testid={`remove-attachment-preview-${item.id}`}
+                        onClick={() => {
+                          triggerHaptic(30);
+                          setAttachments((prev) => {
+                            const target = prev.find((a) => a.id === item.id);
+                            if (target) URL.revokeObjectURL(target.previewUrl);
+                            return prev.filter((a) => a.id !== item.id);
+                          });
+                        }}
+                        aria-label={`Retirar evidencia ${item.fileName || idx + 1} de este envío`}
+                        className="touch-target-min flex items-center gap-1 rounded-lg border border-red-800/60 bg-red-950/40 px-2.5 py-1.5 text-xs font-medium text-red-300 hover:bg-red-900/50 transition"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Retirar</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-gray-400 italic">
+                  Sin evidencias de archivos adjuntos. Solo se transmitirá el relato de los hechos.
+                </p>
+              )}
+
+              {Boolean(recordingKey.trim()) && (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-500/40 bg-amber-950/20 p-2.5 text-xs text-amber-200">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-white truncate">
+                      Grabación de caja negra vinculada
+                    </p>
+                    <p className="font-mono text-[11px] text-amber-300 truncate">
+                      {recordingKey}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    data-testid="unlink-recording-preview-btn"
+                    onClick={() => {
+                      triggerHaptic(30);
+                      setRecordingKey('');
+                    }}
+                    className="touch-target-min flex items-center gap-1 rounded-lg border border-amber-700 bg-amber-900/40 px-2.5 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-800/50 transition"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                    <span>Desvincular</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Precisión de ubicación */}
+            <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2.5">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
+                <MapPin className="h-4 w-4 text-red-400" />
+                Precisión territorial de la denuncia
+              </span>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  data-testid="report-precision-full-btn"
+                  onClick={() => setReportLocationPrecision('full')}
+                  className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
+                    reportLocationPrecision === 'full'
+                      ? 'border-amber-400 bg-amber-950/40 text-amber-100 font-bold'
+                      : 'border-gray-700 bg-gray-900 text-gray-400 hover:bg-gray-800'
+                  }`}
+                >
+                  <span className="text-xs">Comuna + Referencia</span>
+                  <span className="text-[10px] text-gray-400">Información completa</span>
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="report-precision-commune-btn"
+                  onClick={() => setReportLocationPrecision('commune_only')}
+                  className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
+                    reportLocationPrecision === 'commune_only'
+                      ? 'border-amber-400 bg-amber-950/40 text-amber-100 font-bold'
+                      : 'border-gray-700 bg-gray-900 text-gray-400 hover:bg-gray-800'
+                  }`}
+                >
+                  <span className="text-xs">Solo Comuna</span>
+                  <span className="text-[10px] text-gray-400">Ocultar referencia exacta</span>
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="report-precision-none-btn"
+                  onClick={() => setReportLocationPrecision('none')}
+                  className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
+                    reportLocationPrecision === 'none'
+                      ? 'border-violet-400 bg-violet-950/40 text-violet-100 font-bold'
+                      : 'border-gray-700 bg-gray-900 text-gray-400 hover:bg-gray-800'
+                  }`}
+                >
+                  <span className="text-xs">Sin Ubicación</span>
+                  <span className="text-[10px] text-gray-400">Reserva territorial total</span>
+                </button>
+              </div>
+
+              <p className="text-xs text-gray-300 leading-relaxed pt-1">
+                {reportLocationPrecision === 'full'
+                  ? `Se informará: Comuna "${commune}" y referencia "${neighborhoodReference || 'Sin referencia barrial específica'}".`
+                  : reportLocationPrecision === 'commune_only'
+                  ? `Se informará: Únicamente Comuna "${commune}". La referencia barrial exacta ha sido retirada del payload.`
+                  : 'Se informará: "Sin indicar (reserva de ubicación)". Ni la comuna ni la referencia territorial viajarán en el expediente.'}
+              </p>
+            </div>
+          </div>
+
           <div className="rounded-xl border border-gray-700 bg-[#111827] p-5 space-y-4">
             <h2 className="text-lg font-bold text-white">Qué comparte y qué observa cada canal</h2>
             <p className="text-sm leading-relaxed text-gray-300">
@@ -1211,14 +1412,24 @@ export function ConfidentialReportPanel() {
             {busy ? 'Reintentando subida…' : `Reintentar ${pendingAttachments.length} evidencia(s) pendiente(s)`}
           </button>
         ) : !isComplete ? (
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void handleSubmitToD1()}
-            className={`${control} w-full bg-red-800`}
-          >
-            {busy ? 'Radicando en Cloudflare D1…' : 'Radicar denuncia en bóveda D1'}
-          </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              data-testid="btn-cancel-report-submission"
+              onClick={() => goToStep(1)}
+              className={`${control} w-full bg-gray-900 hover:bg-gray-800 text-gray-300`}
+            >
+              Cancelar y volver a hechos
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void handleSubmitToD1()}
+              className={`${control} w-full bg-red-800`}
+            >
+              {busy ? 'Radicando en Cloudflare D1…' : 'Radicar denuncia en bóveda D1'}
+            </button>
+          </div>
         ) : (
           <p className="py-3 text-center font-semibold text-white font-tabular">
             Expediente {submittedRecord?.code} confirmado en D1

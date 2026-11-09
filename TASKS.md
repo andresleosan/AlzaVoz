@@ -245,7 +245,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 12: Vista previa de lo que se comparte
+### [x] Tarea 12: Vista previa de lo que se comparte
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I002
 - **Prioridad original:** Esencial
@@ -253,7 +253,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T3, T6
 - **Criterios de Éxito:** La revisión muestra destinatarios, archivos y ubicación; retirar un elemento lo excluye del payload y cancelar no envía nada.
 - **Verificación requerida:** E2E de revisión, edición y cancelación; inspeccionar payloads con destinatarios y servicios simulados.
-- **Plan:** docs/planes/T012.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T012.md.
+- **Estado:** Completada y verificada (2026-11-08). En SOS (/sos), modal interactivo que muestra destinatarios, selector de precisión territorial (GPS exacto, solo barrio/comuna, sin ubicación) y texto del payload en vivo; cancelar cierra sin enviar y deseleccionar destinatarios bloquea el envío. En /report (Paso 3), tarjeta de inspección pre-radicación que lista destinatarios, permite retirar evidencias individuales (reduciendo expectedAttachments y excluyendo uploads a R2) y seleccionar precisión territorial (excluyendo la referencia barrial de D1 en 'Solo Comuna'). 8/8 pruebas E2E aprobadas en Next y Pages; 117/117 en suite completa.
 
 ---
 

@@ -7,6 +7,7 @@ import {
   Share2,
   Volume2,
   Check,
+  Eye,
 } from "lucide-react";
 import { useEmergencyLocation } from "@/hooks/useEmergencyLocation";
 import { useTrustedContacts } from "@/hooks/useTrustedContacts";
@@ -14,6 +15,9 @@ import { GiantLocationCard } from "@/components/sos/GiantLocationCard";
 import { EmergencyDialerGrid } from "@/components/sos/EmergencyDialerGrid";
 import { TrustedContactsCard } from "@/components/sos/TrustedContactsCard";
 import { useAppMode } from "@/context/AppModeContext";
+import { SosSharePreviewModal } from "@/components/sos/SosSharePreviewModal";
+import { LocationPrecision, RecipientInfo } from "@/types/sharing";
+import { buildSosWhatsAppLink } from "@/lib/sharing/preview";
 
 export function SosEmergencyPanel() {
   const { triggerHaptic } = useAppMode();
@@ -31,12 +35,13 @@ export function SosEmergencyPanel() {
     addContact,
     removeContact,
     getWhatsAppLink,
-    formatWhatsAppMessage,
   } = useTrustedContacts();
 
   const [shareSuccess, setShareSuccess] = useState<boolean>(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+  const [previewMode, setPreviewMode] = useState<"whatsapp" | "broadcast">("broadcast");
 
-  // Formato para mensaje de WhatsApp
+  // Formato para mensaje de WhatsApp directo
   const rawLocationText = getDictationText();
   const officialWaUrl = getWhatsAppLink(
     "+573234306794",
@@ -45,20 +50,29 @@ export function SosEmergencyPanel() {
     location.longitude
   );
 
-  const handleShareBroadcast = async () => {
+  const handleOpenPreview = (mode: "whatsapp" | "broadcast") => {
     triggerHaptic(50);
-    const textMsg = formatWhatsAppMessage(
-      rawLocationText,
-      location.latitude,
-      location.longitude,
-      Date.now()
-    );
+    setPreviewMode(mode);
+    setIsPreviewOpen(true);
+  };
 
-    if (typeof navigator !== "undefined" && navigator.share) {
+  const handleConfirmShare = async ({
+    text,
+    recipients,
+  }: {
+    text: string;
+    recipients: RecipientInfo[];
+    precision: LocationPrecision;
+  }) => {
+    setIsPreviewOpen(false);
+    triggerHaptic(50);
+
+    const hasBroadcast = recipients.some((r) => r.id === "broadcast-all");
+    if (hasBroadcast && typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
           title: "🚨 ALERTA SOS ALZAVOZ MEDELLÍN",
-          text: textMsg,
+          text,
         });
         setShareSuccess(true);
         setTimeout(() => setShareSuccess(false), 3000);
@@ -68,8 +82,17 @@ export function SosEmergencyPanel() {
       }
     }
 
-    // Fallback: abrir WhatsApp directo al canal oficial
-    window.open(officialWaUrl, "_blank", "noopener,noreferrer");
+    // Si seleccionó Apoyo oficial o contactos específicos, abrir WhatsApp
+    const targetRecipient =
+      recipients.find((r) => r.category === "official") ||
+      recipients.find((r) => r.category === "trusted");
+
+    if (targetRecipient) {
+      const url = buildSosWhatsAppLink(targetRecipient.detail, text);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 3000);
+    }
   };
 
   const handleMainSosCall = () => {
@@ -111,7 +134,7 @@ export function SosEmergencyPanel() {
           </div>
         </section>
 
-        {/* 2. BOTONES DE ACCIÓN RÁPIDA: ALERTA SILENCIOSA WHATSAPP */}
+        {/* 2. BOTONES DE ACCIÓN RÁPIDA: ALERTA SILENCIOSA WHATSAPP Y VISTA PREVIA */}
         <section
           aria-label="Alerta Silenciosa por WhatsApp"
           className="grid gap-3"
@@ -129,7 +152,18 @@ export function SosEmergencyPanel() {
 
           <button
             type="button"
-            onClick={handleShareBroadcast}
+            data-testid="btn-open-sos-preview"
+            onClick={() => handleOpenPreview("broadcast")}
+            aria-label="Revisar destinatarios y precisión antes de compartir"
+            className="touch-target-min flex items-center justify-center gap-2 rounded-xl border border-red-800/80 bg-red-950/40 p-3 text-sm font-semibold text-red-200 hover:bg-red-900/50 transition-colors"
+          >
+            <Eye className="w-4 h-4 text-red-400" />
+            <span>Vista previa de lo que se comparte</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleOpenPreview("broadcast")}
             aria-label="Compartir alerta de ubicación a todas las redes"
             className="touch-target-min flex items-center justify-center gap-2 rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-gray-800"
           >
@@ -203,6 +237,17 @@ export function SosEmergencyPanel() {
           </div>
         </section>
       </div>
+
+      {/* MODAL DE VISTA PREVIA DE LO QUE SE COMPARTE (IDEA I002 / T12) */}
+      <SosSharePreviewModal
+        isOpen={isPreviewOpen}
+        onClose={() => setIsPreviewOpen(false)}
+        onConfirm={handleConfirmShare}
+        location={location}
+        dictationText={rawLocationText}
+        contacts={contacts}
+        mode={previewMode}
+      />
     </div>
   );
 }
