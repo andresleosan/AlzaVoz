@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { useMediaCapture } from '@/context/MediaCaptureContext';
 import { sha256 } from '@/lib/recording/contracts';
 import { MAX_REPORT_ATTACHMENTS, type SanitizationSummary, type SanitizedMime } from '@/lib/report/contracts';
 import { sanitizeImageFile } from '@/lib/report/sanitizer';
@@ -62,11 +63,16 @@ export function EvidenceSanitizerSection({
   const [recordingVoice, setRecordingVoice] = useState(false);
   const [statusNote, setStatusNote] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const { registerCapture, updateCapturePhase } = useMediaCapture();
+  const unregisterCaptureRef = useRef<(() => void) | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
-  function stopVoiceStream() {
+  const stopVoiceStream = useCallback(() => {
+    unregisterCaptureRef.current?.();
+    unregisterCaptureRef.current = null;
+    updateCapturePhase('stopped', 'voice-note');
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       try {
         mediaRecorderRef.current.stop();
@@ -82,7 +88,7 @@ export function EvidenceSanitizerSection({
       streamRef.current = null;
     }
     setRecordingVoice(false);
-  }
+  }, [updateCapturePhase]);
 
   useEffect(() => {
     const onEscape = () => stopVoiceStream();
@@ -93,7 +99,7 @@ export function EvidenceSanitizerSection({
       window.removeEventListener('alzavoz:escape', onEscape);
       window.removeEventListener('pagehide', onEscape);
     };
-  }, []);
+  }, [stopVoiceStream]);
 
   async function handleFileSelection(file: File | null) {
     if (!file) return;
@@ -208,6 +214,9 @@ export function EvidenceSanitizerSection({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
       streamRef.current = stream;
+      unregisterCaptureRef.current = registerCapture(stream, 'voice-note', () => {
+        stopVoiceStream();
+      });
       chunksRef.current = [];
       const recorder = new MediaRecorder(stream);
       mediaRecorderRef.current = recorder;

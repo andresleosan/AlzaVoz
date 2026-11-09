@@ -9,6 +9,7 @@ import { useAppMode } from "@/context/AppModeContext";
 import { BottomNav } from "@/components/BottomNav";
 import { ZeroPeepToggle } from "@/components/ZeroPeepToggle";
 import { QuickEscapeButton } from "@/components/QuickEscapeButton";
+import { MediaCaptureIndicator } from "@/components/recording/MediaCaptureIndicator";
 
 const pageNames: Record<string, string> = {
   "/": "Inicio",
@@ -54,6 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <QuickEscapeButton variant="badge" />
           </div>
         </header>
+        <MediaCaptureIndicator />
         <main id="contenido" tabIndex={-1} className={`app-main ${pathname === "/" ? "app-main-home" : ""}`}>{children}</main>
       </div>
       <BottomNav />

@@ -258,7 +258,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 13: Cámara y micrófono siempre visibles
+### [x] Tarea 13: Cámara y micrófono siempre visibles
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I003
 - **Prioridad original:** Esencial
@@ -266,7 +266,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T5
 - **Criterios de Éxito:** El indicador refleja las pistas activas; detener libera cámara y micrófono y sigue accesible al navegar por el flujo.
 - **Verificación requerida:** Probar inicio, navegación, detención y revocación de permisos; comprobar tracks y estado visible.
-- **Plan:** docs/planes/T013.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T013.md.
+- **Estado:** Completada y verificada (2026-11-08). Implementado `MediaCaptureContext` y el banner sticky `MediaCaptureIndicator` en `AppShell` fijado bajo el header en todo el espacio de trabajo. Refleja dinámicamente las pistas vivas de `MediaStream` ('Cámara y micrófono activos', 'Micrófono activo', 'Cámara activa' o 'Captura detenida'), proporciona botón ergonómico de detención accesible en scroll/navegación y libera físicamente todos los tracks de hardware apagando los sensores del dispositivo. 6/6 pruebas E2E aprobadas en Next y Cloudflare Pages; 123/123 en la suite completa.
 
 ---
 

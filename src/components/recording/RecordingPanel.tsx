@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useAppMode } from '@/context/AppModeContext';
+import { useMediaCapture } from '@/context/MediaCaptureContext';
 import { createSession, recoverSession } from '@/lib/recording/client';
 import { ClipRecorder, emptyCapture, type CaptureState } from '@/lib/recording/recorder';
 import type { CaptureMode, RecordingSession } from '@/lib/recording/contracts';
@@ -12,6 +13,7 @@ const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 f
 
 export function RecordingPanel() {
   const { setNavigationLocked } = useAppMode();
+  const { registerCapture, updateCapturePhase, clearCapture, statusLabel } = useMediaCapture();
   const [mode, setMode] = useState<CaptureMode>('video');
   const [session, setSession] = useState<RecordingSession | null>(null);
   const [state, setState] = useState<CaptureState>(emptyCapture);
@@ -56,6 +58,19 @@ export function RecordingPanel() {
   }, []);
   useEffect(() => { if (preview.current) preview.current.srcObject = state.stream; }, [state.stream]);
 
+  useEffect(() => {
+    if (state.stream) {
+      const unregister = registerCapture(state.stream, 'recording', () => {
+        controller.current?.stop();
+      });
+      return () => {
+        unregister();
+      };
+    } else {
+      updateCapturePhase(state.phase, 'recording');
+    }
+  }, [state.stream, state.phase, registerCapture, updateCapturePhase]);
+
   async function start() {
     if (locked.current || session) return;
     locked.current = true; setBusy(true); setError(''); setNote('');
@@ -89,9 +104,14 @@ export function RecordingPanel() {
   }
   function reset() {
     controller.current?.dispose(); controller.current = null;
+    clearCapture();
     try { sessionStorage.removeItem(KEY); } catch { /* No persistent key to clear. */ }
     setSession(null); setState(emptyCapture()); setNote(''); setError('');
   }
+
+  const liveLabel = statusLabel !== 'Cámara y micrófono apagados' && statusLabel !== 'Captura detenida'
+    ? statusLabel
+    : mode === 'video' ? 'Cámara y micrófono activos' : 'Micrófono activo';
 
   return (
     <section aria-labelledby="recording-title" className="mx-auto w-full max-w-3xl space-y-5 pb-28 text-base text-gray-100">
@@ -106,7 +126,7 @@ export function RecordingPanel() {
         <button type="button" aria-pressed={mode === 'audio'} className={`${control} ${mode === 'audio' ? 'bg-gray-700 border-amber-200' : 'bg-gray-900'}`} onClick={() => setMode('audio')}>Solo audio</button>
       </div></fieldset>}
       {state.stream && <div className="space-y-2">
-        <p role="status" className="font-bold text-amber-200">{mode === 'video' ? 'Cámara y micrófono activos' : 'Micrófono activo'}</p>
+        <p role="status" className="font-bold text-amber-200">{liveLabel}</p>
         {mode === 'video' && <video ref={preview} autoPlay muted playsInline data-sensitive="true" aria-label="Vista de la cámara" className="aspect-video w-full rounded-xl bg-black object-contain" />}
       </div>}
       <div className="rounded-xl border border-gray-700 bg-[#111827] p-4">
