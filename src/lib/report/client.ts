@@ -6,6 +6,7 @@ import {
   type CreateReportInput,
   type ReportAttachmentReceipt,
   type ReportRecord,
+  type SafeContactConfig,
   type SanitizationSummary,
   type SanitizedMime,
 } from './contracts';
@@ -136,4 +137,30 @@ export function buildReportWhatsAppUrl(params: {
   const cleanPhone = (params.phone ?? '573234306794').replace(/[^\d]/g, '');
   const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(previewText)}`;
   return { url, previewText };
+}
+
+export async function updateReportSafeContact(
+  code: string,
+  secret: string,
+  safeContact: SafeContactConfig,
+  signal?: AbortSignal
+): Promise<ReportRecord> {
+  if (!SECRET.test(secret)) {
+    throw new Error('Secreto de expediente no válido.');
+  }
+  const response = await fetch(`/api/reports/${code}/safe-contact`, {
+    method: 'PATCH',
+    headers: {
+      ...CLIENT_HEADERS,
+      Authorization: `Bearer ${secret}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(safeContact),
+    cache: 'no-store',
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(await readErrorMessage(response, 'No se pudieron actualizar las condiciones de contacto seguro.'));
+  }
+  return (await response.json()) as ReportRecord;
 }

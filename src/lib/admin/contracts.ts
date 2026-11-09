@@ -1,4 +1,12 @@
-import { REPORT_CODE_PATTERN, type ReportCategory, type ReportRiskLevel, type ReportAttachmentReceipt } from '../report/contracts';
+import {
+  REPORT_CODE_PATTERN,
+  type ReportCategory,
+  type ReportRiskLevel,
+  type ReportAttachmentReceipt,
+  type SafeContactConfig,
+  type SafeContactChannel,
+  isSafeContactChannel,
+} from '../report/contracts';
 
 export const ADMIN_REPORT_STATUSES = [
   { id: 'radicado', label: 'Radicado · Pendiente de asignación' },
@@ -75,6 +83,7 @@ export interface AdminReportSummary {
   createdAt: string;
   adminNotes: string;
   updatedAt?: string;
+  safeContact?: SafeContactConfig;
 }
 
 export interface AdminReportDetail extends AdminReportSummary {
@@ -87,6 +96,47 @@ export interface AdminReportDetail extends AdminReportSummary {
     sha256: string;
     receivedAt: string;
   }[];
+}
+
+export interface SimulateContactInput {
+  channel?: SafeContactChannel;
+  simulatedAt?: string; // ISO string opcional para probar hora
+  purpose?: string;
+}
+
+export interface SimulateContactResult {
+  allowed: boolean;
+  reason: string;
+  colombiaTime: string;
+  channel: string;
+  isNoContact: boolean;
+  simulatedAt: string;
+  simulatedNotice: string;
+}
+
+export function parseSimulateContactInput(
+  value: unknown
+): { ok: true; data: SimulateContactInput } | { ok: false; error: string } {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ok: true, data: {} };
+  }
+  const raw = value as Record<string, unknown>;
+  let channel: SafeContactChannel | undefined;
+  if (raw.channel !== undefined) {
+    if (!isSafeContactChannel(raw.channel)) {
+      return { ok: false, error: 'Canal de simulación no válido.' };
+    }
+    channel = raw.channel;
+  }
+  let simulatedAt: string | undefined;
+  if (raw.simulatedAt !== undefined) {
+    if (typeof raw.simulatedAt !== 'string' || Number.isNaN(Date.parse(raw.simulatedAt))) {
+      return { ok: false, error: 'Fecha/hora simulada no válida.' };
+    }
+    simulatedAt = raw.simulatedAt;
+  }
+  const purpose = typeof raw.purpose === 'string' ? raw.purpose.trim().slice(0, 200) : undefined;
+  return { ok: true, data: { channel, simulatedAt, purpose } };
 }
 
 export interface AdminFilterOptions {

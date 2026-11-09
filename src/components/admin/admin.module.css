@@ -497,3 +497,53 @@
     grid-template-columns: 1fr;
   }
 }
+
+.safeContactCard {
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.safeContactNoContact {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 20px;
+}
+
+.safeWindowAllowed {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid #10B981;
+  color: #6EE7B7;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.safeWindowBlocked {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #EF4444;
+  color: #FCA5A5;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.simulateSection {
+  background: #0B0F19;
+  border: 1px solid #1F2937;
+  border-radius: 12px;
+  padding: 20px;
+  margin-top: 20px;
+}

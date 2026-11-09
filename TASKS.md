@@ -232,7 +232,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 11: Contacto en condiciones seguras
+### [x] Tarea 11: Contacto en condiciones seguras
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I001
 - **Prioridad original:** Esencial
@@ -240,7 +240,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T6, T9
 - **Criterios de Éxito:** Se elige canal, franja o no contacto; el panel muestra la preferencia vigente y un envío fuera de ella se bloquea con explicación.
 - **Verificación requerida:** Probar guardado, cambio y retirada; simular envíos permitidos y no permitidos sin contactar a nadie.
-- **Plan:** docs/planes/T011.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T011.md.
+- **Estado:** Completada y verificada (2026-11-08). El ciudadano elige entre `no_contact` y `safe_contact` (WhatsApp, teléfono, Signal, correo, franja horaria en hora oficial COT, días y notas). El expediente permite consultar, actualizar y retirar preferencias con su clave privada. El panel `/admin` muestra la regla activa, el semáforo en vivo COT y cuenta con herramienta de simulación de despacho que bloquea con explicación de riesgo cualquier intento indebido. 4/4 pruebas E2E aprobadas en Next y Pages; 109/109 pruebas en toda la suite.
 
 ---
 

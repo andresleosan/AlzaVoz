@@ -11,3 +11,4 @@ function proxy(request: Request) {
 export const GET = proxy;
 export const POST = proxy;
 export const PUT = proxy;
+export const PATCH = proxy;

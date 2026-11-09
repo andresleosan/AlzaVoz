@@ -24,7 +24,13 @@ import {
   type AuthorityEntityId,
   type DocumentKindId,
   type LegalDraftResult,
+  type SimulateContactResult,
 } from '../../lib/admin/contracts';
+import {
+  isCurrentTimeInSafeWindow,
+  SAFE_CONTACT_CHANNELS,
+  type SafeContactChannel,
+} from '../../lib/report/contracts';
 import styles from './admin.module.css';
 
 interface AdminReportDetailProps {
@@ -59,6 +65,43 @@ export function AdminReportDetailView({
   const [draftContent, setDraftContent] = useState('');
   const [copiedDraft, setCopiedDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
+
+  // Safe contact simulation state (Idea I001)
+  const [simulatedChannel, setSimulatedChannel] = useState<SafeContactChannel | ''>('');
+  const [simulatedTime, setSimulatedTime] = useState('');
+  const [isSimulating, setIsSimulating] = useState(false);
+  const [simulationResult, setSimulationResult] = useState<SimulateContactResult | null>(null);
+  const [simulationError, setSimulationError] = useState<string | null>(null);
+
+  const handleSimulateContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSimulating(true);
+    setSimulationError(null);
+    setSimulationResult(null);
+    try {
+      const res = await fetch(`/api/admin/reports/${report.code}/simulate-contact`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channel: simulatedChannel || undefined,
+          simulatedAt: simulatedTime ? new Date(simulatedTime).toISOString() : undefined,
+        }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({ error: 'Error en simulación.' }));
+        throw new Error(errData.error || 'Error al procesar simulación.');
+      }
+      const data = (await res.json()) as SimulateContactResult;
+      setSimulationResult(data);
+    } catch (err: unknown) {
+      setSimulationError(err instanceof Error ? err.message : 'Error al conectar.');
+    } finally {
+      setIsSimulating(false);
+    }
+  };
 
   const handleSaveStatus = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -267,6 +310,195 @@ export function AdminReportDetailView({
           <span>Archivos Adjuntos</span>
           <strong>{report.attachmentCount} archivo(s) higienizados</strong>
         </div>
+      </section>
+
+      {/* Condiciones de Contacto Seguro (Tarea 11 / Idea I001) */}
+      {!report.safeContact || report.safeContact.preference === 'no_contact' ? (
+        <section
+          data-testid="admin-safe-contact-none"
+          className={styles.safeContactNoContact}
+          aria-labelledby="safe-contact-heading"
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+            <AlertTriangle size={24} color="#EF4444" aria-hidden="true" />
+            <h3 id="safe-contact-heading" style={{ fontSize: '1.05rem', fontWeight: 700, color: '#FCA5A5', margin: 0 }}>
+              REGLA DE SEGURIDAD PERSONAL: NO CONTACTAR (RESERVA TOTAL)
+            </h3>
+          </div>
+          <p style={{ margin: 0, fontSize: '0.92rem', color: '#E5E7EB', lineHeight: 1.5 }}>
+            El ciudadano ha configurado expresamente la opción de <strong>NO RECIBIR MENSAJES NI LLAMADAS</strong>.
+            Cualquier intento de comunicación directa está estrictamente prohibido para salvaguardar su integridad física.
+          </p>
+        </section>
+      ) : (
+        <section
+          data-testid="admin-safe-contact-active"
+          className={styles.safeContactCard}
+          aria-labelledby="safe-contact-heading"
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
+            <h3 id="safe-contact-heading" style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#F9FAFB' }}>
+              Condición de Contacto Seguro Autorizada
+            </h3>
+            {(() => {
+              const check = isCurrentTimeInSafeWindow(report.safeContact);
+              return check.allowed ? (
+                <div data-testid="safe-window-status-allowed" className={styles.safeWindowAllowed}>
+                  <span>🟢 EN FRANJA SEGURA</span>
+                  <span style={{ fontSize: '0.78rem', color: '#D1FAE5' }}>({check.colombiaTime})</span>
+                </div>
+              ) : (
+                <div data-testid="safe-window-status-blocked" className={styles.safeWindowBlocked}>
+                  <span>🔴 FUERA DE FRANJA SEGURA</span>
+                  <span style={{ fontSize: '0.78rem', color: '#FEE2E2' }}>({check.colombiaTime})</span>
+                </div>
+              );
+            })()}
+          </div>
+
+          <div className={styles.detailGrid} style={{ marginTop: 8 }}>
+            <div className={styles.detailField}>
+              <span>Canal Autorizado</span>
+              <strong>{report.safeContact.channel?.toUpperCase()}</strong>
+            </div>
+            <div className={styles.detailField}>
+              <span>Dato de Contacto</span>
+              <strong className="data-sensitive">{report.safeContact.contactValue}</strong>
+            </div>
+            <div className={styles.detailField}>
+              <span>Franja Horaria (Hora Colombia COT)</span>
+              <strong>
+                {report.safeContact.timeSlot === 'custom'
+                  ? `${report.safeContact.customStart} – ${report.safeContact.customEnd} COT`
+                  : report.safeContact.timeSlot === 'morning'
+                  ? 'Mañana (08:00 – 12:00 COT)'
+                  : report.safeContact.timeSlot === 'afternoon'
+                  ? 'Tarde (14:00 – 18:00 COT)'
+                  : 'Noche (18:00 – 21:00 COT)'}
+              </strong>
+            </div>
+            <div className={styles.detailField}>
+              <span>Días Permitidos</span>
+              <strong>
+                {report.safeContact.days === 'weekdays'
+                  ? 'Lunes a Viernes'
+                  : report.safeContact.days === 'weekends'
+                  ? 'Fines de Semana'
+                  : 'Todos los días'}
+              </strong>
+            </div>
+          </div>
+
+          {report.safeContact.safetyNotes && (
+            <div style={{ marginTop: 12, padding: 12, background: '#0B0F19', borderRadius: 8, border: '1px solid #1F2937' }}>
+              <span style={{ fontSize: '0.8rem', color: '#9CA3AF', display: 'block', marginBottom: 4 }}>
+                Instrucciones de Discreción Ciudadana:
+              </span>
+              <p style={{ margin: 0, fontSize: '0.9rem', color: '#F3F4F6' }}>
+                {report.safeContact.safetyNotes}
+              </p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* Herramienta de Simulación y Verificación de Envíos */}
+      <section className={styles.simulateSection} aria-labelledby="simulate-heading">
+        <h4 id="simulate-heading" style={{ fontSize: '1rem', fontWeight: 650, margin: '0 0 6px 0', color: '#F9FAFB' }}>
+          Simulación de Despacho y Auditoría de Reglas
+        </h4>
+        <p style={{ fontSize: '0.85rem', color: '#9CA3AF', margin: '0 0 14px 0' }}>
+          Verifica si un intento de comunicación cumple las condiciones vigentes. La acción es una simulación lógica y <strong>no contacta a nadie en la realidad</strong>.
+        </p>
+
+        <form onSubmit={handleSimulateContact} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, alignItems: 'end' }}>
+          <div>
+            <label htmlFor="sim-channel-select" style={{ display: 'block', fontSize: '0.8rem', color: '#D1D5DB', marginBottom: 4 }}>
+              Canal de envío simulado
+            </label>
+            <select
+              id="sim-channel-select"
+              value={simulatedChannel}
+              onChange={(e) => setSimulatedChannel(e.target.value as SafeContactChannel)}
+              className={styles.filterSelect}
+              style={{ width: '100%', minHeight: 48 }}
+            >
+              <option value="">Canal por defecto del caso</option>
+              {SAFE_CONTACT_CHANNELS.map((ch) => (
+                <option key={ch.id} value={ch.id}>
+                  {ch.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="sim-time-input" style={{ display: 'block', fontSize: '0.8rem', color: '#D1D5DB', marginBottom: 4 }}>
+              Hora simulada (opcional para pruebas)
+            </label>
+            <input
+              id="sim-time-input"
+              type="datetime-local"
+              value={simulatedTime}
+              onChange={(e) => setSimulatedTime(e.target.value)}
+              className={styles.filterInput}
+              style={{ width: '100%', minHeight: 48 }}
+            />
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              id="btn-simulate-contact"
+              disabled={isSimulating}
+              className={styles.btnSecondary}
+              style={{ minHeight: 48, width: '100%', background: '#1F2937', color: '#F9FAFB' }}
+            >
+              {isSimulating ? 'Evaluando reglas…' : 'Simular Despacho'}
+            </button>
+          </div>
+        </form>
+
+        {simulationError && (
+          <div role="alert" style={{ marginTop: 12, padding: 10, background: 'rgba(239, 68, 68, 0.2)', color: '#FCA5A5', borderRadius: 8, fontSize: '0.85rem' }}>
+            {simulationError}
+          </div>
+        )}
+
+        {simulationResult && (
+          <div
+            data-testid={simulationResult.allowed ? 'simulate-contact-allowed' : 'simulate-contact-blocked'}
+            style={{
+              marginTop: 14,
+              padding: 14,
+              borderRadius: 10,
+              border: simulationResult.allowed ? '1px solid #10B981' : '1px solid #EF4444',
+              background: simulationResult.allowed ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.15)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              {simulationResult.allowed ? (
+                <CheckCircle size={20} color="#10B981" aria-hidden="true" />
+              ) : (
+                <AlertTriangle size={20} color="#EF4444" aria-hidden="true" />
+              )}
+              <strong style={{ fontSize: '0.92rem', color: simulationResult.allowed ? '#6EE7B7' : '#FCA5A5' }}>
+                {simulationResult.allowed ? 'ENVÍO SIMULADO PERMITIDO' : 'ENVÍO BLOQUEADO'}
+              </strong>
+            </div>
+            <p style={{ margin: '4px 0', fontSize: '0.88rem', color: '#F3F4F6' }}>
+              <strong>Explicación:</strong> {simulationResult.reason}
+            </p>
+            {simulationResult.colombiaTime && (
+              <p style={{ margin: '2px 0', fontSize: '0.82rem', color: '#9CA3AF' }}>
+                Hora oficial evaluada: {simulationResult.colombiaTime}
+              </p>
+            )}
+            <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: '#9CA3AF', fontStyle: 'italic' }}>
+              {simulationResult.simulatedNotice}
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Narrative Summary */}

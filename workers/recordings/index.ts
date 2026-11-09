@@ -22,12 +22,14 @@ import {
   MAX_REPORT_ATTACHMENTS,
   MAX_REPORT_JSON_BYTES,
   parseCreateReportInput,
+  parseSafeContactConfig,
   REPORT_CODE_PATTERN,
   type AttachmentKind,
   type ReportAttachmentReceipt,
   type ReportCategory,
   type ReportRecord,
   type ReportRiskLevel,
+  type SafeContactConfig,
   type SanitizationSummary,
   type SanitizedMime,
 } from '../../src/lib/report/contracts';
@@ -95,6 +97,7 @@ interface StoredReportRow {
   attachment_count: number;
   status: string;
   created_at: string;
+  safe_contact_json?: string;
 }
 interface StoredAttachmentRow {
   id: string;
@@ -151,6 +154,21 @@ async function ensureReportSchema(db: D1Database): Promise<void> {
           UNIQUE(report_code, slot_index)
         )`),
       ])
+      .then(async () => {
+        try {
+          const info = await db.prepare('PRAGMA table_info(confidential_reports)').all<{ name: string }>();
+          const names = new Set(info.results.map((r) => r.name));
+          if (!names.has('safe_contact_json')) {
+            await db
+              .prepare(
+                `ALTER TABLE confidential_reports ADD COLUMN safe_contact_json TEXT NOT NULL DEFAULT '{"preference":"no_contact"}'`
+              )
+              .run();
+          }
+        } catch {
+          // ignore pragma error
+        }
+      })
       .then(() => undefined)
       .catch((err) => {
         reportSchemaReady = null;
@@ -199,6 +217,16 @@ async function buildReportRecord(db: D1Database, row: StoredReportRow): Promise<
     .bind(row.code)
     .all<StoredAttachmentRow>();
   const attachments = results.map(mapAttachmentRow);
+  let safeContact: SafeContactConfig = { preference: 'no_contact' };
+  if (row.safe_contact_json) {
+    try {
+      const parsed = JSON.parse(row.safe_contact_json);
+      const validated = parseSafeContactConfig(parsed);
+      if (validated.ok) safeContact = validated.data;
+    } catch {
+      // fallback
+    }
+  }
   return {
     code: row.code,
     requestId: row.request_id,
@@ -215,6 +243,7 @@ async function buildReportRecord(db: D1Database, row: StoredReportRow): Promise<
     status: row.status,
     createdAt: row.created_at,
     attachments,
+    safeContact,
   };
 }
 
@@ -288,8 +317,8 @@ async function handleReports(request: Request, env: Env, path: string): Promise<
           `INSERT INTO confidential_reports (
             code, request_id, access_hash, category, risk_level, commune,
             neighborhood_reference, summary, incident_date, recording_session_id,
-            recording_clip_count, expected_attachments, attachment_count, privacy_ack, status, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, 'radicado', ?)`
+            recording_clip_count, expected_attachments, attachment_count, privacy_ack, status, created_at, safe_contact_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 1, 'radicado', ?, ?)`
         )
         .bind(
           candidate,
@@ -304,7 +333,8 @@ async function handleReports(request: Request, env: Env, path: string): Promise<
           recordingSessionId,
           recordingClipCount,
           input.expectedAttachments,
-          createdAt
+          createdAt,
+          JSON.stringify(input.safeContact ?? { preference: 'no_contact' })
         )
         .run();
       insertedCode = candidate;
@@ -319,17 +349,49 @@ async function handleReports(request: Request, env: Env, path: string): Promise<
     return json(await buildReportRecord(db, createdRow), 201);
   }
 
-  const match = /^\/reports\/(ALZ-\d{4}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6})(?:\/attachments\/(\d+))?$/.exec(path);
+  const match = /^\/reports\/(ALZ-\d{4}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6})(?:\/attachments\/(\d+)|\/(safe-contact))?$/.exec(path);
   if (!match || !REPORT_CODE_PATTERN.test(match[1])) {
     return error(404, 'Ruta de denuncia no disponible.');
   }
-  const [, code, rawSlot] = match;
+  const [, code, rawSlot, safeContactAction] = match;
   const reportRow = await db
     .prepare('SELECT * FROM confidential_reports WHERE code = ?')
     .bind(code)
     .first<StoredReportRow>();
   if (!reportRow || reportRow.access_hash !== accessHash) {
     return error(401, 'Código de expediente o clave privada no válidos.');
+  }
+
+  if (safeContactAction) {
+    if (request.method === 'GET') {
+      const record = await buildReportRecord(db, reportRow);
+      return json({ safeContact: record.safeContact ?? { preference: 'no_contact' } }, 200);
+    }
+    if (request.method === 'PATCH') {
+      let body: unknown;
+      try {
+        body = await request.json();
+      } catch {
+        return error(400, 'Cuerpo de solicitud JSON no válido.');
+      }
+      const parsed = parseSafeContactConfig(body);
+      if (!parsed.ok) return error(400, parsed.error);
+      const safeContactData: SafeContactConfig = {
+        ...parsed.data,
+        updatedAt: new Date().toISOString(),
+      };
+      await db
+        .prepare('UPDATE confidential_reports SET safe_contact_json = ? WHERE code = ?')
+        .bind(JSON.stringify(safeContactData), code)
+        .run();
+      const updatedRow = await db
+        .prepare('SELECT * FROM confidential_reports WHERE code = ?')
+        .bind(code)
+        .first<StoredReportRow>();
+      if (!updatedRow) return error(500, 'Error al recuperar expediente tras actualizar.');
+      return json(await buildReportRecord(db, updatedRow), 200);
+    }
+    return error(405, 'Método no permitido.');
   }
 
   if (rawSlot === undefined) {

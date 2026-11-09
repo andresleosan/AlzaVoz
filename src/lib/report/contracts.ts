@@ -82,6 +82,7 @@ export interface CreateReportInput {
   recordingKey?: string;
   expectedAttachments: number;
   privacyAck: true;
+  safeContact?: SafeContactConfig;
 }
 
 export interface ReportAttachmentReceipt {
@@ -110,6 +111,45 @@ export interface ReportRecord {
   status: string;
   createdAt: string;
   attachments: ReportAttachmentReceipt[];
+  safeContact?: SafeContactConfig;
+}
+
+export const SAFE_CONTACT_CHANNELS = [
+  { id: 'whatsapp', label: 'WhatsApp (+57)' },
+  { id: 'phone_call', label: 'Llamada telefónica directa' },
+  { id: 'signal', label: 'Signal' },
+  { id: 'email', label: 'Correo electrónico' },
+] as const;
+
+export type SafeContactChannel = (typeof SAFE_CONTACT_CHANNELS)[number]['id'];
+
+export const SAFE_CONTACT_TIME_SLOTS = [
+  { id: 'morning', label: 'Mañana (08:00 – 12:00 COT)', start: '08:00', end: '12:00' },
+  { id: 'afternoon', label: 'Tarde (14:00 – 18:00 COT)', start: '14:00', end: '18:00' },
+  { id: 'evening', label: 'Noche (18:00 – 21:00 COT)', start: '18:00', end: '21:00' },
+  { id: 'custom', label: 'Horario personalizado', start: '', end: '' },
+] as const;
+
+export type SafeContactTimeSlot = (typeof SAFE_CONTACT_TIME_SLOTS)[number]['id'];
+
+export const SAFE_CONTACT_DAYS = [
+  { id: 'all', label: 'Todos los días' },
+  { id: 'weekdays', label: 'Solo de lunes a viernes' },
+  { id: 'weekends', label: 'Solo fines de semana' },
+] as const;
+
+export type SafeContactDays = (typeof SAFE_CONTACT_DAYS)[number]['id'];
+
+export interface SafeContactConfig {
+  preference: 'no_contact' | 'safe_contact';
+  channel?: SafeContactChannel;
+  contactValue?: string;
+  timeSlot?: SafeContactTimeSlot;
+  customStart?: string; // "HH:MM"
+  customEnd?: string;   // "HH:MM"
+  days?: SafeContactDays;
+  safetyNotes?: string;
+  updatedAt?: string;
 }
 
 export function isReportCategory(value: unknown): value is ReportCategory {
@@ -209,6 +249,14 @@ export function parseCreateReportInput(value: unknown): { ok: true; data: Create
   if (raw.privacyAck !== true) {
     return { ok: false, error: 'Confirma que revisaste el alcance de privacidad antes de radicar.' };
   }
+  let safeContact: SafeContactConfig = { preference: 'no_contact' };
+  if (raw.safeContact !== undefined && raw.safeContact !== null) {
+    const scParsed = parseSafeContactConfig(raw.safeContact);
+    if (!scParsed.ok) {
+      return { ok: false, error: scParsed.error };
+    }
+    safeContact = scParsed.data;
+  }
   return {
     ok: true,
     data: {
@@ -222,7 +270,170 @@ export function parseCreateReportInput(value: unknown): { ok: true; data: Create
       ...(recordingKey ? { recordingKey } : {}),
       expectedAttachments,
       privacyAck: true,
+      safeContact,
     },
+  };
+}
+
+export function isSafeContactChannel(value: unknown): value is SafeContactChannel {
+  return typeof value === 'string' && SAFE_CONTACT_CHANNELS.some((item) => item.id === value);
+}
+
+export function isSafeContactTimeSlot(value: unknown): value is SafeContactTimeSlot {
+  return typeof value === 'string' && SAFE_CONTACT_TIME_SLOTS.some((item) => item.id === value);
+}
+
+export function isSafeContactDays(value: unknown): value is SafeContactDays {
+  return typeof value === 'string' && SAFE_CONTACT_DAYS.some((item) => item.id === value);
+}
+
+export function parseSafeContactConfig(
+  value: unknown
+): { ok: true; data: SafeContactConfig } | { ok: false; error: string } {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ok: false, error: 'Configuración de contacto no válida.' };
+  }
+  const raw = value as Record<string, unknown>;
+  if (raw.preference !== 'no_contact' && raw.preference !== 'safe_contact') {
+    return { ok: false, error: 'Selecciona si autorizas contacto seguro o la opción de no recibir mensajes.' };
+  }
+  if (raw.preference === 'no_contact') {
+    return {
+      ok: true,
+      data: {
+        preference: 'no_contact',
+        ...(typeof raw.updatedAt === 'string' ? { updatedAt: raw.updatedAt } : {}),
+      },
+    };
+  }
+
+  if (!isSafeContactChannel(raw.channel)) {
+    return { ok: false, error: 'Selecciona un canal de contacto seguro válido.' };
+  }
+  const contactValue = typeof raw.contactValue === 'string' ? cleanText(raw.contactValue) : '';
+  if (contactValue.length < 3 || contactValue.length > 100) {
+    return { ok: false, error: 'Indica el dato de contacto seguro (número de teléfono, usuario o correo, entre 3 y 100 caracteres).' };
+  }
+  if (!isSafeContactTimeSlot(raw.timeSlot)) {
+    return { ok: false, error: 'Selecciona la franja horaria segura.' };
+  }
+
+  let customStart: string | undefined;
+  let customEnd: string | undefined;
+  if (raw.timeSlot === 'custom') {
+    if (typeof raw.customStart !== 'string' || !/^\d{2}:\d{2}$/.test(raw.customStart)) {
+      return { ok: false, error: 'Indica la hora de inicio en formato HH:MM (ej: 09:00).' };
+    }
+    if (typeof raw.customEnd !== 'string' || !/^\d{2}:\d{2}$/.test(raw.customEnd)) {
+      return { ok: false, error: 'Indica la hora de fin en formato HH:MM (ej: 13:00).' };
+    }
+    if (raw.customStart >= raw.customEnd) {
+      return { ok: false, error: 'La hora de inicio debe ser anterior a la hora de fin.' };
+    }
+    customStart = raw.customStart;
+    customEnd = raw.customEnd;
+  }
+
+  const days: SafeContactDays = isSafeContactDays(raw.days) ? raw.days : 'all';
+  const safetyNotes = typeof raw.safetyNotes === 'string' ? cleanText(raw.safetyNotes).slice(0, 250) : '';
+
+  return {
+    ok: true,
+    data: {
+      preference: 'safe_contact',
+      channel: raw.channel,
+      contactValue,
+      timeSlot: raw.timeSlot,
+      ...(customStart ? { customStart } : {}),
+      ...(customEnd ? { customEnd } : {}),
+      days,
+      ...(safetyNotes ? { safetyNotes } : {}),
+      ...(typeof raw.updatedAt === 'string' ? { updatedAt: raw.updatedAt } : {}),
+    },
+  };
+}
+
+export function isCurrentTimeInSafeWindow(
+  config: SafeContactConfig | undefined,
+  targetDate: Date = new Date()
+): {
+  allowed: boolean;
+  reason: string;
+  colombiaTime: string;
+  isNoContact: boolean;
+} {
+  if (!config || config.preference === 'no_contact') {
+    return {
+      allowed: false,
+      reason:
+        'El ciudadano ha configurado la opción de NO RECIBIR MENSAJES ni llamadas bajo ninguna circunstancia (reserva total de seguridad personal).',
+      colombiaTime: '',
+      isNoContact: true,
+    };
+  }
+
+  // Format date in Colombia timezone (America/Bogota, UTC-5)
+  const formatter = new Intl.DateTimeFormat('es-CO', {
+    timeZone: 'America/Bogota',
+    hour12: false,
+    weekday: 'long',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+
+  const parts = formatter.formatToParts(targetDate);
+  const weekday = parts.find((p) => p.type === 'weekday')?.value?.toLowerCase() ?? '';
+  const hourStr = parts.find((p) => p.type === 'hour')?.value ?? '00';
+  const minStr = parts.find((p) => p.type === 'minute')?.value ?? '00';
+  const currentTime = `${hourStr}:${minStr}`;
+  const colombiaDisplay = `${currentTime} COT (${weekday})`;
+
+  const isWeekend = weekday.includes('sáb') || weekday.includes('sab') || weekday.includes('dom');
+  const allowedDays = config.days ?? 'all';
+  if (allowedDays === 'weekdays' && isWeekend) {
+    return {
+      allowed: false,
+      reason: `Intento en fin de semana (${colombiaDisplay}). El ciudadano solo autorizó contacto de lunes a viernes.`,
+      colombiaTime: colombiaDisplay,
+      isNoContact: false,
+    };
+  }
+  if (allowedDays === 'weekends' && !isWeekend) {
+    return {
+      allowed: false,
+      reason: `Intento entre semana (${colombiaDisplay}). El ciudadano solo autorizó contacto durante fines de semana.`,
+      colombiaTime: colombiaDisplay,
+      isNoContact: false,
+    };
+  }
+
+  let start = '08:00';
+  let end = '12:00';
+  if (config.timeSlot === 'afternoon') {
+    start = '14:00';
+    end = '18:00';
+  } else if (config.timeSlot === 'evening') {
+    start = '18:00';
+    end = '21:00';
+  } else if (config.timeSlot === 'custom') {
+    start = config.customStart && /^\d{2}:\d{2}$/.test(config.customStart) ? config.customStart : '08:00';
+    end = config.customEnd && /^\d{2}:\d{2}$/.test(config.customEnd) ? config.customEnd : '18:00';
+  }
+
+  if (currentTime < start || currentTime > end) {
+    return {
+      allowed: false,
+      reason: `Hora actual (${currentTime} COT) fuera de la franja autorizada (${start} – ${end} COT). Contactar a deshoras puede alertar al entorno del ciudadano y ponerlo en grave riesgo.`,
+      colombiaTime: colombiaDisplay,
+      isNoContact: false,
+    };
+  }
+
+  return {
+    allowed: true,
+    reason: `Dentro de la franja segura autorizada (${start} – ${end} COT, ${allowedDays === 'weekdays' ? 'lunes a viernes' : allowedDays === 'weekends' ? 'fines de semana' : 'todos los días'}).`,
+    colombiaTime: colombiaDisplay,
+    isNoContact: false,
   };
 }
 

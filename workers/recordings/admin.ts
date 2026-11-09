@@ -1,14 +1,19 @@
 import {
   isReportCode,
   isAdminReportStatus,
+  parseSimulateContactInput,
   type AdminReportSummary,
   type AdminReportDetail,
   type AdminReportStatus,
+  type SimulateContactResult,
 } from '../../src/lib/admin/contracts';
 import {
+  isCurrentTimeInSafeWindow,
+  parseSafeContactConfig,
   type AttachmentKind,
   type ReportCategory,
   type ReportRiskLevel,
+  type SafeContactConfig,
   type SanitizationSummary,
   type SanitizedMime,
 } from '../../src/lib/report/contracts';
@@ -76,6 +81,7 @@ interface StoredReportRow {
   created_at: string;
   admin_notes?: string;
   updated_at?: string;
+  safe_contact_json?: string;
 }
 
 interface StoredAttachmentRow {
@@ -134,6 +140,13 @@ async function ensureAdminColumns(db: D1Database): Promise<void> {
     if (!names.has('updated_at')) {
       await db.prepare('ALTER TABLE confidential_reports ADD COLUMN updated_at TEXT').run();
     }
+    if (!names.has('safe_contact_json')) {
+      await db
+        .prepare(
+          `ALTER TABLE confidential_reports ADD COLUMN safe_contact_json TEXT NOT NULL DEFAULT '{"preference":"no_contact"}'`
+        )
+        .run();
+    }
     adminSchemaChecked = true;
   } catch {
     // If PRAGMA or alter fails, continue gracefully
@@ -142,6 +155,16 @@ async function ensureAdminColumns(db: D1Database): Promise<void> {
 }
 
 function mapSummaryRow(row: StoredReportRow): AdminReportSummary {
+  let safeContact: SafeContactConfig = { preference: 'no_contact' };
+  if (row.safe_contact_json) {
+    try {
+      const parsed = JSON.parse(row.safe_contact_json);
+      const validated = parseSafeContactConfig(parsed);
+      if (validated.ok) safeContact = validated.data;
+    } catch {
+      // fallback
+    }
+  }
   return {
     code: row.code,
     category: row.category,
@@ -157,6 +180,7 @@ function mapSummaryRow(row: StoredReportRow): AdminReportSummary {
     createdAt: row.created_at,
     adminNotes: row.admin_notes || '',
     updatedAt: row.updated_at || undefined,
+    safeContact,
   };
 }
 
@@ -277,7 +301,7 @@ export async function handleAdmin(request: Request, env: AdminWorkerEnv): Promis
   }
 
   // 4. Match /admin/reports/:code ...
-  const reportMatch = /^\/reports\/(ALZ-\d{4}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6})(?:\/(attachments\/(\d+)|recording\/(\d+)))?$/.exec(
+  const reportMatch = /^\/reports\/(ALZ-\d{4}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6})(?:\/(attachments\/(\d+)|recording\/(\d+)|simulate-contact))?$/.exec(
     path
   );
   if (!reportMatch) {
@@ -294,6 +318,65 @@ export async function handleAdmin(request: Request, env: AdminWorkerEnv): Promis
 
   if (!reportRow) {
     return error(404, 'Expediente no encontrado en la base de datos.');
+  }
+
+  // POST /admin/reports/:code/simulate-contact
+  if (subAction === 'simulate-contact') {
+    if (request.method !== 'POST') return error(405, 'Método no permitido.');
+    const rawBody = await request.json().catch(() => ({}));
+    const parsed = parseSimulateContactInput(rawBody);
+    if (!parsed.ok) return error(400, parsed.error);
+
+    let safeContact: SafeContactConfig = { preference: 'no_contact' };
+    if (reportRow.safe_contact_json) {
+      try {
+        const p = JSON.parse(reportRow.safe_contact_json);
+        const v = parseSafeContactConfig(p);
+        if (v.ok) safeContact = v.data;
+      } catch {
+        // fallback
+      }
+    }
+
+    const simulatedDate = parsed.data.simulatedAt ? new Date(parsed.data.simulatedAt) : new Date();
+    const evalResult = isCurrentTimeInSafeWindow(safeContact, simulatedDate);
+
+    if (safeContact.preference === 'safe_contact' && parsed.data.channel && parsed.data.channel !== safeContact.channel) {
+      const res: SimulateContactResult = {
+        allowed: false,
+        reason: `Canal solicitado (${parsed.data.channel}) no coincide con el canal autorizado por el ciudadano (${safeContact.channel}).`,
+        colombiaTime: evalResult.colombiaTime,
+        channel: safeContact.channel ?? 'ninguno',
+        isNoContact: false,
+        simulatedAt: simulatedDate.toISOString(),
+        simulatedNotice: 'ENVÍO BLOQUEADO: Canal no autorizado por el ciudadano. No se envió ningún mensaje real.',
+      };
+      return json(res, 200);
+    }
+
+    if (!evalResult.allowed) {
+      const res: SimulateContactResult = {
+        allowed: false,
+        reason: evalResult.reason,
+        colombiaTime: evalResult.colombiaTime,
+        channel: safeContact.channel ?? 'ninguno',
+        isNoContact: evalResult.isNoContact,
+        simulatedAt: simulatedDate.toISOString(),
+        simulatedNotice: 'ENVÍO BLOQUEADO POR REGLA DE SEGURIDAD PERSONAL: Contactar en estas condiciones expone al ciudadano. No se envió ningún mensaje real.',
+      };
+      return json(res, 200);
+    }
+
+    const res: SimulateContactResult = {
+      allowed: true,
+      reason: evalResult.reason,
+      colombiaTime: evalResult.colombiaTime,
+      channel: safeContact.channel ?? 'ninguno',
+      isNoContact: false,
+      simulatedAt: simulatedDate.toISOString(),
+      simulatedNotice: 'SIMULACIÓN PERMITIDA: Dentro de las condiciones seguras y franja horaria autorizadas. No se envió ningún mensaje real.',
+    };
+    return json(res, 200);
   }
 
   // GET /admin/reports/:code - full detail

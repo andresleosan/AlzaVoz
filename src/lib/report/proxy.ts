@@ -7,10 +7,10 @@ const error = (status: number, message: string) =>
   Response.json({ error: message }, { status, headers: responseHeaders });
 
 const REPORT_PATH_REGEX =
-  /^\/reports(?:\/ALZ-\d{4}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}(?:\/attachments\/[0-3])?)?$/;
+  /^\/reports(?:\/ALZ-\d{4}-[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{6}(?:\/attachments\/[0-3]|\/safe-contact)?)?$/;
 
 export async function reportProxy(request: Request, env: RecordingGatewayEnv): Promise<Response> {
-  if (!['GET', 'POST', 'PUT'].includes(request.method)) {
+  if (!['GET', 'POST', 'PUT', 'PATCH'].includes(request.method)) {
     return error(405, 'Método no permitido.');
   }
   const endpoint = env.RECORDING_API_URL ?? (env.RECORDINGS ? 'https://recordings.internal' : undefined);
