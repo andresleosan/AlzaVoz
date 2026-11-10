@@ -10,6 +10,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { ZeroPeepToggle } from "@/components/ZeroPeepToggle";
 import { QuickEscapeButton } from "@/components/QuickEscapeButton";
 import { MediaCaptureIndicator } from "@/components/recording/MediaCaptureIndicator";
+import { PracticeModeBanner } from "@/components/practice/PracticeModeBanner";
+import { PracticeSimulationModal } from "@/components/practice/PracticeSimulationModal";
 
 const pageNames: Record<string, string> = {
   "/": "Inicio",
@@ -56,9 +58,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
         <MediaCaptureIndicator />
+        <PracticeModeBanner />
         <main id="contenido" tabIndex={-1} className={`app-main ${pathname === "/" ? "app-main-home" : ""}`}>{children}</main>
       </div>
       <BottomNav />
+      <PracticeSimulationModal />
     </div>
   );
 }

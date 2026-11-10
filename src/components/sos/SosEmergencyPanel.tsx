@@ -15,12 +15,15 @@ import { GiantLocationCard } from "@/components/sos/GiantLocationCard";
 import { EmergencyDialerGrid } from "@/components/sos/EmergencyDialerGrid";
 import { TrustedContactsCard } from "@/components/sos/TrustedContactsCard";
 import { useAppMode } from "@/context/AppModeContext";
+import { usePracticeMode } from "@/context/PracticeModeContext";
+import { PracticeModeToggle } from "@/components/practice/PracticeModeBanner";
 import { SosSharePreviewModal } from "@/components/sos/SosSharePreviewModal";
 import { LocationPrecision, RecipientInfo } from "@/types/sharing";
 import { buildSosWhatsAppLink } from "@/lib/sharing/preview";
 
 export function SosEmergencyPanel() {
   const { triggerHaptic } = useAppMode();
+  const { isPracticeMode, showSimulationModal } = usePracticeMode();
   const {
     location,
     refreshLocation,
@@ -67,6 +70,22 @@ export function SosEmergencyPanel() {
     setIsPreviewOpen(false);
     triggerHaptic(50);
 
+    if (isPracticeMode) {
+      showSimulationModal({
+        title: "Simulación: Despacho de Auxilio",
+        message: "En una emergencia real este mensaje se enviaría inmediatamente a los destinatarios seleccionados. En este modo de práctica no se envía ningún mensaje ni se abre WhatsApp.",
+        recipients: recipients.map((r) => `${r.name} (${r.detail})`),
+        payloadText: text,
+        details: [
+          "Verificaste los destinatarios y la precisión de ubicación.",
+          "Ningún dato salió de tu dispositivo ni se transmitió por WhatsApp.",
+        ],
+      });
+      setShareSuccess(true);
+      setTimeout(() => setShareSuccess(false), 3000);
+      return;
+    }
+
     const hasBroadcast = recipients.some((r) => r.id === "broadcast-all");
     if (hasBroadcast && typeof navigator !== "undefined" && navigator.share) {
       try {
@@ -102,6 +121,8 @@ export function SosEmergencyPanel() {
   return (
     <div className="grid w-full items-start gap-8 pb-8 lg:grid-cols-2">
       <div className="min-w-0 space-y-6">
+        <PracticeModeToggle className="w-full" />
+
         {/* 1. BOTÓN DE PÁNICO HERO (UX BAJO ESTRÉS - FITTS' LAW) */}
         <section
           aria-label="Botón de Pánico Principal"
@@ -112,20 +133,49 @@ export function SosEmergencyPanel() {
 
             {/* Gran Pulsador Circular de Pánico (Touch Target > 140px) */}
             <div className="relative my-2">
-              <a
-                href="tel:123"
-                onClick={handleMainSosCall}
-                aria-label="Llamar a Emergencias Policía 123 ahora"
-                className="touch-target-min flex h-36 w-36 flex-col items-center justify-center rounded-full bg-red-600 text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-red-700"
-              >
-                <ShieldAlert className="h-10 w-10 text-white" />
-                <span className="text-2xl font-bold text-white">
-                  SOS 123
-                </span>
-                <span className="text-xs font-medium text-red-100">
-                  Tocar para Llamar
-                </span>
-              </a>
+              {isPracticeMode ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleMainSosCall();
+                    showSimulationModal({
+                      title: "Simulación: Llamada de emergencia SOS 123",
+                      message: "En una emergencia real tu teléfono llamará directamente al 123 (Policía y Central de Emergencias de Medellín). En este modo de práctica no se efectúa ninguna llamada telefónica.",
+                      phoneNumber: "123",
+                      serviceName: "Policía y Emergencias 123",
+                      details: [
+                        "Dirección lista para dictar: " + (location.address || "Medellín, Colombia"),
+                        "Conserva la calma y responde las preguntas del operador.",
+                      ],
+                    });
+                  }}
+                  aria-label="Simulación: Llamar a Emergencias Policía 123 ahora"
+                  className="touch-target-min flex h-36 w-36 flex-col items-center justify-center rounded-full bg-amber-600 text-white transition-colors hover:bg-amber-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-amber-700"
+                >
+                  <ShieldAlert className="h-10 w-10 text-white" />
+                  <span className="text-2xl font-bold text-white">
+                    SOS 123
+                  </span>
+                  <span className="text-xs font-medium text-amber-100">
+                    Simulación
+                  </span>
+                </button>
+              ) : (
+                <a
+                  href="tel:123"
+                  onClick={handleMainSosCall}
+                  aria-label="Llamar a Emergencias Policía 123 ahora"
+                  className="touch-target-min flex h-36 w-36 flex-col items-center justify-center rounded-full bg-red-600 text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-red-700"
+                >
+                  <ShieldAlert className="h-10 w-10 text-white" />
+                  <span className="text-2xl font-bold text-white">
+                    SOS 123
+                  </span>
+                  <span className="text-xs font-medium text-red-100">
+                    Tocar para Llamar
+                  </span>
+                </a>
+              )}
             </div>
 
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-red-100">
@@ -139,16 +189,40 @@ export function SosEmergencyPanel() {
           aria-label="Alerta Silenciosa por WhatsApp"
           className="grid gap-3"
         >
-          <a
-            href={officialWaUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => triggerHaptic(50)}
-            className="touch-target-min flex items-center justify-center gap-2.5 rounded-xl bg-emerald-800 p-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
-          >
-            <MessageCircle className="w-5 h-5 text-white" />
-            <span>Alerta Silenciosa WhatsApp</span>
-          </a>
+          {isPracticeMode ? (
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(50);
+                showSimulationModal({
+                  title: "Simulación: Alerta Silenciosa WhatsApp",
+                  message:
+                    "En una emergencia real se abriría WhatsApp con el mensaje de auxilio preconfigurado dirigido a la línea oficial de socorro. En modo de práctica no se envía ningún mensaje ni se abre WhatsApp.",
+                  recipients: ["Línea Oficial de Auxilio (+57 323 430 6794)"],
+                  payloadText: rawLocationText,
+                  details: [
+                    "El mensaje incluye tu ubicación actual y el texto de socorro.",
+                    "No se abrió ninguna ventana externa ni se transmitieron datos.",
+                  ],
+                });
+              }}
+              className="touch-target-min flex items-center justify-center gap-2.5 rounded-xl bg-emerald-800 p-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+            >
+              <MessageCircle className="w-5 h-5 text-white" />
+              <span>Alerta Silenciosa WhatsApp (Simulación)</span>
+            </button>
+          ) : (
+            <a
+              href={officialWaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => triggerHaptic(50)}
+              className="touch-target-min flex items-center justify-center gap-2.5 rounded-xl bg-emerald-800 p-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+            >
+              <MessageCircle className="w-5 h-5 text-white" />
+              <span>Alerta Silenciosa WhatsApp</span>
+            </a>
+          )}
 
           <button
             type="button"

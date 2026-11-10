@@ -271,7 +271,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 14: Modo de práctica sin envíos
+### [x] Tarea 14: Modo de práctica sin envíos
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I004
 - **Prioridad original:** Esencial
@@ -279,7 +279,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T3, T6
 - **Criterios de Éxito:** El recorrido de práctica está identificado; permite ensayar sin llamadas, mensajes ni expedientes reales.
 - **Verificación requerida:** E2E con interceptación de red y enlaces externos; comprobar ausencia de efectos reales.
-- **Plan:** docs/planes/T014.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T014.md
+- **Estado:** Completada. Implementado conmutador de práctica con banner sticky en cabecera (`PracticeModeBanner`), diálogo pedagógico (`PracticeSimulationModal`), supresión de llamadas `tel:` y WhatsApp en `/sos` con simulación educativa interactiva, y en `/report` autocompletado de prueba y radicación segura `SIM-YYYY-XXXXXX` con 0 peticiones de red hacia D1/R2. 6/6 pruebas específicas en `e2e/practice-mode.spec.ts` y 129/129 pruebas globales aprobadas. Verificado en build de Pages (`PLAYWRIGHT_PAGES=1`).
 
 ---
 

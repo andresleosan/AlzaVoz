@@ -8,6 +8,7 @@ import {
   Users,
   FileText,
   X,
+  Sparkles,
 } from 'lucide-react';
 import { AlzaBotAvatar } from '@/components/AlzaBotAvatar';
 import { QuickEscapeButton } from '@/components/QuickEscapeButton';
@@ -16,6 +17,8 @@ import {
   type PreparedAttachment,
 } from '@/components/report/EvidenceSanitizerSection';
 import { useAppMode } from '@/context/AppModeContext';
+import { usePracticeMode } from '@/context/PracticeModeContext';
+import { PracticeModeToggle } from '@/components/practice/PracticeModeBanner';
 import {
   buildReportWhatsAppUrl,
   createClientSecret,
@@ -33,6 +36,7 @@ import {
   SAFE_CONTACT_CHANNELS,
   SAFE_CONTACT_DAYS,
   SAFE_CONTACT_TIME_SLOTS,
+  attachmentKindForMime,
   type ReportCategory,
   type ReportRecord,
   type ReportRiskLevel,
@@ -139,6 +143,19 @@ function SafeContactStatusCard({
         days,
         safetyNotes: safetyNotes.trim() || undefined,
       };
+
+      if (record.code.startsWith('SIM-')) {
+        const updated: ReportRecord = {
+          ...record,
+          safeContact: config,
+        };
+        onUpdated(updated);
+        setIsEditing(false);
+        setMessage('Condiciones de contacto simuladas actualizadas exitosamente.');
+        triggerHaptic(30);
+        return;
+      }
+
       const updated = await updateReportSafeContact(record.code, secretKey, config);
       onUpdated(updated);
       setIsEditing(false);
@@ -156,6 +173,18 @@ function SafeContactStatusCard({
     setError(null);
     setMessage(null);
     try {
+      if (record.code.startsWith('SIM-')) {
+        const updated: ReportRecord = {
+          ...record,
+          safeContact: { preference: 'no_contact' },
+        };
+        onUpdated(updated);
+        setIsEditing(false);
+        setMessage('Preferencia simulada actualizada a NO CONTACTO.');
+        triggerHaptic(30);
+        return;
+      }
+
       const updated = await updateReportSafeContact(record.code, secretKey, { preference: 'no_contact' });
       onUpdated(updated);
       setIsEditing(false);
@@ -407,6 +436,7 @@ function SafeContactStatusCard({
 
 export function ConfidentialReportPanel() {
   const { setNavigationLocked, triggerHaptic } = useAppMode();
+  const { isPracticeMode, showSimulationModal } = usePracticeMode();
   const initialDraft = loadInitialDraft();
   const [step, setStep] = useState<Step>(1);
   const [category, setCategory] = useState<ReportCategory>(initialDraft.category);
@@ -504,6 +534,19 @@ export function ConfidentialReportPanel() {
     setStep(2);
   }
 
+  function handleLoadPracticeData() {
+    setCategory('abuso-autoridad-reten');
+    setRiskLevel('medio');
+    setCommune('04-aranjuez');
+    setNeighborhoodReference('Parque de Aranjuez (Simulado)');
+    setIncidentDate(new Date().toISOString().slice(0, 10));
+    setSummary(
+      'Simulación de práctica: Retén policial sin orden visible en la carrera 49. No hubo agresiones físicas, solo solicitud de documentos. Caso ficticio para ensayo.'
+    );
+    setError('');
+    triggerHaptic(30);
+  }
+
   async function handleSubmitToD1() {
     if (busy) return;
     if (summary.trim().length < 15) {
@@ -547,6 +590,60 @@ export function ConfidentialReportPanel() {
 
     const finalCommune = reportLocationPrecision === 'none' ? RESERVED_COMMUNE : commune;
     const finalNeighborhood = reportLocationPrecision === 'full' ? neighborhoodReference : '';
+
+    if (isPracticeMode) {
+      const mockCode = `SIM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      const simulatedRecord: ReportRecord = {
+        code: mockCode,
+        requestId,
+        category,
+        riskLevel,
+        commune: finalCommune,
+        neighborhoodReference: finalNeighborhood,
+        summary,
+        incidentDate: incidentDate || new Date().toISOString().slice(0, 10),
+        recordingSessionId: recordingKey.trim() || null,
+        recordingClipCount: recordingKey.trim() ? 1 : 0,
+        expectedAttachments: attachments.length,
+        attachmentCount: attachments.length,
+        status: 'recibido (simulado)',
+        createdAt: new Date().toISOString(),
+        attachments: attachments.map((att, i) => ({
+          index: i,
+          kind: attachmentKindForMime(att.mime),
+          mime: att.mime,
+          bytes: att.bytes.byteLength,
+          sha256: `sim_sha256_${i}_practice`,
+          sanitizationSummary: att.summary,
+          receivedAt: new Date().toISOString(),
+        })),
+        safeContact: safeContactConfig,
+      };
+
+      setAttachments((prev) =>
+        prev.map((entry) => ({
+          ...entry,
+          uploadedReceipt: { receivedAt: new Date().toISOString() },
+        }))
+      );
+      setSubmittedRecord(simulatedRecord);
+      setStatusMessage('Expediente educativo simulado con éxito. Ningún dato fue transmitido a Cloudflare.');
+      setBusy(false);
+      triggerHaptic(40);
+
+      showSimulationModal({
+        title: `Simulación: Radicado ${mockCode}`,
+        message:
+          'Has completado la radicación en modo de práctica. En una denuncia real, la información se cifra y se guarda anónimamente en Cloudflare D1 y las evidencias en Cloudflare R2. Aquí ningún dato salió de tu navegador.',
+        payloadText: `Código de práctica: ${mockCode}\nCategoría: ${category}\nRiesgo: ${riskLevel}\nComuna: ${finalCommune}\nEvidencias simuladas: ${attachments.length}`,
+        details: [
+          'No se realizó ninguna petición HTTP a los servidores de producción.',
+          'La base de datos Cloudflare D1 permanece intacta.',
+          'Conserva tu recibo simulado para familiarizarte con el formato.',
+        ],
+      });
+      return;
+    }
 
     try {
       const baseRecord = await createOrRecoverReport(
@@ -610,6 +707,12 @@ export function ConfidentialReportPanel() {
   async function handleLookupReport(e: React.FormEvent) {
     e.preventDefault();
     if (!lookupKey.trim() || busy) return;
+    if (lookupKey.trim().toUpperCase().startsWith('SIM-')) {
+      setError('Los expedientes de práctica (SIM-...) no se almacenan en la nube y no pueden consultarse remotamente.');
+      setLookupResult(null);
+      setBusy(false);
+      return;
+    }
     setBusy(true);
     setError('');
     try {
@@ -664,16 +767,19 @@ export function ConfidentialReportPanel() {
 
   return (
     <section aria-labelledby="report-title" className="mx-auto w-full max-w-3xl space-y-6 pb-12 text-base text-gray-100">
-      <div className="flex items-center gap-4">
-        <AlzaBotAvatar mode="violet" size="md" showLivePulse={false} />
-        <div>
-          <h1 id="report-title" className="text-2xl font-bold text-white">
-            Denuncia confidencial y bóveda D1
-          </h1>
-          <p className="mt-1 text-sm text-gray-300">
-            Limpia metadatos en tu navegador, protege tu voz y elige cómo compartir tu caso sin crear cuenta.
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <AlzaBotAvatar mode="violet" size="md" showLivePulse={false} />
+          <div>
+            <h1 id="report-title" className="text-2xl font-bold text-white">
+              Denuncia confidencial y bóveda D1
+            </h1>
+            <p className="mt-1 text-sm text-gray-300">
+              Limpia metadatos en tu navegador, protege tu voz y elige cómo compartir tu caso sin crear cuenta.
+            </p>
+          </div>
         </div>
+        <PracticeModeToggle />
       </div>
 
       <nav aria-label="Pasos de la denuncia confidencial" className="grid grid-cols-3 gap-2">
@@ -722,6 +828,24 @@ export function ConfidentialReportPanel() {
 
       {step === 1 && (
         <div className="space-y-5 rounded-xl border border-gray-700 bg-[#111827] p-5">
+          {isPracticeMode && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/50 bg-amber-950/40 p-3 text-xs sm:text-sm text-amber-200">
+              <div className="flex items-center gap-2">
+                <Sparkles size={16} className="text-amber-400 shrink-0" aria-hidden="true" />
+                <span>
+                  <strong>Modo de práctica:</strong> Puedes rellenar el formulario con datos ficticios con un solo toque.
+                </span>
+              </div>
+              <button
+                type="button"
+                data-testid="load-practice-report-button"
+                onClick={handleLoadPracticeData}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-400/60 bg-amber-900/60 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800 focus-visible:outline-2 focus-visible:outline-amber-300 active:scale-95 transition-transform"
+              >
+                Cargar ejemplo de práctica
+              </button>
+            </div>
+          )}
           <div className="space-y-2">
             <label htmlFor="report-category" className="block font-semibold text-white">
               Tipo de situación
@@ -1291,8 +1415,17 @@ export function ConfidentialReportPanel() {
               data-testid="report-receipt-card"
               className="rounded-xl border border-amber-200 bg-[#111827] p-5 space-y-3"
             >
+              {isPracticeMode && (
+                <div className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/20 border border-amber-400/50 px-2.5 py-0.5 text-xs font-bold text-amber-300">
+                  <span>Simulación Educativa · Sin efecto legal</span>
+                </div>
+              )}
               <h2 className="text-xl font-bold text-white">
-                {isPartiallySubmitted ? 'Expediente creado · faltan evidencias por subir' : 'Expediente radicado en D1'}
+                {isPracticeMode
+                  ? 'Expediente simulado (Modo de práctica)'
+                  : isPartiallySubmitted
+                  ? 'Expediente creado · faltan evidencias por subir'
+                  : 'Expediente radicado en D1'}
               </h2>
               <p className="text-sm text-gray-300">
                 Código único de caso:{' '}
@@ -1367,15 +1500,38 @@ export function ConfidentialReportPanel() {
             >
               {whatsappData.previewText}
             </pre>
-            <a
-              data-testid="whatsapp-channel-link"
-              href={whatsappData.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`${control} w-full bg-gray-900 hover:bg-gray-800 text-center text-sm`}
-            >
-              Abrir resumen en WhatsApp (revela tu teléfono al destinatario)
-            </a>
+            {isPracticeMode ? (
+              <button
+                type="button"
+                data-testid="whatsapp-channel-link"
+                onClick={() => {
+                  triggerHaptic(50);
+                  showSimulationModal({
+                    title: 'Simulación: Resumen de Denuncia en WhatsApp',
+                    message:
+                      'En una denuncia real este enlace abriría WhatsApp con el texto preparado para enviar a organizaciones de derechos humanos o personerías. En modo de práctica no se abre WhatsApp.',
+                    payloadText: whatsappData.previewText,
+                    details: [
+                      'Recuerda que WhatsApp revela tu número de teléfono al destinatario.',
+                      'No se abrió ninguna ventana externa ni se transmitieron datos.',
+                    ],
+                  });
+                }}
+                className={`${control} w-full bg-gray-900 hover:bg-gray-800 text-center text-sm`}
+              >
+                Abrir resumen en WhatsApp (Simulación de práctica)
+              </button>
+            ) : (
+              <a
+                data-testid="whatsapp-channel-link"
+                href={whatsappData.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${control} w-full bg-gray-900 hover:bg-gray-800 text-center text-sm`}
+              >
+                Abrir resumen en WhatsApp (revela tu teléfono al destinatario)
+              </a>
+            )}
           </div>
         </div>
       )}
@@ -1425,14 +1581,22 @@ export function ConfidentialReportPanel() {
               type="button"
               disabled={busy}
               onClick={() => void handleSubmitToD1()}
-              className={`${control} w-full bg-red-800`}
+              className={`${control} w-full ${isPracticeMode ? 'bg-amber-600 hover:bg-amber-500 text-gray-950 font-bold' : 'bg-red-800'}`}
             >
-              {busy ? 'Radicando en Cloudflare D1…' : 'Radicar denuncia en bóveda D1'}
+              {busy
+                ? isPracticeMode
+                  ? 'Simulando radicación de prueba…'
+                  : 'Radicando en Cloudflare D1…'
+                : isPracticeMode
+                ? 'Radicar en modo práctica (Sin envíos)'
+                : 'Radicar denuncia en bóveda D1'}
             </button>
           </div>
         ) : (
           <p className="py-3 text-center font-semibold text-white font-tabular">
-            Expediente {submittedRecord?.code} confirmado en D1
+            {isPracticeMode
+              ? `Expediente simulado ${submittedRecord?.code} generado localmente (sin envíos)`
+              : `Expediente ${submittedRecord?.code} confirmado en D1`}
           </p>
         )}
       </div>

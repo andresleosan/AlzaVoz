@@ -4,9 +4,11 @@ import { Phone, ShieldAlert, HeartHandshake, Flame, Stethoscope, Car } from "luc
 import { EMERGENCY_SERVICES } from "@/data/emergencyServices";
 import { type EmergencyCategory } from "@/types/sos";
 import { useAppMode } from "@/context/AppModeContext";
+import { usePracticeMode } from "@/context/PracticeModeContext";
 
 export function EmergencyDialerGrid() {
   const { triggerHaptic } = useAppMode();
+  const { isPracticeMode, showSimulationModal } = usePracticeMode();
 
   const getCategoryIcon = (category: EmergencyCategory) => {
     switch (category) {
@@ -39,14 +41,8 @@ export function EmergencyDialerGrid() {
       <div className="grid gap-2">
         {EMERGENCY_SERVICES.map((service) => {
           const Icon = getCategoryIcon(service.category);
-          return (
-            <a
-              key={service.id}
-              href={`tel:${service.phone}`}
-              onClick={() => triggerHaptic(60)}
-              aria-label={`Llamar a ${service.name} al ${service.phone}`}
-              className="touch-target-min flex items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-white transition-colors hover:bg-gray-800"
-            >
+          const content = (
+            <>
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex w-6 shrink-0 items-center justify-center">
                   <Icon
@@ -55,7 +51,7 @@ export function EmergencyDialerGrid() {
                   />
                 </div>
 
-                <div className="min-w-0">
+                <div className="min-w-0 text-left">
                   <p className="text-base font-semibold leading-snug text-white">
                     {service.shortName}
                   </p>
@@ -66,6 +62,44 @@ export function EmergencyDialerGrid() {
               </div>
 
               <Phone className="h-5 w-5 shrink-0 text-gray-400" />
+            </>
+          );
+
+          if (isPracticeMode) {
+            return (
+              <button
+                key={service.id}
+                type="button"
+                onClick={() => {
+                  triggerHaptic(60);
+                  showSimulationModal({
+                    title: `Simulación: Llamada a ${service.name}`,
+                    message: `En una emergencia real tu teléfono llamará a ${service.name} (${service.phone}). En modo de práctica no se realiza ninguna llamada telefónica.`,
+                    phoneNumber: service.phone,
+                    serviceName: service.name,
+                    details: [
+                      service.description,
+                      'Recuerda tener lista tu dirección actual y explicar claramente la situación.',
+                    ],
+                  });
+                }}
+                aria-label={`Simulación: Llamar a ${service.name} al ${service.phone}`}
+                className="touch-target-min flex w-full items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-white transition-colors hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-amber-300"
+              >
+                {content}
+              </button>
+            );
+          }
+
+          return (
+            <a
+              key={service.id}
+              href={`tel:${service.phone}`}
+              onClick={() => triggerHaptic(60)}
+              aria-label={`Llamar a ${service.name} al ${service.phone}`}
+              className="touch-target-min flex items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-900/50 p-4 text-white transition-colors hover:bg-gray-800"
+            >
+              {content}
             </a>
           );
         })}

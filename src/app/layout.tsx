@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "./globals.css";
 import { AppModeProvider } from "@/context/AppModeContext";
 import { MediaCaptureProvider } from "@/context/MediaCaptureContext";
+import { PracticeModeProvider } from "@/context/PracticeModeContext";
 
 export const viewport: Viewport = {
   themeColor: "#06B6D4",
@@ -54,9 +55,11 @@ export default function RootLayout({
       <body className="h-full flex flex-col bg-[#0B0F19] text-[#F9FAFB] antialiased selection:bg-cyan-500/30">
         <AppModeProvider>
           <MediaCaptureProvider>
-            <div className="flex-1 w-full">
-              {children}
-            </div>
+            <PracticeModeProvider>
+              <div className="flex-1 w-full">
+                {children}
+              </div>
+            </PracticeModeProvider>
           </MediaCaptureProvider>
         </AppModeProvider>
       </body>
