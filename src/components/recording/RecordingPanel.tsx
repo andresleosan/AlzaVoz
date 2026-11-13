@@ -1,8 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppMode } from '@/context/AppModeContext';
 import { useMediaCapture } from '@/context/MediaCaptureContext';
+import {
+  SHARED_DEVICE_STORAGE_KEY,
+  SHARED_SESSION_CLEAR_EVENT,
+  useSharedDevice,
+} from '@/context/SharedDeviceContext';
 import { createSession, recoverSession } from '@/lib/recording/client';
 import { ClipRecorder, emptyCapture, type CaptureState } from '@/lib/recording/recorder';
 import type { CaptureMode, RecordingSession } from '@/lib/recording/contracts';
@@ -14,6 +19,7 @@ const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 f
 export function RecordingPanel() {
   const { setNavigationLocked } = useAppMode();
   const { registerCapture, updateCapturePhase, clearCapture, statusLabel } = useMediaCapture();
+  const { isSharedDevice } = useSharedDevice();
   const [mode, setMode] = useState<CaptureMode>('video');
   const [session, setSession] = useState<RecordingSession | null>(null);
   const [state, setState] = useState<CaptureState>(emptyCapture);
@@ -35,11 +41,24 @@ export function RecordingPanel() {
     return () => setNavigationLocked(false);
   }, [active, pending.length, state.completionPending, busy, setNavigationLocked]);
 
+  const resetRecordingSession = useCallback(() => {
+    controller.current?.dispose(); controller.current = null;
+    clearCapture();
+    try { sessionStorage.removeItem(KEY); } catch { /* No persistent key to clear. */ }
+    setSession(null); setState(emptyCapture()); setKey(''); setNote(''); setError('');
+  }, [clearCapture]);
+
   useEffect(() => {
     const abort = new AbortController();
     operation.current = abort;
     let remembered = '';
-    try { remembered = sessionStorage.getItem(KEY) ?? ''; } catch { /* Recovery remains possible with a copied key. */ }
+    try {
+      if (sessionStorage.getItem(SHARED_DEVICE_STORAGE_KEY) === 'true') {
+        sessionStorage.removeItem(KEY);
+      } else {
+        remembered = sessionStorage.getItem(KEY) ?? '';
+      }
+    } catch { /* Recovery remains possible with a copied key. */ }
     if (remembered) {
       locked.current = true;
       void recoverSession(remembered, AbortSignal.any([abort.signal, AbortSignal.timeout(20_000)])).then(result => {
@@ -54,8 +73,15 @@ export function RecordingPanel() {
     const restore = (event: PageTransitionEvent) => { if (event.persisted) window.location.reload(); };
     window.addEventListener('pagehide', cleanup);
     window.addEventListener('pageshow', restore);
-    return () => { abort.abort(); cleanup(); window.removeEventListener('pagehide', cleanup); window.removeEventListener('pageshow', restore); };
-  }, []);
+    window.addEventListener(SHARED_SESSION_CLEAR_EVENT, resetRecordingSession);
+    return () => {
+      abort.abort();
+      cleanup();
+      window.removeEventListener('pagehide', cleanup);
+      window.removeEventListener('pageshow', restore);
+      window.removeEventListener(SHARED_SESSION_CLEAR_EVENT, resetRecordingSession);
+    };
+  }, [resetRecordingSession]);
   useEffect(() => { if (preview.current) preview.current.srcObject = state.stream; }, [state.stream]);
 
   useEffect(() => {
@@ -79,8 +105,13 @@ export function RecordingPanel() {
       const created = await createSession(AbortSignal.any([abort.signal, AbortSignal.timeout(20_000)]));
       if (abort.signal.aborted) return;
       setSession(created);
-      try { sessionStorage.setItem(KEY, `${created.id}.${created.secret}`); }
-      catch { setNote('Este navegador no conserva la clave al recargar. Cópiala ahora para recuperar lo recibido.'); }
+      if (isSharedDevice) {
+        try { sessionStorage.removeItem(KEY); } catch { /* Ignore storage error. */ }
+        setNote('Sesión compartida activa: esta clave no se guarda en el navegador. Cópiala antes de salir.');
+      } else {
+        try { sessionStorage.setItem(KEY, `${created.id}.${created.secret}`); }
+        catch { setNote('Este navegador no conserva la clave al recargar. Cópiala ahora para recuperar lo recibido.'); }
+      }
       const recorder = new ClipRecorder(created, setState); controller.current = recorder;
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) navigator.vibrate?.(40);
       setBusy(false);
@@ -98,15 +129,16 @@ export function RecordingPanel() {
       setSession(result.session); setKey('');
       setState({ ...emptyCapture(), phase: 'stopped', completion: result.session.completion, clips: result.clips.map(receipt => ({ ...receipt, status: 'received', receipt })) });
       setNote(result.session.completion ? 'Se recuperó la grabación con su cierre confirmado.' : 'Solo se recuperó lo recibido. No podemos recuperar los pendientes de una pestaña cerrada.');
-      try { sessionStorage.setItem(KEY, `${result.session.id}.${result.session.secret}`); } catch { /* The copied key still works. */ }
+      if (isSharedDevice) {
+        try { sessionStorage.removeItem(KEY); } catch { /* Ignore storage error. */ }
+      } else {
+        try { sessionStorage.setItem(KEY, `${result.session.id}.${result.session.secret}`); } catch { /* The copied key still works. */ }
+      }
     } catch (cause) { if (!abort.signal.aborted) setError(cause instanceof Error ? cause.message : 'No se pudo recuperar.'); }
     finally { if (!abort.signal.aborted) setBusy(false); locked.current = false; }
   }
   function reset() {
-    controller.current?.dispose(); controller.current = null;
-    clearCapture();
-    try { sessionStorage.removeItem(KEY); } catch { /* No persistent key to clear. */ }
-    setSession(null); setState(emptyCapture()); setNote(''); setError('');
+    resetRecordingSession();
   }
 
   const liveLabel = statusLabel !== 'Cámara y micrófono apagados' && statusLabel !== 'Captura detenida'

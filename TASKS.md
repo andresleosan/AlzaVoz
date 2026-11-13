@@ -284,7 +284,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 15: Sesión en dispositivo compartido
+### [x] Tarea 15: Sesión en dispositivo compartido
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I005
 - **Prioridad original:** Esencial
@@ -292,7 +292,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T6
 - **Criterios de Éxito:** La sesión compartida no recuerda los campos sensibles definidos; salir elimina sus borradores y explica qué registros externos podrían permanecer.
 - **Verificación requerida:** Inspeccionar almacenamiento antes y después de salir, recargar y abrir otra pestaña.
-- **Plan:** docs/planes/T015.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T015.md
+- **Estado:** Completada y verificada (2026-11-13). Implementado `SharedDeviceContext` (`useSyncExternalStore` sin errores de hidratación), banner sticky `SharedDeviceBanner`, conmutador `SharedDeviceToggle` y diálogo informativo `SharedDeviceExitModal`. Al activar la sesión compartida se purgan borradores y claves previas en `sessionStorage`/`localStorage`, se añade `autoComplete="off"` en entradas sensibles de `/report`, y ni `/report` ni `/record` guardan borradores o claves de recuperación durante la sesión. Al pulsar "Salir y limpiar sesión" (`exit-shared-session-button`), se vacían todos los campos y adjuntos en memoria y almacenamiento y se explican los registros externos fuera de la app (historial/pestañas, Descargas/galería, portapapeles/teclado, WhatsApp/llamadas y expedientes ya radicados en D1/R2). 4/4 pruebas específicas en `e2e/shared-device-session.spec.ts` (Next y Pages export `PLAYWRIGHT_PAGES=1`) y 133/133 en suite completa.
 
 ---
 

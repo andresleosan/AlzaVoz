@@ -12,6 +12,10 @@ import { QuickEscapeButton } from "@/components/QuickEscapeButton";
 import { MediaCaptureIndicator } from "@/components/recording/MediaCaptureIndicator";
 import { PracticeModeBanner } from "@/components/practice/PracticeModeBanner";
 import { PracticeSimulationModal } from "@/components/practice/PracticeSimulationModal";
+import {
+  SharedDeviceBanner,
+  SharedDeviceExitModal,
+} from "@/components/shared-device/SharedDeviceBanner";
 
 const pageNames: Record<string, string> = {
   "/": "Inicio",
@@ -59,10 +63,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
         <MediaCaptureIndicator />
         <PracticeModeBanner />
+        <SharedDeviceBanner />
         <main id="contenido" tabIndex={-1} className={`app-main ${pathname === "/" ? "app-main-home" : ""}`}>{children}</main>
       </div>
       <BottomNav />
       <PracticeSimulationModal />
+      <SharedDeviceExitModal />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Eye,
   Trash2,
@@ -18,7 +18,13 @@ import {
 } from '@/components/report/EvidenceSanitizerSection';
 import { useAppMode } from '@/context/AppModeContext';
 import { usePracticeMode } from '@/context/PracticeModeContext';
+import {
+  SHARED_DEVICE_STORAGE_KEY,
+  SHARED_SESSION_CLEAR_EVENT,
+  useSharedDevice,
+} from '@/context/SharedDeviceContext';
 import { PracticeModeToggle } from '@/components/practice/PracticeModeBanner';
+import { SharedDeviceToggle } from '@/components/shared-device/SharedDeviceBanner';
 import {
   buildReportWhatsAppUrl,
   createClientSecret,
@@ -74,6 +80,10 @@ function loadInitialDraft(): DraftData {
   };
   if (typeof window === 'undefined') return defaults;
   try {
+    if (sessionStorage.getItem(SHARED_DEVICE_STORAGE_KEY) === 'true') {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+      return defaults;
+    }
     const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
     if (!raw) return defaults;
     const parsed = JSON.parse(raw) as Partial<DraftData>;
@@ -94,6 +104,10 @@ function loadInitialDraft(): DraftData {
 function loadInitialSessionRecordingKey(): string {
   if (typeof window === 'undefined') return '';
   try {
+    if (sessionStorage.getItem(SHARED_DEVICE_STORAGE_KEY) === 'true') {
+      sessionStorage.removeItem(RECORDING_STORAGE_KEY);
+      return '';
+    }
     return sessionStorage.getItem(RECORDING_STORAGE_KEY) ?? '';
   } catch {
     return '';
@@ -322,6 +336,8 @@ function SafeContactStatusCard({
               <input
                 id="edit-safe-value"
                 type="text"
+                autoComplete="off"
+                spellCheck={false}
                 value={contactValue}
                 onChange={(e) => setContactValue(e.target.value)}
                 placeholder="+57 300 0000000"
@@ -403,6 +419,8 @@ function SafeContactStatusCard({
             <input
               id="edit-safe-notes"
               type="text"
+              autoComplete="off"
+              spellCheck={false}
               value={safetyNotes}
               onChange={(e) => setSafetyNotes(e.target.value)}
               placeholder="Instrucciones para el equipo (opcional)"
@@ -437,6 +455,7 @@ function SafeContactStatusCard({
 export function ConfidentialReportPanel() {
   const { setNavigationLocked, triggerHaptic } = useAppMode();
   const { isPracticeMode, showSimulationModal } = usePracticeMode();
+  const { isSharedDevice, openExternalRecordsGuide } = useSharedDevice();
   const initialDraft = loadInitialDraft();
   const [step, setStep] = useState<Step>(1);
   const [category, setCategory] = useState<ReportCategory>(initialDraft.category);
@@ -446,7 +465,7 @@ export function ConfidentialReportPanel() {
   const [incidentDate, setIncidentDate] = useState(initialDraft.incidentDate);
   const [summary, setSummary] = useState(initialDraft.summary);
   const [recordingKey, setRecordingKey] = useState('');
-  const [sessionRecordingKey] = useState<string>(loadInitialSessionRecordingKey);
+  const [sessionRecordingKey, setSessionRecordingKey] = useState<string>(loadInitialSessionRecordingKey);
   const [attachments, setAttachments] = useState<PreparedAttachment[]>([]);
   const [privacyAck, setPrivacyAck] = useState(false);
 
@@ -496,7 +515,75 @@ export function ConfidentialReportPanel() {
     };
   }, []);
 
+  const clearReportFormState = useCallback((resetAllContext: boolean) => {
+    for (const item of attachmentsRef.current) {
+      URL.revokeObjectURL(item.previewUrl);
+    }
+    setAttachments([]);
+    setNeighborhoodReference('');
+    setIncidentDate('');
+    setSummary('');
+    setRecordingKey('');
+    if (resetAllContext) {
+      setCategory('violencia-genero-intrafamiliar');
+      setRiskLevel('alto');
+      setCommune(RESERVED_COMMUNE);
+      setSessionRecordingKey('');
+      setContactPreference('no_contact');
+      setSafeChannel('whatsapp');
+      setSafeContactValue('');
+      setSafeTimeSlot('morning');
+      setSafeCustomStart('08:00');
+      setSafeCustomEnd('12:00');
+      setSafeDays('all');
+      setSafeNotes('');
+      setReportLocationPrecision('full');
+      setLookupKey('');
+      setLookupResult(null);
+    }
+    setPrivacyAck(false);
+    setSubmittedRecord(null);
+    setSubmittedSecret('');
+    attemptRef.current = null;
+    setError('');
+    setStatusMessage('');
+    setStep(1);
+    try {
+      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+      if (resetAllContext) {
+        sessionStorage.removeItem(RECORDING_STORAGE_KEY);
+      }
+    } catch {
+      // Ignore.
+    }
+  }, []);
+
   useEffect(() => {
+    const onSharedClear = () => {
+      clearReportFormState(true);
+    };
+    window.addEventListener(SHARED_SESSION_CLEAR_EVENT, onSharedClear);
+    return () => {
+      window.removeEventListener(SHARED_SESSION_CLEAR_EVENT, onSharedClear);
+    };
+  }, [clearReportFormState]);
+
+  useEffect(() => {
+    const isDefaultEmptyDraft =
+      category === 'violencia-genero-intrafamiliar' &&
+      riskLevel === 'alto' &&
+      commune === RESERVED_COMMUNE &&
+      neighborhoodReference === '' &&
+      incidentDate === '' &&
+      summary === '';
+    if (isSharedDevice || isDefaultEmptyDraft) {
+      try {
+        sessionStorage.removeItem(DRAFT_STORAGE_KEY);
+      } catch {
+        // Ignore storage errors.
+      }
+      return;
+    }
     if (isComplete) return;
     try {
       sessionStorage.setItem(
@@ -506,7 +593,7 @@ export function ConfidentialReportPanel() {
     } catch {
       // Ignore storage quota errors.
     }
-  }, [category, riskLevel, commune, neighborhoodReference, incidentDate, summary, isComplete]);
+  }, [category, riskLevel, commune, neighborhoodReference, incidentDate, summary, isComplete, isSharedDevice]);
 
   function handleAddAttachment(item: PreparedAttachment) {
     setAttachments((prev) => [...prev, item]);
@@ -728,26 +815,7 @@ export function ConfidentialReportPanel() {
   }
 
   function handleStartNewReport() {
-    for (const item of attachments) {
-      URL.revokeObjectURL(item.previewUrl);
-    }
-    setAttachments([]);
-    setSummary('');
-    setNeighborhoodReference('');
-    setIncidentDate('');
-    setRecordingKey('');
-    setPrivacyAck(false);
-    setSubmittedRecord(null);
-    setSubmittedSecret('');
-    attemptRef.current = null;
-    setError('');
-    setStatusMessage('');
-    setStep(1);
-    try {
-      sessionStorage.removeItem(DRAFT_STORAGE_KEY);
-    } catch {
-      // Ignore.
-    }
+    clearReportFormState(false);
   }
 
   const fullCaseKey = submittedRecord && submittedSecret ? `${submittedRecord.code}.${submittedSecret}` : '';
@@ -779,8 +847,30 @@ export function ConfidentialReportPanel() {
             </p>
           </div>
         </div>
-        <PracticeModeToggle />
+        <div className="flex flex-wrap items-center gap-2.5">
+          <SharedDeviceToggle />
+          <PracticeModeToggle />
+        </div>
       </div>
+
+      {isSharedDevice && (
+        <div
+          role="status"
+          data-testid="shared-device-report-notice"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-cyan-500/50 bg-[#0B1628] p-4 text-xs sm:text-sm text-cyan-100"
+        >
+          <p className="leading-relaxed">
+            <strong className="text-white">Sesión sin memoria activa:</strong> los campos sensibles no se recuerdan en el navegador. Al salir se eliminan los borradores de la pantalla.
+          </p>
+          <button
+            type="button"
+            onClick={openExternalRecordsGuide}
+            className="min-h-14 inline-flex items-center justify-center rounded-xl border border-cyan-400/50 bg-[#111827] px-3.5 py-2 text-xs font-semibold text-cyan-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-cyan-300"
+          >
+            Qué registros externos permanecen
+          </button>
+        </div>
+      )}
 
       <nav aria-label="Pasos de la denuncia confidencial" className="grid grid-cols-3 gap-2">
         <button
@@ -912,6 +1002,8 @@ export function ConfidentialReportPanel() {
                 id="report-neighborhood"
                 data-sensitive="true"
                 type="text"
+                autoComplete="off"
+                spellCheck={false}
                 maxLength={160}
                 disabled={busy || isComplete}
                 value={neighborhoodReference}
@@ -927,6 +1019,8 @@ export function ConfidentialReportPanel() {
               <input
                 id="report-date"
                 type="text"
+                autoComplete="off"
+                spellCheck={false}
                 maxLength={40}
                 disabled={busy || isComplete}
                 value={incidentDate}
@@ -947,6 +1041,8 @@ export function ConfidentialReportPanel() {
             <textarea
               id="report-summary"
               data-sensitive="true"
+              autoComplete="off"
+              spellCheck={false}
               rows={4}
               maxLength={2000}
               disabled={busy || isComplete}
@@ -1043,6 +1139,8 @@ export function ConfidentialReportPanel() {
                     <input
                       id="safe-contact-value-input"
                       type="text"
+                      autoComplete="off"
+                      spellCheck={false}
                       value={safeContactValue}
                       onChange={(e) => setSafeContactValue(e.target.value)}
                       placeholder="Ej: +57 300 1234567 o usuario"
@@ -1125,6 +1223,8 @@ export function ConfidentialReportPanel() {
                   <input
                     id="safe-notes-textarea"
                     type="text"
+                    autoComplete="off"
+                    spellCheck={false}
                     value={safeNotes}
                     onChange={(e) => setSafeNotes(e.target.value)}
                     maxLength={200}
