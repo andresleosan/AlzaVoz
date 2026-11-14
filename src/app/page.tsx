@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ShieldAlert, Video, Scale, HeartHandshake, MessageCircle, MapPin, Radar } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { EscapeLimitsButton } from "@/components/QuickEscapeLimits";
 
 export default function HomePage() {
   return (
@@ -55,7 +56,12 @@ export default function HomePage() {
           <section className="guide-section" aria-labelledby="guide-title">
             <Image src="/assets/alzabot/bot-standard.png" alt="Alza Bot Cívico" width={64} height={64} className="guide-avatar" />
             <h2 id="guide-title">Privacidad en pantalla</h2>
-            <p>Activa el ojo de la cabecera para desenfocar datos sensibles. Usa Salir rápido si necesitas abrir Google.</p>
+            <p>
+              El ojo solo desenfoca datos mientras sigues aquí; no borra ni cifra. <strong>Salir rápido</strong> limpia borradores de esta pestaña y abre Google, pero no borra el historial del navegador, páginas previas en Atrás, contactos SOS, descargas ni envíos ya hechos.
+            </p>
+            <div style={{ marginTop: 16 }}>
+              <EscapeLimitsButton variant="home" />
+            </div>
             <div className="location-note"><MapPin size={18} aria-hidden="true" /><p>Tu ubicación se consulta dentro de SOS, cuando la necesites.</p></div>
           </section>
           <section className="contact-section" aria-labelledby="contact-title">

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { AlzaBotAvatar } from '@/components/AlzaBotAvatar';
 import { QuickEscapeButton } from '@/components/QuickEscapeButton';
+import { EscapeLimitsButton, QuickEscapeLimitsContent } from '@/components/QuickEscapeLimits';
 import {
   EvidenceSanitizerSection,
   type PreparedAttachment,
@@ -563,8 +564,10 @@ export function ConfidentialReportPanel() {
       clearReportFormState(true);
     };
     window.addEventListener(SHARED_SESSION_CLEAR_EVENT, onSharedClear);
+    window.addEventListener('alzavoz:escape', onSharedClear);
     return () => {
       window.removeEventListener(SHARED_SESSION_CLEAR_EVENT, onSharedClear);
+      window.removeEventListener('alzavoz:escape', onSharedClear);
     };
   }, [clearReportFormState]);
 
@@ -850,6 +853,7 @@ export function ConfidentialReportPanel() {
         <div className="flex flex-wrap items-center gap-2.5">
           <SharedDeviceToggle />
           <PracticeModeToggle />
+          <EscapeLimitsButton variant="report" />
         </div>
       </div>
 
@@ -1471,22 +1475,8 @@ export function ConfidentialReportPanel() {
             data-testid="quick-escape-explanation"
             className="rounded-xl border border-gray-700 bg-[#111827] p-5 space-y-3"
           >
-            <h2 className="text-lg font-bold text-white">Qué limpia y qué puede permanecer al usar Salir Rápido</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 text-sm leading-relaxed text-gray-300">
-              <div className="rounded-lg border border-gray-700 bg-[#0B0F19] p-3">
-                <strong className="block text-white mb-1">Lo que sí limpia en este navegador:</strong>
-                Borra al instante el borrador en memoria, <code>sessionStorage</code> y claves temporales de{' '}
-                <code>localStorage</code> (<code>alzavoz_report_draft</code>, <code>alzavoz_draft</code>,{' '}
-                <code>alzavoz_temp_audio</code>), apaga el micrófono activo y reemplaza esta entrada del historial por
-                Google (<code>window.location.replace</code>).
-              </div>
-              <div className="rounded-lg border border-gray-700 bg-[#0B0F19] p-3">
-                <strong className="block text-amber-200 mb-1">Lo que puede permanecer fuera de la app:</strong>
-                No borra un expediente que ya hayas radicado en el servidor D1, archivos que hayas descargado en la
-                memoria de tu teléfono, conversaciones abiertas en WhatsApp ni registros previos del navegador o de tu
-                operador de internet.
-              </div>
-            </div>
+            <h2 className="text-lg font-bold text-white">Qué oculta Antiespía y qué limpia o deja Salir Rápido</h2>
+            <QuickEscapeLimitsContent compact />
             <QuickEscapeButton variant="full" />
           </div>
 

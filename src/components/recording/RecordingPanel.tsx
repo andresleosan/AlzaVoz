@@ -74,12 +74,14 @@ export function RecordingPanel() {
     window.addEventListener('pagehide', cleanup);
     window.addEventListener('pageshow', restore);
     window.addEventListener(SHARED_SESSION_CLEAR_EVENT, resetRecordingSession);
+    window.addEventListener('alzavoz:escape', resetRecordingSession);
     return () => {
       abort.abort();
       cleanup();
       window.removeEventListener('pagehide', cleanup);
       window.removeEventListener('pageshow', restore);
       window.removeEventListener(SHARED_SESSION_CLEAR_EVENT, resetRecordingSession);
+      window.removeEventListener('alzavoz:escape', resetRecordingSession);
     };
   }, [resetRecordingSession]);
   useEffect(() => { if (preview.current) preview.current.srcObject = state.stream; }, [state.stream]);

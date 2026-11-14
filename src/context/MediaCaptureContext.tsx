@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   useCallback,
   useRef,
@@ -151,7 +152,7 @@ export function MediaCaptureProvider({ children }: { children: ReactNode }) {
     [inspectStreamTracks]
   );
 
-  const stopActiveCapture = useCallback(() => {
+  const releaseCaptureQuietly = useCallback(() => {
     // 1. Notificar al grabador/controlador si hay callback registrado
     try {
       onStopCallbackRef.current?.();
@@ -176,6 +177,10 @@ export function MediaCaptureProvider({ children }: { children: ReactNode }) {
     setHasActiveVideo(false);
     setHasActiveAudio(false);
     setCapturePhase('stopped');
+  }, []);
+
+  const stopActiveCapture = useCallback(() => {
+    releaseCaptureQuietly();
 
     // Retroalimentación háptica
     if (
@@ -190,7 +195,17 @@ export function MediaCaptureProvider({ children }: { children: ReactNode }) {
         // Ignorar si el navegador bloquea la vibración
       }
     }
-  }, []);
+  }, [releaseCaptureQuietly]);
+
+  useEffect(() => {
+    const onEscape = () => {
+      releaseCaptureQuietly();
+    };
+    window.addEventListener('alzavoz:escape', onEscape);
+    return () => {
+      window.removeEventListener('alzavoz:escape', onEscape);
+    };
+  }, [releaseCaptureQuietly]);
 
   const clearCapture = useCallback(() => {
     streamRef.current = null;

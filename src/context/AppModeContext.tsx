@@ -3,6 +3,7 @@
 import {
   createContext,
   useContext,
+  useEffect,
   useState,
   useCallback,
   type ReactNode,
@@ -18,6 +19,9 @@ interface AppModeContextValue {
   isCamouflaged: boolean;
   toggleCamouflage: () => void;
   setCamouflage: (active: boolean) => void;
+  isEscapeLimitsOpen: boolean;
+  openEscapeLimits: () => void;
+  closeEscapeLimits: () => void;
   triggerHaptic: (durationMs?: number) => void;
 }
 
@@ -41,6 +45,7 @@ export function AppModeProvider({
         : initialMode;
   const [isCamouflaged, setIsCamouflaged] = useState<boolean>(false);
   const [isNavigationLocked, setNavigationLocked] = useState(false);
+  const [isEscapeLimitsOpen, setIsEscapeLimitsOpen] = useState<boolean>(false);
 
   const triggerHaptic = useCallback((durationMs: number = 40) => {
     if (typeof window !== "undefined" && "navigator" in window && "vibrate" in navigator) {
@@ -64,6 +69,25 @@ export function AppModeProvider({
     setIsCamouflaged(active);
   }, []);
 
+  const openEscapeLimits = useCallback(() => {
+    triggerHaptic(30);
+    setIsEscapeLimitsOpen(true);
+  }, [triggerHaptic]);
+
+  const closeEscapeLimits = useCallback(() => {
+    setIsEscapeLimitsOpen(false);
+  }, []);
+
+  useEffect(() => {
+    const onEscape = () => {
+      setIsEscapeLimitsOpen(false);
+    };
+    window.addEventListener("alzavoz:escape", onEscape);
+    return () => {
+      window.removeEventListener("alzavoz:escape", onEscape);
+    };
+  }, []);
+
   const modeConfig = MODES_CONFIG[mode];
 
   return (
@@ -76,6 +100,9 @@ export function AppModeProvider({
         isCamouflaged,
         toggleCamouflage,
         setCamouflage,
+        isEscapeLimitsOpen,
+        openEscapeLimits,
+        closeEscapeLimits,
         triggerHaptic,
       }}
     >

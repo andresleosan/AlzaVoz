@@ -297,7 +297,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 16: Límites claros de la salida rápida
+### [x] Tarea 16: Límites claros de la salida rápida
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I006
 - **Prioridad original:** Esencial
@@ -305,7 +305,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T2, T6
 - **Criterios de Éxito:** La explicación distingue ocultar, borrar datos locales y registros externos; se consulta antes de usar la salida y coincide con lo observado.
 - **Verificación requerida:** Contrastar cada afirmación con salida, volver atrás y almacenamiento; documentar lo que la aplicación no controla.
-- **Plan:** docs/planes/T016.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T016.md (redactado, auditado y cerrado).
+- **Estado:** Completada y verificada (2026-11-14). `QuickEscapeLimits` (`src/components/QuickEscapeLimits.tsx`) y el modal único en `layout.tsx` permiten consultar antes de salir, desde Inicio (`/`), cualquier ruta (barra lateral y pie) y `/report` (Pasos 1 y 3), la diferencia entre ocultar en pantalla (Antiespía), borrar datos locales (`sessionStorage`, claves temporales, RAM y pistas activas) y lo que persiste fuera (`Ctrl+H`, páginas previas en Atrás, `alzavoz_trusted_contacts`, descargas, portapapeles, D1/R2 y WhatsApp/123/155). `QuickEscapeButton` purga almacenamiento sensible vía `purgeSensitiveClientStorage(true)`, detiene captura/formularios ante `alzavoz:escape` y corrige `aria-label`. Verificada con `pnpm lint`, `tsc`, `build`, `pnpm test` (138/138), `PLAYWRIGHT_PAGES=1` (26/26) y subagente navegador en escritorio y móvil (`320px`/`390px`/`1440px`).
 
 ---
 

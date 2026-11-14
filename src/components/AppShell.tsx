@@ -9,6 +9,7 @@ import { useAppMode } from "@/context/AppModeContext";
 import { BottomNav } from "@/components/BottomNav";
 import { ZeroPeepToggle } from "@/components/ZeroPeepToggle";
 import { QuickEscapeButton } from "@/components/QuickEscapeButton";
+import { EscapeLimitsButton } from "@/components/QuickEscapeLimits";
 import { MediaCaptureIndicator } from "@/components/recording/MediaCaptureIndicator";
 import { PracticeModeBanner } from "@/components/practice/PracticeModeBanner";
 import { PracticeSimulationModal } from "@/components/practice/PracticeSimulationModal";
@@ -48,7 +49,10 @@ export function AppShell({ children }: { children: ReactNode }) {
       <aside className="app-sidebar">
         <Brand />
         <BottomNav placement="sidebar" />
-        <div className="sidebar-note"><MapPin size={16} aria-hidden="true" /><span>Medellín, Colombia</span></div>
+        <div className="sidebar-footer">
+          <EscapeLimitsButton variant="sidebar" />
+          <div className="sidebar-note"><MapPin size={16} aria-hidden="true" /><span>Medellín, Colombia</span></div>
+        </div>
       </aside>
 
       <div className="app-workspace">
@@ -65,6 +69,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <PracticeModeBanner />
         <SharedDeviceBanner />
         <main id="contenido" tabIndex={-1} className={`app-main ${pathname === "/" ? "app-main-home" : ""}`}>{children}</main>
+        <footer className="app-privacy-footer">
+          <EscapeLimitsButton variant="footer" />
+        </footer>
       </div>
       <BottomNav />
       <PracticeSimulationModal />

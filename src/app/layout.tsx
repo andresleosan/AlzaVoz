@@ -5,6 +5,7 @@ import { AppModeProvider } from "@/context/AppModeContext";
 import { MediaCaptureProvider } from "@/context/MediaCaptureContext";
 import { PracticeModeProvider } from "@/context/PracticeModeContext";
 import { SharedDeviceProvider } from "@/context/SharedDeviceContext";
+import { QuickEscapeLimitsModal } from "@/components/QuickEscapeLimits";
 
 export const viewport: Viewport = {
   themeColor: "#06B6D4",
@@ -61,6 +62,7 @@ export default function RootLayout({
                 <div className="flex-1 w-full">
                   {children}
                 </div>
+                <QuickEscapeLimitsModal />
               </PracticeModeProvider>
             </MediaCaptureProvider>
           </SharedDeviceProvider>
