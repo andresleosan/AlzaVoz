@@ -310,7 +310,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 17: Ubicación con edad y precisión
+### [x] Tarea 17: Ubicación con edad y precisión
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I007
 - **Prioridad original:** Esencial
@@ -318,7 +318,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T3
 - **Criterios de Éxito:** La posición muestra hora y precisión disponible; lecturas antiguas o denegadas se distinguen y admiten corrección manual.
 - **Verificación requerida:** Simular posiciones recientes, antiguas, imprecisas y permiso denegado; verificar payload de la corrección.
-- **Plan:** docs/planes/T017.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T017.md (redactado, auditado y cerrado).
+- **Estado:** Completada y verificada (2026-11-16). `src/lib/location/metadata.ts`, `LocationStatusPanel`, `useNowTicker` y `useEmergencyLocation` conservan el `pos.timestamp` real del dispositivo y clasifican frescura (`Reciente`, `Lectura antigua` `>= 2 min`) y precisión (`±Xm`, `buena`/`aproximada`/`imprecisa` o no reportada), distinguiendo permiso denegado y error GPS sin inventar coordenadas. En `/sos`, la corrección manual (`Corregir ubicación`) sustituye coordenadas GPS previas en tarjeta, portapapeles, `wa.me` y `SosSharePreviewModal`. En `/report`, consulta opcional bajo demanda en Paso 1, corrección manual y trazabilidad en Paso 3 sin guardar lat/lon en `sessionStorage` ni D1; restaurado borrador tras montaje eliminando React `#418`. Verificada con `pnpm lint`, `tsc`, `build`, `pnpm test` (144/144), `PLAYWRIGHT_PAGES=1` (56/56) y subagente `browser` (`320px`/`390px`/`1440px`).
 
 ---
 

@@ -1,11 +1,21 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { type GeoLocationState } from "@/types/sos";
+import {
+  type GeoLocationState,
+  type ManualLocationCorrection,
+} from "@/types/sos";
 import {
   type MedellinZone,
   reverseGeocodeMedellin,
 } from "@/utils/medellinGeo";
+import {
+  assessLocation,
+  formatColombiaClockTime,
+  normalizeAccuracy,
+  normalizeTimestamp,
+} from "@/lib/location/metadata";
+import { SHARED_SESSION_CLEAR_EVENT } from "@/context/SharedDeviceContext";
 
 const UNKNOWN_LOCATION: GeoLocationState = {
   latitude: null,
@@ -21,23 +31,40 @@ const UNKNOWN_LOCATION: GeoLocationState = {
   errorMessage: null,
 };
 
+function sanitizeManualText(value: string, maxLength: number = 160): string {
+  return value
+    .replace(/[\u0000-\u001F\u007F]/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
 export function useEmergencyLocation() {
   const [state, setState] = useState<GeoLocationState>(UNKNOWN_LOCATION);
 
   const [copied, setCopied] = useState<boolean>(false);
   const isMountedRef = useRef<boolean>(true);
   const requestIdRef = useRef(0);
-  const invalidatePendingRequest = useCallback(() => { ++requestIdRef.current; }, []);
+  const invalidatePendingRequest = useCallback(() => {
+    ++requestIdRef.current;
+  }, []);
 
   const applyCoordinates = useCallback(
-    async (lat: number, lon: number, accuracy: number | null, requestId: number) => {
+    async (
+      lat: number,
+      lon: number,
+      accuracy: number | null,
+      rawTimestamp: number | undefined,
+      requestId: number
+    ) => {
       if (!isMountedRef.current || requestId !== requestIdRef.current) return;
+      const safeAccuracy = normalizeAccuracy(accuracy);
+      const safeTimestamp = normalizeTimestamp(rawTimestamp);
       setState({
         ...UNKNOWN_LOCATION,
         latitude: lat,
         longitude: lon,
-        accuracy,
-        timestamp: Date.now(),
+        accuracy: safeAccuracy,
+        timestamp: safeTimestamp,
         source: "gps",
         status: "success",
       });
@@ -80,6 +107,7 @@ export function useEmergencyLocation() {
           pos.coords.latitude,
           pos.coords.longitude,
           pos.coords.accuracy,
+          pos.timestamp,
           requestId
         );
       },
@@ -116,21 +144,79 @@ export function useEmergencyLocation() {
       comunaNumber: zone.number,
       timestamp: Date.now(),
       source: "manual",
+      manualKind: "zone",
       status: "success",
     });
   }, []);
 
+  // Corrección manual completa de dirección, barrio o comuna (invalida GPS en curso y limpia lat/lon previas)
+  const setManualCorrection = useCallback((correction: ManualLocationCorrection) => {
+    ++requestIdRef.current;
+    const cleanCommune = sanitizeManualText(correction.communeName, 80);
+    const cleanNeighborhood = sanitizeManualText(correction.neighborhood, 120);
+    const cleanAddress = sanitizeManualText(correction.address, 160);
+
+    setState({
+      ...UNKNOWN_LOCATION,
+      neighborhood: cleanNeighborhood || cleanCommune || "Referencia manual",
+      address: cleanAddress || "Dirección exacta sin confirmar",
+      comunaName: cleanCommune,
+      comunaNumber: correction.communeNumber,
+      timestamp: Date.now(),
+      source: "manual",
+      manualKind: "corrected",
+      status: "success",
+      errorMessage: null,
+    });
+  }, []);
+
   // Formato para dictar al 123 o compartir
-  const getDictationText = useCallback(() => {
-    if (state.source === "manual") {
-      return `Zona elegida manualmente: ${state.comunaName} (${state.neighborhood}). Dirección exacta sin confirmar; indicar un punto de referencia al operador.`;
-    }
-    if (state.source === "gps" && state.latitude !== null && state.longitude !== null) {
-      const precision = state.accuracy === null ? "" : ` Precisión reportada: ±${Math.round(state.accuracy)}m.`;
-      return `Ubicación GPS aproximada: ${state.latitude.toFixed(4)}, ${state.longitude.toFixed(4)}.${precision} Referencia del mapa: ${state.address}. Confirma la dirección con el operador.`;
-    }
-    return "Ubicación sin confirmar. Indicar la dirección o un punto de referencia al operador.";
-  }, [state]);
+  const getDictationText = useCallback(
+    (overrideNow?: number | null) => {
+      if (state.source === "manual") {
+        if (state.manualKind === "corrected") {
+          const timePart = state.timestamp
+            ? ` (corregida a las ${formatColombiaClockTime(state.timestamp)})`
+            : "";
+          const sectorPart = [state.comunaName, state.neighborhood]
+            .filter(Boolean)
+            .join(" · ");
+          return `Ubicación corregida manualmente${timePart}: ${state.address}${
+            sectorPart ? `, ${sectorPart}` : ""
+          }. Sin coordenadas GPS; confirmar referencia con el operador.`;
+        }
+        return `Zona elegida manualmente: ${state.comunaName} (${state.neighborhood}). Dirección exacta sin confirmar; indicar un punto de referencia al operador.`;
+      }
+      if (state.source === "gps" && state.latitude !== null && state.longitude !== null) {
+        const assessment = assessLocation({
+          source: "gps",
+          status: state.status,
+          timestamp: state.timestamp,
+          accuracy: state.accuracy,
+          now: overrideNow === undefined ? Date.now() : overrideNow,
+        });
+        const precision =
+          assessment.accuracyShort === null
+            ? " Precisión no reportada por el dispositivo."
+            : ` Precisión reportada: ${assessment.accuracyShort}${
+                assessment.isImprecise ? " (baja / imprecisa)" : ""
+              }.`;
+        const agePart =
+          assessment.obtainedAtLabel && assessment.relativeAgeLabel
+            ? ` Obtenida: ${assessment.obtainedAtLabel} (${assessment.relativeAgeLabel}${
+                assessment.isStale ? ", lectura antigua" : ""
+              }).`
+            : "";
+        return `Ubicación GPS aproximada: ${state.latitude.toFixed(4)}, ${state.longitude.toFixed(
+          4
+        )}.${precision}${agePart} Referencia del mapa: ${
+          state.address
+        }. Confirma la dirección con el operador.`;
+      }
+      return "Ubicación sin confirmar. Indicar la dirección o un punto de referencia al operador.";
+    },
+    [state]
+  );
 
   const copyLocationText = useCallback(async () => {
     const text = getDictationText();
@@ -174,10 +260,21 @@ export function useEmergencyLocation() {
       refreshLocation();
     }, 0);
 
+    const handleClear = () => {
+      invalidatePendingRequest();
+      setState(UNKNOWN_LOCATION);
+      setCopied(false);
+    };
+
+    window.addEventListener("alzavoz:escape", handleClear);
+    window.addEventListener(SHARED_SESSION_CLEAR_EVENT, handleClear);
+
     return () => {
       isMountedRef.current = false;
       invalidatePendingRequest();
       clearTimeout(timer);
+      window.removeEventListener("alzavoz:escape", handleClear);
+      window.removeEventListener(SHARED_SESSION_CLEAR_EVENT, handleClear);
     };
   }, [refreshLocation, invalidatePendingRequest]);
 
@@ -185,6 +282,7 @@ export function useEmergencyLocation() {
     location: state,
     refreshLocation,
     setManualZone,
+    setManualCorrection,
     getDictationText,
     copyLocationText,
     copied,

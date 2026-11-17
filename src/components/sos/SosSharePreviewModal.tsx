@@ -16,6 +16,8 @@ import { LocationPrecision, RecipientInfo } from "@/types/sharing";
 import {
   formatSosMessageWithPrecision,
 } from "@/lib/sharing/preview";
+import { assessLocation } from "@/lib/location/metadata";
+import { useNowTicker } from "@/hooks/useNowTicker";
 import { CIVIC_SUPPORT_CONTACT } from "@/hooks/useTrustedContacts";
 
 interface SosSharePreviewModalProps {
@@ -98,6 +100,18 @@ export function SosSharePreviewModal({
     }));
   };
 
+  const now = useNowTicker(isOpen && location.timestamp !== null);
+  const locationAssessment = useMemo(() => {
+    return assessLocation({
+      source: location.source,
+      manualKind: location.manualKind,
+      status: location.status,
+      timestamp: location.timestamp,
+      accuracy: location.accuracy,
+      now,
+    });
+  }, [location, now]);
+
   const previewMessage = useMemo(() => {
     return formatSosMessageWithPrecision({
       locationText: dictationText,
@@ -107,8 +121,13 @@ export function SosSharePreviewModal({
       lon: location.longitude,
       precision,
       timestamp: location.timestamp || undefined,
+      accuracy: location.accuracy,
+      source: location.source,
+      manualKind: location.manualKind,
+      status: location.status,
+      now,
     });
-  }, [dictationText, location, precision]);
+  }, [dictationText, location, precision, now]);
 
   if (!isOpen) return null;
 
@@ -209,6 +228,37 @@ export function SosSharePreviewModal({
                 <MapPin className="h-4 w-4 text-red-400" />
                 Precisión de ubicación a compartir
               </span>
+            </div>
+
+            <div
+              data-testid="sos-preview-location-assessment"
+              className={`rounded-lg border p-2.5 text-xs space-y-1 ${
+                locationAssessment.needsAttention
+                  ? "border-amber-500/60 bg-amber-950/30 text-amber-100"
+                  : "border-gray-800 bg-gray-900/70 text-gray-200"
+              }`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="font-semibold text-white">
+                  {locationAssessment.freshnessLabel}
+                </span>
+                {locationAssessment.obtainedAtLabel && (
+                  <span className="font-tabular text-gray-200">
+                    {locationAssessment.obtainedAtLabel}
+                    {locationAssessment.relativeAgeLabel
+                      ? ` (${locationAssessment.relativeAgeLabel})`
+                      : ""}
+                  </span>
+                )}
+              </div>
+              <p className="font-tabular text-gray-300">
+                {locationAssessment.precisionLabel}
+              </p>
+              {locationAssessment.needsAttention && (
+                <p className="text-[11px] leading-relaxed text-amber-200">
+                  Si la señal es antigua, imprecisa o denegada, puedes cancelar y actualizar GPS o corregir la dirección manualmente antes de compartir.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-3 gap-2">

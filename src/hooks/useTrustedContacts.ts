@@ -2,6 +2,16 @@
 
 import { useSyncExternalStore, useCallback, useMemo } from "react";
 import { type TrustedContact } from "@/types/sos";
+import {
+  buildSosWhatsAppLink,
+  cleanPhoneForWhatsApp,
+  formatSosMessageWithPrecision,
+} from "@/lib/sharing/preview";
+import type {
+  LocationSourceKind,
+  LocationStatusKind,
+  ManualLocationKind,
+} from "@/lib/location/metadata";
 
 const STORAGE_KEY = "alzavoz_trusted_contacts";
 
@@ -14,54 +24,49 @@ export const CIVIC_SUPPORT_CONTACT: TrustedContact = {
   createdAt: 0,
 };
 
+export interface WhatsAppLocationMeta {
+  accuracy?: number | null;
+  source?: LocationSourceKind;
+  manualKind?: ManualLocationKind;
+  status?: LocationStatusKind;
+  now?: number | null;
+}
+
 export function cleanPhoneNumber(raw: string): string {
-  const cleaned = raw.trim().replace(/[^\d+]/g, "");
-  if (cleaned.startsWith("+57")) {
-    return cleaned;
+  const trimmed = raw.trim();
+  const digits = cleanPhoneForWhatsApp(trimmed);
+  if (trimmed.startsWith("+")) {
+    return `+${digits}`;
   }
-  if (cleaned.startsWith("57") && cleaned.length === 12) {
-    return `+${cleaned}`;
+  const rawDigits = trimmed.replace(/\D/g, "");
+  if (rawDigits.length === 10) {
+    return `+57${rawDigits}`;
   }
-  const digitsOnly = cleaned.replace(/\D/g, "");
-  if (digitsOnly.length === 10) {
-    return `+57${digitsOnly}`;
+  if (rawDigits.startsWith("57") && rawDigits.length === 12) {
+    return `+${rawDigits}`;
   }
-  return cleaned;
+  return digits;
 }
 
 export function formatWhatsAppMessage(
   locationText: string,
   lat: number | null,
   lon: number | null,
-  timestamp?: number
+  timestamp?: number,
+  meta?: WhatsAppLocationMeta
 ): string {
-  let timeStr = "";
-  if (timestamp) {
-    try {
-      const dateObj = new Date(timestamp);
-      const time = dateObj.toLocaleTimeString("es-CO", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
-      const date = dateObj.toLocaleDateString("es-CO");
-      timeStr = `\n🕒 *Hora del reporte:* ${time} (${date})`;
-    } catch {
-      // Fallback
-    }
-  }
-
-  const mapLink =
-    lat !== null && lon !== null
-      ? `\n🗺️ Ver en Google Maps: https://maps.google.com/?q=${lat.toFixed(5)},${lon.toFixed(5)}`
-      : "";
-
-  return (
-    `🚨 *¡ALERTA DE EMERGENCIA ALZAVOZ MEDELLÍN!* 🚨\n\n` +
-    `Necesito auxilio urgente.\n` +
-    `📍 *Ubicación:* ${locationText}${mapLink}${timeStr}\n\n` +
-    `Por favor envía apoyo o comunícate con la Policía 123 indicando esta dirección.`
-  );
+  return formatSosMessageWithPrecision({
+    locationText,
+    lat,
+    lon,
+    precision: "exact",
+    timestamp,
+    accuracy: meta?.accuracy,
+    source: meta?.source,
+    manualKind: meta?.manualKind,
+    status: meta?.status,
+    now: meta?.now,
+  });
 }
 
 // React 19 external store helpers para sincronización con localStorage
@@ -171,11 +176,11 @@ export function useTrustedContacts() {
       locationText: string,
       lat: number | null,
       lon: number | null,
-      timestamp?: number
+      timestamp?: number,
+      meta?: WhatsAppLocationMeta
     ) => {
-      const cleanDigits = phone.replace(/\D/g, "");
-      const message = formatWhatsAppMessage(locationText, lat, lon, timestamp);
-      return `https://wa.me/${cleanDigits}?text=${encodeURIComponent(message)}`;
+      const message = formatWhatsAppMessage(locationText, lat, lon, timestamp, meta);
+      return buildSosWhatsAppLink(phone, message);
     },
     []
   );

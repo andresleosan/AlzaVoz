@@ -9,6 +9,8 @@ import {
   FileText,
   X,
   Sparkles,
+  Crosshair,
+  RotateCcw,
 } from 'lucide-react';
 import { AlzaBotAvatar } from '@/components/AlzaBotAvatar';
 import { QuickEscapeButton } from '@/components/QuickEscapeButton';
@@ -17,6 +19,7 @@ import {
   EvidenceSanitizerSection,
   type PreparedAttachment,
 } from '@/components/report/EvidenceSanitizerSection';
+import { LocationStatusPanel } from '@/components/location/LocationStatusPanel';
 import { useAppMode } from '@/context/AppModeContext';
 import { usePracticeMode } from '@/context/PracticeModeContext';
 import {
@@ -26,6 +29,19 @@ import {
 } from '@/context/SharedDeviceContext';
 import { PracticeModeToggle } from '@/components/practice/PracticeModeBanner';
 import { SharedDeviceToggle } from '@/components/shared-device/SharedDeviceBanner';
+import { useNowTicker } from '@/hooks/useNowTicker';
+import {
+  assessLocation,
+  normalizeAccuracy,
+  normalizeTimestamp,
+  type LocationSourceKind,
+  type LocationStatusKind,
+  type ManualLocationKind,
+} from '@/lib/location/metadata';
+import {
+  resolveMedellinComunaOffline,
+  reverseGeocodeMedellin,
+} from '@/utils/medellinGeo';
 import {
   buildReportWhatsAppUrl,
   createClientSecret,
@@ -61,6 +77,16 @@ const control =
 
 type Step = 1 | 2 | 3;
 
+interface ReportLocationState {
+  source: LocationSourceKind;
+  manualKind?: ManualLocationKind;
+  status: LocationStatusKind;
+  timestamp: number | null;
+  accuracy: number | null;
+  resolvedOutsideMedellin: boolean;
+  errorMessage: string | null;
+}
+
 interface DraftData {
   category: ReportCategory;
   riskLevel: ReportRiskLevel;
@@ -70,35 +96,36 @@ interface DraftData {
   summary: string;
 }
 
+const DEFAULT_DRAFT: DraftData = {
+  category: 'violencia-genero-intrafamiliar',
+  riskLevel: 'alto',
+  commune: RESERVED_COMMUNE,
+  neighborhoodReference: '',
+  incidentDate: '',
+  summary: '',
+};
+
 function loadInitialDraft(): DraftData {
-  const defaults: DraftData = {
-    category: 'violencia-genero-intrafamiliar',
-    riskLevel: 'alto',
-    commune: RESERVED_COMMUNE,
-    neighborhoodReference: '',
-    incidentDate: '',
-    summary: '',
-  };
-  if (typeof window === 'undefined') return defaults;
+  if (typeof window === 'undefined') return DEFAULT_DRAFT;
   try {
     if (sessionStorage.getItem(SHARED_DEVICE_STORAGE_KEY) === 'true') {
       sessionStorage.removeItem(DRAFT_STORAGE_KEY);
-      return defaults;
+      return DEFAULT_DRAFT;
     }
     const raw = sessionStorage.getItem(DRAFT_STORAGE_KEY);
-    if (!raw) return defaults;
+    if (!raw) return DEFAULT_DRAFT;
     const parsed = JSON.parse(raw) as Partial<DraftData>;
     return {
-      category: parsed.category ?? defaults.category,
-      riskLevel: parsed.riskLevel ?? defaults.riskLevel,
-      commune: parsed.commune ?? defaults.commune,
+      category: parsed.category ?? DEFAULT_DRAFT.category,
+      riskLevel: parsed.riskLevel ?? DEFAULT_DRAFT.riskLevel,
+      commune: parsed.commune ?? DEFAULT_DRAFT.commune,
       neighborhoodReference:
         typeof parsed.neighborhoodReference === 'string' ? parsed.neighborhoodReference : '',
       incidentDate: typeof parsed.incidentDate === 'string' ? parsed.incidentDate : '',
       summary: typeof parsed.summary === 'string' ? parsed.summary : '',
     };
   } catch {
-    return defaults;
+    return DEFAULT_DRAFT;
   }
 }
 
@@ -457,16 +484,16 @@ export function ConfidentialReportPanel() {
   const { setNavigationLocked, triggerHaptic } = useAppMode();
   const { isPracticeMode, showSimulationModal } = usePracticeMode();
   const { isSharedDevice, openExternalRecordsGuide } = useSharedDevice();
-  const initialDraft = loadInitialDraft();
   const [step, setStep] = useState<Step>(1);
-  const [category, setCategory] = useState<ReportCategory>(initialDraft.category);
-  const [riskLevel, setRiskLevel] = useState<ReportRiskLevel>(initialDraft.riskLevel);
-  const [commune, setCommune] = useState<string>(initialDraft.commune);
-  const [neighborhoodReference, setNeighborhoodReference] = useState(initialDraft.neighborhoodReference);
-  const [incidentDate, setIncidentDate] = useState(initialDraft.incidentDate);
-  const [summary, setSummary] = useState(initialDraft.summary);
+  const [category, setCategory] = useState<ReportCategory>(DEFAULT_DRAFT.category);
+  const [riskLevel, setRiskLevel] = useState<ReportRiskLevel>(DEFAULT_DRAFT.riskLevel);
+  const [commune, setCommune] = useState<string>(DEFAULT_DRAFT.commune);
+  const [neighborhoodReference, setNeighborhoodReference] = useState(DEFAULT_DRAFT.neighborhoodReference);
+  const [incidentDate, setIncidentDate] = useState(DEFAULT_DRAFT.incidentDate);
+  const [summary, setSummary] = useState(DEFAULT_DRAFT.summary);
   const [recordingKey, setRecordingKey] = useState('');
-  const [sessionRecordingKey, setSessionRecordingKey] = useState<string>(loadInitialSessionRecordingKey);
+  const [sessionRecordingKey, setSessionRecordingKey] = useState<string>('');
+  const [draftHydrated, setDraftHydrated] = useState(false);
   const [attachments, setAttachments] = useState<PreparedAttachment[]>([]);
   const [privacyAck, setPrivacyAck] = useState(false);
 
@@ -491,13 +518,32 @@ export function ConfidentialReportPanel() {
 
   // Vista previa de lo que se comparte: precisión territorial (Tarea 12 / Idea I002)
   const [reportLocationPrecision, setReportLocationPrecision] = useState<'full' | 'commune_only' | 'none'>('full');
+  // Ubicación opcional bajo demanda con edad, precisión y corrección manual (Tarea 17 / Idea I007)
+  const [reportLocationState, setReportLocationState] = useState<ReportLocationState | null>(null);
 
   const attemptRef = useRef<{ requestId: string; clientSecret: string } | null>(null);
   const attachmentsRef = useRef<PreparedAttachment[]>([]);
+  const locationRequestIdRef = useRef(0);
+  const isMountedRef = useRef(true);
+  const neighborhoodInputRef = useRef<HTMLInputElement | null>(null);
 
   const pendingAttachments = attachments.filter((item) => !item.uploadedReceipt);
   const isPartiallySubmitted = Boolean(submittedRecord && pendingAttachments.length > 0);
   const isComplete = Boolean(submittedRecord && pendingAttachments.length === 0);
+
+  const reportNow = useNowTicker(
+    Boolean(reportLocationState && reportLocationState.timestamp !== null)
+  );
+  const reportLocationAssessment = reportLocationState
+    ? assessLocation({
+        source: reportLocationState.source,
+        manualKind: reportLocationState.manualKind,
+        status: reportLocationState.status,
+        timestamp: reportLocationState.timestamp,
+        accuracy: reportLocationState.accuracy,
+        now: reportNow,
+      })
+    : null;
 
   useEffect(() => {
     attachmentsRef.current = attachments;
@@ -508,15 +554,23 @@ export function ConfidentialReportPanel() {
     return () => setNavigationLocked(false);
   }, [busy, isPartiallySubmitted, setNavigationLocked]);
 
+  const invalidateLocationRequests = useCallback(() => {
+    ++locationRequestIdRef.current;
+  }, []);
+
   useEffect(() => {
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
+      invalidateLocationRequests();
       for (const item of attachmentsRef.current) {
         URL.revokeObjectURL(item.previewUrl);
       }
     };
-  }, []);
+  }, [invalidateLocationRequests]);
 
   const clearReportFormState = useCallback((resetAllContext: boolean) => {
+    ++locationRequestIdRef.current;
     for (const item of attachmentsRef.current) {
       URL.revokeObjectURL(item.previewUrl);
     }
@@ -525,6 +579,7 @@ export function ConfidentialReportPanel() {
     setIncidentDate('');
     setSummary('');
     setRecordingKey('');
+    setReportLocationState(null);
     if (resetAllContext) {
       setCategory('violencia-genero-intrafamiliar');
       setRiskLevel('alto');
@@ -572,6 +627,29 @@ export function ConfidentialReportPanel() {
   }, [clearReportFormState]);
 
   useEffect(() => {
+    const restoreTimer = setTimeout(() => {
+      const savedDraft = loadInitialDraft();
+      const savedRecordingKey = loadInitialSessionRecordingKey();
+      setCategory((prev) => (prev === DEFAULT_DRAFT.category ? savedDraft.category : prev));
+      setRiskLevel((prev) => (prev === DEFAULT_DRAFT.riskLevel ? savedDraft.riskLevel : prev));
+      setCommune((prev) => (prev === DEFAULT_DRAFT.commune ? savedDraft.commune : prev));
+      setNeighborhoodReference((prev) =>
+        prev === DEFAULT_DRAFT.neighborhoodReference ? savedDraft.neighborhoodReference : prev
+      );
+      setIncidentDate((prev) =>
+        prev === DEFAULT_DRAFT.incidentDate ? savedDraft.incidentDate : prev
+      );
+      setSummary((prev) => (prev === DEFAULT_DRAFT.summary ? savedDraft.summary : prev));
+      if (savedRecordingKey) {
+        setSessionRecordingKey((prev) => prev || savedRecordingKey);
+      }
+      setDraftHydrated(true);
+    }, 0);
+    return () => clearTimeout(restoreTimer);
+  }, []);
+
+  useEffect(() => {
+    if (!draftHydrated) return;
     const isDefaultEmptyDraft =
       category === 'violencia-genero-intrafamiliar' &&
       riskLevel === 'alto' &&
@@ -596,7 +674,7 @@ export function ConfidentialReportPanel() {
     } catch {
       // Ignore storage quota errors.
     }
-  }, [category, riskLevel, commune, neighborhoodReference, incidentDate, summary, isComplete, isSharedDevice]);
+  }, [draftHydrated, category, riskLevel, commune, neighborhoodReference, incidentDate, summary, isComplete, isSharedDevice]);
 
   function handleAddAttachment(item: PreparedAttachment) {
     setAttachments((prev) => [...prev, item]);
@@ -625,6 +703,8 @@ export function ConfidentialReportPanel() {
   }
 
   function handleLoadPracticeData() {
+    ++locationRequestIdRef.current;
+    setReportLocationState(null);
     setCategory('abuso-autoridad-reten');
     setRiskLevel('medio');
     setCommune('04-aranjuez');
@@ -635,6 +715,130 @@ export function ConfidentialReportPanel() {
     );
     setError('');
     triggerHaptic(30);
+  }
+
+  function markManualLocationOverride() {
+    ++locationRequestIdRef.current;
+    setReportLocationState((prev) => {
+      if (!prev) return prev;
+      return {
+        source: 'manual',
+        manualKind: 'corrected',
+        status: 'success',
+        timestamp: Date.now(),
+        accuracy: null,
+        resolvedOutsideMedellin: false,
+        errorMessage: null,
+      };
+    });
+  }
+
+  function handleResetLocationToReserve() {
+    ++locationRequestIdRef.current;
+    triggerHaptic(20);
+    setCommune(RESERVED_COMMUNE);
+    setNeighborhoodReference('');
+    setReportLocationState(null);
+  }
+
+  function handleFocusManualLocationCorrection() {
+    triggerHaptic(20);
+    neighborhoodInputRef.current?.focus();
+  }
+
+  function handleQueryReportLocation() {
+    if (busy || isComplete) return;
+    triggerHaptic(30);
+    const reqId = ++locationRequestIdRef.current;
+
+    if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+      setReportLocationState({
+        source: null,
+        status: 'error',
+        timestamp: null,
+        accuracy: null,
+        resolvedOutsideMedellin: false,
+        errorMessage: 'Geolocalización no soportada en este dispositivo',
+      });
+      return;
+    }
+
+    setReportLocationState({
+      source: null,
+      status: 'loading',
+      timestamp: null,
+      accuracy: null,
+      resolvedOutsideMedellin: false,
+      errorMessage: null,
+    });
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        if (!isMountedRef.current || reqId !== locationRequestIdRef.current) return;
+        const safeTimestamp = normalizeTimestamp(pos.timestamp);
+        const safeAccuracy = normalizeAccuracy(pos.coords.accuracy);
+        const offlineMatch = resolveMedellinComunaOffline(
+          pos.coords.latitude,
+          pos.coords.longitude
+        );
+        const withinMedellin = offlineMatch.distanceMeters <= 15000;
+
+        if (withinMedellin) {
+          setCommune(offlineMatch.zone.name);
+        }
+
+        setReportLocationState({
+          source: 'gps',
+          status: 'success',
+          timestamp: safeTimestamp,
+          accuracy: safeAccuracy,
+          resolvedOutsideMedellin: !withinMedellin,
+          errorMessage: null,
+        });
+
+        try {
+          const enriched = await reverseGeocodeMedellin(
+            pos.coords.latitude,
+            pos.coords.longitude
+          );
+          if (!isMountedRef.current || reqId !== locationRequestIdRef.current) return;
+          const suggestedRef =
+            enriched.address !== 'Dirección exacta sin confirmar'
+              ? enriched.address
+              : enriched.neighborhood !== 'Barrio sin confirmar'
+              ? enriched.neighborhood
+              : '';
+          if (suggestedRef) {
+            setNeighborhoodReference(suggestedRef);
+          }
+        } catch {
+          // Conserva la referencia manual existente sin inventar dirección.
+        }
+      },
+      (err) => {
+        if (!isMountedRef.current || reqId !== locationRequestIdRef.current) return;
+        const isDenied = err.code === err.PERMISSION_DENIED;
+        const msg = isDenied
+          ? 'Permiso de GPS no concedido'
+          : err.code === err.TIMEOUT
+          ? 'Tiempo de espera agotado buscando señal GPS'
+          : 'No se pudo obtener la ubicación GPS';
+
+        setReportLocationState({
+          source: null,
+          status: isDenied ? 'denied' : 'error',
+          timestamp: null,
+          accuracy: null,
+          resolvedOutsideMedellin: false,
+          errorMessage: msg,
+        });
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 5000,
+      }
+    );
   }
 
   async function handleSubmitToD1() {
@@ -978,60 +1182,126 @@ export function ConfidentialReportPanel() {
             </div>
           </fieldset>
 
-          <div className="space-y-2">
-            <label htmlFor="report-commune" className="block font-semibold text-white">
-              Comuna o corregimiento (opcional por privacidad)
-            </label>
-            <select
-              id="report-commune"
-              disabled={busy || isComplete}
-              value={commune}
-              onChange={(e) => setCommune(e.target.value)}
-              className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
-            >
-              {REPORT_COMMUNES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <label htmlFor="report-neighborhood" className="block text-sm font-medium text-gray-200">
-                Referencia del lugar (opcional)
-              </label>
-              <input
-                id="report-neighborhood"
-                data-sensitive="true"
-                type="text"
-                autoComplete="off"
-                spellCheck={false}
-                maxLength={160}
-                disabled={busy || isComplete}
-                value={neighborhoodReference}
-                onChange={(e) => setNeighborhoodReference(e.target.value)}
-                placeholder="Ej. Cerca a estación o vía pública (no pongas tu casa)"
-                className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
-              />
+          <div className="space-y-3 rounded-xl border border-gray-700/80 bg-[#0B0F19] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-bold text-white">
+                  Ubicación aproximada del lugar (opcional)
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-gray-300">
+                  Nunca consultamos tu GPS al abrir esta pantalla ni enviamos coordenadas exactas a D1. Puedes estimar tu comuna ahora o elegir y corregir todo manualmente.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  data-testid="report-query-location-btn"
+                  disabled={busy || isComplete || reportLocationState?.status === 'loading'}
+                  onClick={handleQueryReportLocation}
+                  className={`${control} bg-gray-900 hover:bg-gray-800 text-xs sm:text-sm gap-2`}
+                >
+                  <Crosshair className="h-4 w-4 text-violet-300 shrink-0" aria-hidden="true" />
+                  <span>
+                    {reportLocationState?.status === 'loading'
+                      ? 'Consultando ubicación…'
+                      : 'Consultar ubicación actual (opcional)'}
+                  </span>
+                </button>
+                {reportLocationState && (
+                  <button
+                    type="button"
+                    data-testid="report-reset-location-btn"
+                    disabled={busy || isComplete}
+                    onClick={handleResetLocationToReserve}
+                    className={`${control} bg-gray-950 hover:bg-gray-800 text-xs gap-1.5`}
+                  >
+                    <RotateCcw className="h-4 w-4 text-gray-300 shrink-0" aria-hidden="true" />
+                    <span>Usar reserva</span>
+                  </button>
+                )}
+              </div>
             </div>
+
+            {reportLocationAssessment && (
+              <div className="space-y-2">
+                <LocationStatusPanel
+                  assessment={reportLocationAssessment}
+                  isLoading={reportLocationState?.status === 'loading'}
+                  onOpenManualCorrection={handleFocusManualLocationCorrection}
+                  manualCorrectionButtonLabel="Corregir comuna o referencia manualmente"
+                  testIdPrefix="report-location"
+                  hideManualActionWhenAlreadyHealthy
+                />
+                {reportLocationState?.resolvedOutsideMedellin && (
+                  <p className="text-xs leading-relaxed text-amber-200">
+                    Las coordenadas superan el perímetro urbano aproximado de las comunas de Medellín. Verifica la comuna, corregimiento o referencia manualmente.
+                  </p>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
-              <label htmlFor="report-date" className="block text-sm font-medium text-gray-200">
-                Fecha o momento aproximado (opcional)
+              <label htmlFor="report-commune" className="block font-semibold text-white">
+                Comuna o corregimiento (opcional por privacidad)
               </label>
-              <input
-                id="report-date"
-                type="text"
-                autoComplete="off"
-                spellCheck={false}
-                maxLength={40}
+              <select
+                id="report-commune"
                 disabled={busy || isComplete}
-                value={incidentDate}
-                onChange={(e) => setIncidentDate(e.target.value)}
-                placeholder="Ej. Hoy 7:30 p. m."
+                value={commune}
+                onChange={(e) => {
+                  setCommune(e.target.value);
+                  markManualLocationOverride();
+                }}
                 className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
-              />
+              >
+                {REPORT_COMMUNES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <label htmlFor="report-neighborhood" className="block text-sm font-medium text-gray-200">
+                  Referencia del lugar (opcional)
+                </label>
+                <input
+                  ref={neighborhoodInputRef}
+                  id="report-neighborhood"
+                  data-sensitive="true"
+                  type="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  maxLength={160}
+                  disabled={busy || isComplete}
+                  value={neighborhoodReference}
+                  onChange={(e) => {
+                    setNeighborhoodReference(e.target.value);
+                    markManualLocationOverride();
+                  }}
+                  placeholder="Ej. Cerca a estación o vía pública (no pongas tu casa)"
+                  className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="report-date" className="block text-sm font-medium text-gray-200">
+                  Fecha o momento aproximado (opcional)
+                </label>
+                <input
+                  id="report-date"
+                  type="text"
+                  autoComplete="off"
+                  spellCheck={false}
+                  maxLength={40}
+                  disabled={busy || isComplete}
+                  value={incidentDate}
+                  onChange={(e) => setIncidentDate(e.target.value)}
+                  placeholder="Ej. Hoy 7:30 p. m."
+                  className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
+                />
+              </div>
             </div>
           </div>
 
@@ -1422,6 +1692,39 @@ export function ConfidentialReportPanel() {
                   ? `Se informará: Únicamente Comuna "${commune}". La referencia barrial exacta ha sido retirada del payload.`
                   : 'Se informará: "Sin indicar (reserva de ubicación)". Ni la comuna ni la referencia territorial viajarán en el expediente.'}
               </p>
+
+              {reportLocationAssessment && (
+                <p
+                  data-testid="report-preview-location-meta"
+                  className={`rounded-lg border p-2.5 text-xs leading-relaxed ${
+                    reportLocationPrecision === 'none'
+                      ? 'border-gray-700 bg-gray-900/60 text-gray-300'
+                      : reportLocationAssessment.needsAttention
+                      ? 'border-amber-500/60 bg-amber-950/30 text-amber-100'
+                      : 'border-gray-700 bg-gray-900/60 text-gray-200'
+                  }`}
+                >
+                  {reportLocationPrecision === 'none'
+                    ? 'Reserva territorial activa: no se incluirá origen, hora ni referencia de ubicación en el expediente.'
+                    : reportLocationState?.source === 'gps'
+                    ? `Origen estimado por dispositivo: ${reportLocationAssessment.freshnessLabel}${
+                        reportLocationAssessment.obtainedAtLabel
+                          ? ` (${reportLocationAssessment.obtainedAtLabel}${
+                              reportLocationAssessment.relativeAgeLabel
+                                ? `, ${reportLocationAssessment.relativeAgeLabel}`
+                                : ''
+                            })`
+                          : ''
+                      } · ${reportLocationAssessment.precisionLabel}. No se envían coordenadas GPS a D1.`
+                    : reportLocationState?.source === 'manual'
+                    ? `Origen: Ubicación corregida manualmente${
+                        reportLocationAssessment.obtainedAtLabel
+                          ? ` (${reportLocationAssessment.obtainedAtLabel})`
+                          : ''
+                      }. Sin coordenadas GPS en el expediente.`
+                    : `Consulta GPS no disponible (${reportLocationState?.errorMessage ?? 'sin señal'}). Se enviará únicamente tu selección manual.`}
+                </p>
+              )}
             </div>
           </div>
 

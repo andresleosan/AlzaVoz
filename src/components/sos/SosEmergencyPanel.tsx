@@ -20,6 +20,7 @@ import { PracticeModeToggle } from "@/components/practice/PracticeModeBanner";
 import { SosSharePreviewModal } from "@/components/sos/SosSharePreviewModal";
 import { LocationPrecision, RecipientInfo } from "@/types/sharing";
 import { buildSosWhatsAppLink } from "@/lib/sharing/preview";
+import { useNowTicker } from "@/hooks/useNowTicker";
 
 export function SosEmergencyPanel() {
   const { triggerHaptic } = useAppMode();
@@ -28,6 +29,7 @@ export function SosEmergencyPanel() {
     location,
     refreshLocation,
     setManualZone,
+    setManualCorrection,
     copyLocationText,
     getDictationText,
     copied,
@@ -43,14 +45,24 @@ export function SosEmergencyPanel() {
   const [shareSuccess, setShareSuccess] = useState<boolean>(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
   const [previewMode, setPreviewMode] = useState<"whatsapp" | "broadcast">("broadcast");
+  const liveNow = useNowTicker(location.timestamp !== null, 15_000);
 
   // Formato para mensaje de WhatsApp directo
-  const rawLocationText = getDictationText();
+  const rawLocationText = getDictationText(liveNow);
+  const whatsappLocationMeta = {
+    accuracy: location.accuracy,
+    source: location.source,
+    manualKind: location.manualKind,
+    status: location.status,
+    now: liveNow,
+  };
   const officialWaUrl = getWhatsAppLink(
     "+573234306794",
     rawLocationText,
     location.latitude,
-    location.longitude
+    location.longitude,
+    location.timestamp ?? undefined,
+    whatsappLocationMeta
   );
 
   const handleOpenPreview = (mode: "whatsapp" | "broadcast") => {
@@ -260,6 +272,7 @@ export function SosEmergencyPanel() {
           location={location}
           onRefresh={refreshLocation}
           onSelectZone={setManualZone}
+          onManualCorrection={setManualCorrection}
           onCopyText={copyLocationText}
           copied={copied}
         />
@@ -279,7 +292,9 @@ export function SosEmergencyPanel() {
               phone,
               rawLocationText,
               location.latitude,
-              location.longitude
+              location.longitude,
+              location.timestamp ?? undefined,
+              whatsappLocationMeta
             )
           }
         />
