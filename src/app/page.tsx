@@ -63,6 +63,9 @@ export default function HomePage() {
               <EscapeLimitsButton variant="home" />
             </div>
             <div className="location-note"><MapPin size={18} aria-hidden="true" /><p>Tu ubicación se consulta dentro de SOS, cuando la necesites.</p></div>
+            <Link href="/device-check" prefetch={false} className="contact-link" data-testid="home-device-check-link">
+              Comprobar cámara, micrófono y ubicación <ArrowRight size={16} aria-hidden="true" />
+            </Link>
           </section>
           <section className="contact-section" aria-labelledby="contact-title">
             <MessageCircle size={22} aria-hidden="true" />

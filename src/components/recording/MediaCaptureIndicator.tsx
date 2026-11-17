@@ -10,6 +10,7 @@ export function MediaCaptureIndicator() {
     hasActiveVideo,
     hasActiveAudio,
     capturePhase,
+    captureSource,
     statusLabel,
     stopActiveCapture,
   } = useMediaCapture();
@@ -66,13 +67,25 @@ export function MediaCaptureIndicator() {
               <span data-testid="banner-status-text">En vivo: {statusLabel}</span>
             </span>
 
-            {pathname !== '/record' && (
-              <Link
-                href="/record"
-                className="text-xs text-cyan-300 underline underline-offset-4 hover:text-cyan-200 focus-visible:outline-2 focus-visible:outline-cyan-300 ml-1"
-              >
-                Ver grabación
-              </Link>
+            {captureSource === 'device-check' ? (
+              pathname !== '/device-check' && (
+                <Link
+                  href="/device-check"
+                  prefetch={false}
+                  className="text-xs text-cyan-300 underline underline-offset-4 hover:text-cyan-200 focus-visible:outline-2 focus-visible:outline-cyan-300 ml-1"
+                >
+                  Ver comprobación
+                </Link>
+              )
+            ) : (
+              pathname !== '/record' && (
+                <Link
+                  href="/record"
+                  className="text-xs text-cyan-300 underline underline-offset-4 hover:text-cyan-200 focus-visible:outline-2 focus-visible:outline-cyan-300 ml-1"
+                >
+                  Ver grabación
+                </Link>
+              )
             )}
           </div>
         </div>

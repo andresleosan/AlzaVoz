@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode } from "react";
-import { MapPin } from "lucide-react";
+import { MapPin, ShieldCheck } from "lucide-react";
 import { useAppMode } from "@/context/AppModeContext";
 import { BottomNav } from "@/components/BottomNav";
 import { ZeroPeepToggle } from "@/components/ZeroPeepToggle";
@@ -26,6 +26,7 @@ const pageNames: Record<string, string> = {
   "/report": "Denuncia confidencial",
   "/community": "Convivencia barrial",
   "/search": "Tableros de búsqueda",
+  "/device-check": "Comprobar dispositivo",
   "/admin": "Panel de gestión",
 };
 
@@ -50,6 +51,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Brand />
         <BottomNav placement="sidebar" />
         <div className="sidebar-footer">
+          <Link
+            href="/device-check"
+            prefetch={false}
+            data-testid="sidebar-device-check-link"
+            aria-current={pathname === "/device-check" ? "page" : undefined}
+            className="touch-target-min inline-flex min-h-14 w-full items-center gap-2 rounded-xl border border-gray-700 bg-[#0B0F19] px-3.5 py-2.5 text-xs font-semibold text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+          >
+            <ShieldCheck size={16} className="shrink-0 text-cyan-300" aria-hidden="true" />
+            <span>Comprobar dispositivo</span>
+          </Link>
           <EscapeLimitsButton variant="sidebar" />
           <div className="sidebar-note"><MapPin size={16} aria-hidden="true" /><span>Medellín, Colombia</span></div>
         </div>

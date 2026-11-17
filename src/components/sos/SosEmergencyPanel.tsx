@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import {
   ShieldAlert,
@@ -323,6 +324,17 @@ export function SosEmergencyPanel() {
                 <strong className="text-white">3. Mantén la calma:</strong> Responde si hay personas lesionadas o presencia de armas. No cuelgues.
               </li>
             </ul>
+
+            <div className="pt-3">
+              <Link
+                href="/device-check"
+                prefetch={false}
+                data-testid="sos-device-check-link"
+                className="touch-target-min inline-flex min-h-14 items-center gap-2 rounded-xl border border-gray-700 bg-[#111827] px-4 py-2.5 text-xs font-semibold text-cyan-200 underline underline-offset-4 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+              >
+                Comprobar cámara, micrófono y ubicación sin enviar datos
+              </Link>
+            </div>
           </div>
         </section>
       </div>

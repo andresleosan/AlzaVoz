@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppMode } from '@/context/AppModeContext';
 import { useMediaCapture } from '@/context/MediaCaptureContext';
@@ -188,6 +189,19 @@ export function RecordingPanel() {
         <button className={`${control} w-full`} disabled={busy || !key}>Recuperar clips recibidos</button>
       </form></details>}
       {session && !active && !pending.length && !state.completionPending && <button type="button" className={`${control} w-full`} disabled={busy} onClick={reset}>Nueva grabación · guarda la clave anterior</button>}
+      {!session && !active && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-800 bg-[#111827] px-4 py-2 text-sm text-gray-200">
+          <span>¿Quieres probar cámara y micrófono sin guardar ni enviar nada?</span>
+          <Link
+            href="/device-check"
+            prefetch={false}
+            data-testid="record-device-check-link"
+            className="touch-target-min inline-flex min-h-14 items-center font-semibold text-cyan-300 underline underline-offset-4 hover:text-cyan-200 focus-visible:outline-2 focus-visible:outline-cyan-300"
+          >
+            Comprobar dispositivo
+          </Link>
+        </div>
+      )}
       <p className="text-sm text-gray-300">Límites: 100 partes, 2 MiB por envío, 16 MiB pendientes y 64 MiB por grabación. WebM en navegadores compatibles. Bloquear la pantalla puede retrasar o interrumpir la captura.</p>
       <div className="recording-controls z-40 border-t border-gray-700 bg-[#0B0F19] px-4 py-3">
         {active ? <button type="button" className={`${control} w-full bg-red-800`} onClick={() => controller.current?.stop()} disabled={state.phase === 'stopping'}>{state.phase === 'requesting' ? 'Cancelar solicitud de permiso' : 'Detener grabación'}</button>

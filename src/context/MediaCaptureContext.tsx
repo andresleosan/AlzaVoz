@@ -10,7 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 
-export type CaptureSource = 'recording' | 'voice-note' | 'community';
+export type CaptureSource = 'recording' | 'voice-note' | 'community' | 'device-check';
 export type CapturePhase = 'idle' | 'requesting' | 'recording' | 'stopping' | 'stopped';
 
 export interface MediaCaptureState {

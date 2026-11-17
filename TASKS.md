@@ -323,7 +323,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 18: Comprobación previa del dispositivo
+### [x] Tarea 18: Comprobación previa del dispositivo
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I008
 - **Prioridad original:** Después
@@ -331,7 +331,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T3, T5
 - **Criterios de Éxito:** La prueba solicita permisos explícitos, informa capacidades y ofrece alternativas sin transmitir capturas ni posiciones.
 - **Verificación requerida:** Probar permisos aceptados, denegados y hardware ausente; interceptar red y comprobar liberación de recursos.
-- **Plan:** docs/planes/T018.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T018.md (redactado, auditado y cerrado).
+- **Estado:** Completada y verificada (2026-11-16). Ruta estática `/device-check` (`src/app/device-check/page.tsx`), lógica pura `src/lib/device/check.ts`, hook `src/hooks/useDeviceCheck.ts` y `DeviceCheckPanel.tsx` con accesos desde `/`, pie de barra lateral en `AppShell.tsx`, `/record` y `/sos` (manteniendo 4 enlaces en `BottomNav`). Cero solicitudes automáticas al cargar y cero peticiones de red durante las pruebas; pruebas explícitas e independientes (y secuencia ordenada) para cámara, micrófono (`AnalyserNode` solo en RAM sin salida a altavoz) y ubicación local (`assessLocation` sin Nominatim, protegida con `data-sensitive="true"`). Integración bidireccional con `MediaCaptureContext` (`source = 'device-check'`) y liberación garantizada de pistas (`readyState === 'ended'`) y `AudioContext` al detener, expirar 15 s, cambiar de ruta, `pagehide`, `alzavoz:escape` o `SHARED_SESSION_CLEAR_EVENT`. Muestra causas claras y alternativas concretas (`Solo audio` en `/record`, foto/texto en `/report` y `/defender`, comuna/dirección manual en `/sos`, mapa en `/community`). Verificada con `impeccable detect` (`[]`), `pnpm lint`, `tsc`, `pnpm build`, `pnpm test` (`151/151`), `pnpm build:pages` + `PLAYWRIGHT_PAGES=1` (`67/67`) y subagente `browser` (`320px`/`390px`/`1440px`).
 
 ---
 
