@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import { Mic, Square } from 'lucide-react';
+import { ActionConfirmationModal } from '@/components/ActionConfirmationModal';
 import { captureNoise, type NoiseObservation } from '@/lib/community/capture';
 import { bogotaDay, COMMUNITY_CATEGORIES, type CommunityCategory, type CommunityInput } from '@/lib/community/contracts';
 import { MEDELLIN_COMUNAS } from '@/utils/medellinGeo';
@@ -18,6 +19,7 @@ export function CommunityPanel() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const [isShareConfirmOpen, setIsShareConfirmOpen] = useState(false);
   const [revision, setRevision] = useState(0);
   const controller = useRef<AbortController | null>(null);
   const pending = useRef<CommunityInput | null>(null);
@@ -40,6 +42,16 @@ export function CommunityPanel() {
       if (mounted.current) setError(problem instanceof Error ? problem.message : 'No se pudo completar la observación.');
     } finally { controller.current = null; if (mounted.current) setActive(false); }
   }
+  function handleRequestShare() {
+    if (!result || !commune || sending || sent) return;
+    if (attempted && pending.current) {
+      void share();
+      return;
+    }
+    setIsShareConfirmOpen(true);
+  }
+  const selectedCommuneName =
+    MEDELLIN_COMUNAS.find(zone => String(zone.number) === commune)?.name ?? `Comuna ${commune}`;
   async function share() {
     if (!result || !commune || sending || sent) return;
     // Freeze the payload on first attempt, including its day, for safe retries across midnight.
@@ -101,8 +113,28 @@ export function CommunityPanel() {
         </fieldset>}
         {result && !sent && <>
           <p className="community-note">Al compartir, envías solo comuna, categoría y día, con un código aleatorio para evitar duplicados. No enviamos audio, lectura, GPS ni dirección. Se cuentan avisos de 30 días; no es una denuncia ni un envío a autoridades.</p>
-          <button className="community-primary" disabled={!commune || sending} onClick={() => void share()}>{sending ? 'Confirmando…' : attempted ? 'Reintentar envío' : 'Compartir observación'}</button>
+          <button className="community-primary" disabled={!commune || sending} onClick={handleRequestShare}>{sending ? 'Confirmando…' : attempted ? 'Reintentar envío' : 'Compartir observación'}</button>
         </>}
+        <ActionConfirmationModal
+          isOpen={isShareConfirmOpen && Boolean(result && commune && !sent)}
+          tone="publish"
+          title="Revisar antes de publicar en el mapa barrial"
+          actionSummary="Se publicará una observación agregada en el tablero de convivencia barrial."
+          itemDetails={[
+            { label: 'Comuna elegida', value: selectedCommuneName, sensitive: true },
+            { label: 'Categoría del ruido', value: COMMUNITY_CATEGORIES[category] },
+            { label: 'Fecha registrada (Bogotá)', value: result ? bogotaDay(new Date(result.capturedAt)) : '', tabular: true },
+            { label: 'Datos excluidos', value: 'No se envía audio, lectura dBFS, coordenadas GPS ni dirección' },
+          ]}
+          consequence="Al confirmar, se sumará un aviso al conteo público de los últimos 30 días en el mapa y la tabla de tu comuna. No podrás retirarlo ni deshacerlo desde esta pantalla."
+          cancelLabel="Cancelar y conservar borrador"
+          confirmLabel="Confirmar publicación"
+          onCancel={() => setIsShareConfirmOpen(false)}
+          onConfirm={() => {
+            setIsShareConfirmOpen(false);
+            void share();
+          }}
+        />
         {sent && <p role="status" className="community-success">Observación recibida. El mapa muestra el recuento agregado.</p>}
         <div className="community-capture-actions">
           {active ? <button className="community-secondary" onClick={() => controller.current?.abort()}><Square size={20} aria-hidden="true" />Cancelar observación</button> :

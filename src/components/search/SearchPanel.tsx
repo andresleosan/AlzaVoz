@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import { ActionConfirmationModal } from '@/components/ActionConfirmationModal';
 import { bogotaDay } from '@/lib/community/contracts';
 import { isPublicNotice, NOTICE_KINDS, NOTICE_LABELS, object, parseCreateNotice, parseTip, type CreateNoticeInput, type NoticeKind, type PublicNotice, type Suggestion, type TipInput } from '@/lib/search/contracts';
 import { MEDELLIN_COMUNAS } from '@/utils/medellinGeo';
@@ -26,9 +27,25 @@ function NoticeWizard({ onPublished, onClose }: { onPublished: (notice: PublicNo
   const [title, setTitle] = useState(''); const [description, setDescription] = useState('');
   const [commune, setCommune] = useState(''); const [eventDate, setEventDate] = useState(''); const [contact, setContact] = useState('');
   const [attempted, setAttempted] = useState(false); const [consent, setConsent] = useState(false); const [sending, setSending] = useState(false); const [error, setError] = useState('');
+  const [isPublishConfirmOpen, setIsPublishConfirmOpen] = useState(false);
   const pending = useRef<CreateNoticeInput | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { heading.current?.focus(); }, [step]);
+  function handleRequestPublish() {
+    if (!consent || sending) return;
+    if (attempted && pending.current) {
+      void publish();
+      return;
+    }
+    const validated = parseCreateNotice({ requestId: crypto.randomUUID(), kind, title, description, commune: Number(commune), eventDate, contact, consent });
+    if (!validated) {
+      setError('Revisa el título, la descripción, la comuna y la fecha antes de publicar. El título necesita al menos 3 caracteres sin contar espacios exteriores.');
+      return;
+    }
+    pending.current = validated;
+    setError('');
+    setIsPublishConfirmOpen(true);
+  }
   async function publish() {
     if (!consent || sending) return;
     if (!pending.current) {
@@ -47,7 +64,7 @@ function NoticeWizard({ onPublished, onClose }: { onPublished: (notice: PublicNo
     <p className={styles.eyebrow}>Nuevo aviso · Paso {step + 1} de 5</p>
     <h2 ref={heading} tabIndex={-1}>{['¿Qué ocurrió?', 'Describe lo que se puede compartir', '¿Dónde y cuándo ocurrió?', 'Contacto para el equipo', 'Revisa antes de publicar'][step]}</h2>
     <p>No publiques documentos, teléfonos, direcciones precisas ni información sensible. Comparte solo datos que tienes autorización para publicar.</p>
-    <form onSubmit={event => { event.preventDefault(); if (step === 4) void publish(); else setStep(value => value + 1); }}>
+    <form onSubmit={event => { event.preventDefault(); if (step === 4) handleRequestPublish(); else setStep(value => value + 1); }}>
       <fieldset disabled={sending || attempted}>
         {step === 0 && <label>Tipo de aviso<select value={kind} onChange={event => setKind(event.target.value as NoticeKind)}>{NOTICE_KINDS.map(value => <option key={value} value={value}>{NOTICE_LABELS[value]}</option>)}</select></label>}
         {step === 1 && <><label>Título breve<input required minLength={3} maxLength={80} value={title} onChange={event => setTitle(event.target.value)} /></label><label>Descripción pública<textarea required minLength={10} maxLength={1200} rows={5} value={description} onChange={event => setDescription(event.target.value)} /></label></>}
@@ -63,6 +80,30 @@ function NoticeWizard({ onPublished, onClose }: { onPublished: (notice: PublicNo
       </div>
       {attempted && <p>El envío puede estar guardado. Reintenta para confirmarlo; cerrar descarta la confirmación pendiente.</p>}
     </form>
+    <ActionConfirmationModal
+      isOpen={isPublishConfirmOpen}
+      tone="publish"
+      title="Revisar antes de publicar aviso"
+      actionSummary="Este aviso se publicará de forma abierta en los tableros de búsqueda de AlzaVoz."
+      itemDetails={isPublishConfirmOpen ? [
+        { label: 'Tipo de aviso', value: NOTICE_LABELS[kind] },
+        { label: 'Título público', value: title.trim(), sensitive: true },
+        { label: 'Descripción pública', value: description.trim(), sensitive: true },
+        { label: 'Lugar y fecha del suceso', value: eventDate ? `Comuna ${commune} · ${formatDate(eventDate)}` : `Comuna ${commune}`, tabular: true },
+        { label: 'Contacto privado', value: contact.trim() ? 'Incluido para el equipo; no aparece en el tablero ni en el afiche QR' : 'Sin contacto privado' },
+      ] : []}
+      consequence="Una vez publicado, cualquier persona podrá ver este aviso, descargar su afiche con código QR y copiarlo fuera de AlzaVoz. Desde este navegador no podrás editarlo ni eliminarlo después."
+      cancelLabel="Cancelar y seguir revisando"
+      confirmLabel="Confirmar publicación"
+      onCancel={() => {
+        pending.current = null;
+        setIsPublishConfirmOpen(false);
+      }}
+      onConfirm={() => {
+        setIsPublishConfirmOpen(false);
+        void publish();
+      }}
+    />
   </section>;
 }
 

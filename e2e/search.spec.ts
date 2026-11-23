@@ -65,6 +65,8 @@ test('aviso inválido y rechazo400 conservan revisión editable y fecha corregid
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: 'Revisar aviso' }).click();
   await page.getByRole('button', { name: 'Publicar aviso' }).click();
+  await expect(page.getByTestId('confirm-action-dialog')).toBeVisible();
+  await page.getByTestId('confirm-action-submit').click();
   await expect(page.locator('#contenido').getByRole('alert')).toContainText('Revisa fecha');
   await expect(page.getByLabel('Autorizo publicar estos datos')).toBeEnabled();
   for (let i = 0; i < 2; i++) await page.getByRole('button', { name: 'Atrás', exact: true }).click();
@@ -75,6 +77,8 @@ test('aviso inválido y rechazo400 conservan revisión editable y fecha corregid
   await expect(page.getByRole('button', { name: 'Publicar aviso' })).toBeDisabled();
   await page.getByLabel('Autorizo publicar estos datos').check();
   await page.getByRole('button', { name: 'Publicar aviso' }).click();
+  await expect(page.getByTestId('confirm-action-dialog')).toBeVisible();
+  await page.getByTestId('confirm-action-submit').click();
   await expect(page.getByRole('heading', { name: 'Aviso sintético corregido', exact: true })).toBeVisible();
   expect(JSON.parse(posts[0]).requestId).not.toBe(JSON.parse(posts[1]).requestId);
   expect(JSON.parse(posts[1]).eventDate).toBe('2026-01-02');
@@ -189,6 +193,8 @@ test('wizard revisa, publica, aporta pista y descarga QR que abre el aviso', asy
     await route.fulfill(publicationBodies.length === 1 ? { status: 503, json: { error: 'Confirmación perdida de publicación' } } : { response });
   });
   await page.getByRole('button', { name: 'Publicar aviso' }).click();
+  await expect(page.getByTestId('confirm-action-dialog')).toBeVisible();
+  await page.getByTestId('confirm-action-submit').click();
   await expect(page.locator('#contenido').getByRole('alert')).toContainText('Confirmación perdida');
   await page.getByRole('button', { name: 'Reintentar publicación' }).click();
   expect(publicationBodies).toHaveLength(2); expect(publicationBodies[0]).toBe(publicationBodies[1]);

@@ -72,6 +72,13 @@ import {
 const DRAFT_STORAGE_KEY = 'alzavoz_report_draft';
 const RECORDING_STORAGE_KEY = 'alzavoz_recording_key';
 
+function createPracticeReportCode(): string {
+  const randomBytes = new Uint32Array(1);
+  crypto.getRandomValues(randomBytes);
+  const sixDigits = 100000 + (randomBytes[0] % 900000);
+  return `SIM-${new Date().getFullYear()}-${sixDigits}`;
+}
+
 const control =
   'min-h-14 min-w-14 inline-flex items-center justify-center rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
 
@@ -516,8 +523,10 @@ export function ConfidentialReportPanel() {
   const [safeDays, setSafeDays] = useState<SafeContactDays>('all');
   const [safeNotes, setSafeNotes] = useState('');
 
-  // Vista previa de lo que se comparte: precisión territorial (Tarea 12 / Idea I002)
+  // Vista previa de lo que se comparte: precisión territorial y exclusiones reversibles (Tarea 12 / Idea I002 + T19)
   const [reportLocationPrecision, setReportLocationPrecision] = useState<'full' | 'commune_only' | 'none'>('full');
+  const [excludedAttachmentIds, setExcludedAttachmentIds] = useState<string[]>([]);
+  const [isRecordingExcluded, setIsRecordingExcluded] = useState(false);
   // Ubicación opcional bajo demanda con edad, precisión y corrección manual (Tarea 17 / Idea I007)
   const [reportLocationState, setReportLocationState] = useState<ReportLocationState | null>(null);
 
@@ -527,7 +536,10 @@ export function ConfidentialReportPanel() {
   const isMountedRef = useRef(true);
   const neighborhoodInputRef = useRef<HTMLInputElement | null>(null);
 
-  const pendingAttachments = attachments.filter((item) => !item.uploadedReceipt);
+  const includedAttachments = attachments.filter((item) => !excludedAttachmentIds.includes(item.id));
+  const excludedPreviewAttachments = attachments.filter((item) => excludedAttachmentIds.includes(item.id));
+  const effectiveRecordingKey = isRecordingExcluded ? '' : recordingKey.trim();
+  const pendingAttachments = includedAttachments.filter((item) => !item.uploadedReceipt);
   const isPartiallySubmitted = Boolean(submittedRecord && pendingAttachments.length > 0);
   const isComplete = Boolean(submittedRecord && pendingAttachments.length === 0);
 
@@ -575,6 +587,8 @@ export function ConfidentialReportPanel() {
       URL.revokeObjectURL(item.previewUrl);
     }
     setAttachments([]);
+    setExcludedAttachmentIds([]);
+    setIsRecordingExcluded(false);
     setNeighborhoodReference('');
     setIncidentDate('');
     setSummary('');
@@ -681,6 +695,7 @@ export function ConfidentialReportPanel() {
   }
 
   function handleRemoveAttachment(id: string) {
+    setExcludedAttachmentIds((prev) => prev.filter((entry) => entry !== id));
     setAttachments((prev) => {
       const target = prev.find((a) => a.id === id);
       if (target) URL.revokeObjectURL(target.previewUrl);
@@ -884,9 +899,11 @@ export function ConfidentialReportPanel() {
 
     const finalCommune = reportLocationPrecision === 'none' ? RESERVED_COMMUNE : commune;
     const finalNeighborhood = reportLocationPrecision === 'full' ? neighborhoodReference : '';
+    const attachmentsToSend = includedAttachments;
+    const includedIds = new Set(attachmentsToSend.map((item) => item.id));
 
     if (isPracticeMode) {
-      const mockCode = `SIM-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 900000)}`;
+      const mockCode = createPracticeReportCode();
       const simulatedRecord: ReportRecord = {
         code: mockCode,
         requestId,
@@ -896,13 +913,13 @@ export function ConfidentialReportPanel() {
         neighborhoodReference: finalNeighborhood,
         summary,
         incidentDate: incidentDate || new Date().toISOString().slice(0, 10),
-        recordingSessionId: recordingKey.trim() || null,
-        recordingClipCount: recordingKey.trim() ? 1 : 0,
-        expectedAttachments: attachments.length,
-        attachmentCount: attachments.length,
+        recordingSessionId: effectiveRecordingKey || null,
+        recordingClipCount: effectiveRecordingKey ? 1 : 0,
+        expectedAttachments: attachmentsToSend.length,
+        attachmentCount: attachmentsToSend.length,
         status: 'recibido (simulado)',
         createdAt: new Date().toISOString(),
-        attachments: attachments.map((att, i) => ({
+        attachments: attachmentsToSend.map((att, i) => ({
           index: i,
           kind: attachmentKindForMime(att.mime),
           mime: att.mime,
@@ -915,10 +932,14 @@ export function ConfidentialReportPanel() {
       };
 
       setAttachments((prev) =>
-        prev.map((entry) => ({
-          ...entry,
-          uploadedReceipt: { receivedAt: new Date().toISOString() },
-        }))
+        prev.map((entry) =>
+          includedIds.has(entry.id)
+            ? {
+                ...entry,
+                uploadedReceipt: { receivedAt: new Date().toISOString() },
+              }
+            : entry
+        )
       );
       setSubmittedRecord(simulatedRecord);
       setStatusMessage('Expediente educativo simulado con éxito. Ningún dato fue transmitido a Cloudflare.');
@@ -929,7 +950,7 @@ export function ConfidentialReportPanel() {
         title: `Simulación: Radicado ${mockCode}`,
         message:
           'Has completado la radicación en modo de práctica. En una denuncia real, la información se cifra y se guarda anónimamente en Cloudflare D1 y las evidencias en Cloudflare R2. Aquí ningún dato salió de tu navegador.',
-        payloadText: `Código de práctica: ${mockCode}\nCategoría: ${category}\nRiesgo: ${riskLevel}\nComuna: ${finalCommune}\nEvidencias simuladas: ${attachments.length}`,
+        payloadText: `Código de práctica: ${mockCode}\nCategoría: ${category}\nRiesgo: ${riskLevel}\nComuna: ${finalCommune}\nEvidencias simuladas: ${attachmentsToSend.length}`,
         details: [
           'No se realizó ninguna petición HTTP a los servidores de producción.',
           'La base de datos Cloudflare D1 permanece intacta.',
@@ -949,8 +970,8 @@ export function ConfidentialReportPanel() {
           neighborhoodReference: finalNeighborhood,
           summary,
           incidentDate,
-          ...(recordingKey.trim() ? { recordingKey: recordingKey.trim() } : {}),
-          expectedAttachments: attachments.length,
+          ...(effectiveRecordingKey ? { recordingKey: effectiveRecordingKey } : {}),
+          expectedAttachments: attachmentsToSend.length,
           privacyAck: true,
           safeContact: safeContactConfig,
         },
@@ -959,10 +980,10 @@ export function ConfidentialReportPanel() {
       );
       setSubmittedRecord(baseRecord);
 
-      for (let idx = 0; idx < attachments.length; idx++) {
-        const item = attachments[idx];
+      for (let idx = 0; idx < attachmentsToSend.length; idx++) {
+        const item = attachmentsToSend[idx];
         if (item.uploadedReceipt) continue;
-        setStatusMessage(`Subiendo evidencia limpia ${idx + 1} de ${attachments.length} a R2…`);
+        setStatusMessage(`Subiendo evidencia limpia ${idx + 1} de ${attachmentsToSend.length} a R2…`);
         const receipt = await uploadReportAttachment(
           baseRecord.code,
           clientSecret,
@@ -973,7 +994,9 @@ export function ConfidentialReportPanel() {
           AbortSignal.timeout(20_000)
         );
         setAttachments((prev) =>
-          prev.map((entry, i) => (i === idx ? { ...entry, uploadedReceipt: { receivedAt: receipt.receivedAt } } : entry))
+          prev.map((entry) =>
+            entry.id === item.id ? { ...entry, uploadedReceipt: { receivedAt: receipt.receivedAt } } : entry
+          )
         );
       }
 
@@ -1036,8 +1059,8 @@ export function ConfidentialReportPanel() {
     neighborhoodReference: effectiveNeighborhood,
     summary: summary.trim() || 'Solicitud de apoyo confidencial en Medellín.',
     incidentDate,
-    cleanAttachmentCount: attachments.length,
-    hasLinkedRecording: Boolean(recordingKey.trim() || submittedRecord?.recordingSessionId),
+    cleanAttachmentCount: includedAttachments.length,
+    hasLinkedRecording: Boolean(effectiveRecordingKey || submittedRecord?.recordingSessionId),
   });
 
   return (
@@ -1335,7 +1358,10 @@ export function ConfidentialReportPanel() {
           onAddAttachment={handleAddAttachment}
           onRemoveAttachment={handleRemoveAttachment}
           recordingKey={recordingKey}
-          onRecordingKeyChange={setRecordingKey}
+          onRecordingKeyChange={(value) => {
+            setRecordingKey(value);
+            setIsRecordingExcluded(false);
+          }}
           sessionRecordingKey={sessionRecordingKey}
           disabled={busy || isComplete}
         />
@@ -1561,14 +1587,14 @@ export function ConfidentialReportPanel() {
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
                   <FileText className="h-4 w-4 text-cyan-400" />
-                  Archivos y evidencias a transmitir ({attachments.length})
+                  Archivos y evidencias a transmitir ({includedAttachments.length})
                 </span>
-                <span className="text-[11px] text-gray-400">Puedes retirar elementos antes de enviar</span>
+                <span className="text-[11px] text-gray-400">Puedes retirar o volver a incluir antes de enviar</span>
               </div>
 
-              {attachments.length > 0 ? (
+              {includedAttachments.length > 0 ? (
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {attachments.map((item, idx) => (
+                  {includedAttachments.map((item, idx) => (
                     <div
                       key={item.id}
                       data-testid={`attachment-preview-row-${idx}`}
@@ -1585,16 +1611,15 @@ export function ConfidentialReportPanel() {
                       <button
                         type="button"
                         data-testid={`remove-attachment-preview-${item.id}`}
+                        disabled={busy || isComplete || Boolean(item.uploadedReceipt)}
                         onClick={() => {
                           triggerHaptic(30);
-                          setAttachments((prev) => {
-                            const target = prev.find((a) => a.id === item.id);
-                            if (target) URL.revokeObjectURL(target.previewUrl);
-                            return prev.filter((a) => a.id !== item.id);
-                          });
+                          setExcludedAttachmentIds((prev) =>
+                            prev.includes(item.id) ? prev : [...prev, item.id]
+                          );
                         }}
                         aria-label={`Retirar evidencia ${item.fileName || idx + 1} de este envío`}
-                        className="touch-target-min flex items-center gap-1 rounded-lg border border-red-800/60 bg-red-950/40 px-2.5 py-1.5 text-xs font-medium text-red-300 hover:bg-red-900/50 transition"
+                        className="touch-target-min flex items-center gap-1 rounded-lg border border-red-800/60 bg-red-950/40 px-2.5 py-1.5 text-xs font-medium text-red-300 hover:bg-red-900/50 transition disabled:opacity-50"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                         <span>Retirar</span>
@@ -1608,7 +1633,36 @@ export function ConfidentialReportPanel() {
                 </p>
               )}
 
-              {Boolean(recordingKey.trim()) && (
+              {excludedPreviewAttachments.length > 0 && (
+                <div
+                  data-testid="excluded-preview-attachments"
+                  className="space-y-2 rounded-lg border border-gray-700 bg-gray-900/70 p-3 text-xs text-gray-200"
+                >
+                  <p className="font-semibold text-gray-200">
+                    Apartadas de este envío (conservadas en el Paso 2):
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {excludedPreviewAttachments.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        data-testid={`restore-attachment-preview-${item.id}`}
+                        disabled={busy || isComplete}
+                        onClick={() => {
+                          triggerHaptic(20);
+                          setExcludedAttachmentIds((prev) => prev.filter((id) => id !== item.id));
+                        }}
+                        className="touch-target-min inline-flex min-h-14 items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-gray-800 disabled:opacity-50"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span>Volver a incluir {item.fileName}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {Boolean(recordingKey.trim()) && !isRecordingExcluded && (
                 <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-500/40 bg-amber-950/20 p-2.5 text-xs text-amber-200">
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-white truncate">
@@ -1621,14 +1675,37 @@ export function ConfidentialReportPanel() {
                   <button
                     type="button"
                     data-testid="unlink-recording-preview-btn"
+                    disabled={busy || isComplete}
                     onClick={() => {
                       triggerHaptic(30);
-                      setRecordingKey('');
+                      setIsRecordingExcluded(true);
                     }}
-                    className="touch-target-min flex items-center gap-1 rounded-lg border border-amber-700 bg-amber-900/40 px-2.5 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-800/50 transition"
+                    className="touch-target-min flex items-center gap-1 rounded-lg border border-amber-700 bg-amber-900/40 px-2.5 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-800/50 transition disabled:opacity-50"
                   >
                     <X className="h-3.5 w-3.5" />
                     <span>Desvincular</span>
+                  </button>
+                </div>
+              )}
+
+              {Boolean(recordingKey.trim()) && isRecordingExcluded && (
+                <div
+                  data-testid="excluded-recording-preview"
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-700 bg-gray-900/70 p-3 text-xs text-gray-200"
+                >
+                  <span>Grabación apartada solo de este envío (la clave sigue en el Paso 2).</span>
+                  <button
+                    type="button"
+                    data-testid="restore-recording-preview-btn"
+                    disabled={busy || isComplete}
+                    onClick={() => {
+                      triggerHaptic(20);
+                      setIsRecordingExcluded(false);
+                    }}
+                    className="touch-target-min inline-flex min-h-14 items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-gray-800 disabled:opacity-50"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                    <span>Volver a vincular grabación</span>
                   </button>
                 </div>
               )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { ActionConfirmationModal } from '@/components/ActionConfirmationModal';
 import { useMediaCapture } from '@/context/MediaCaptureContext';
 import { sha256 } from '@/lib/recording/contracts';
 import { MAX_REPORT_ATTACHMENTS, type SanitizationSummary, type SanitizedMime } from '@/lib/report/contracts';
@@ -63,6 +64,10 @@ export function EvidenceSanitizerSection({
   const [recordingVoice, setRecordingVoice] = useState(false);
   const [statusNote, setStatusNote] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [pendingRemovalId, setPendingRemovalId] = useState<string | null>(null);
+  const pendingAttachment = pendingRemovalId
+    ? attachments.find((item) => item.id === pendingRemovalId && !item.uploadedReceipt) ?? null
+    : null;
   const { registerCapture, updateCapturePhase } = useMediaCapture();
   const unregisterCaptureRef = useRef<(() => void) | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -407,8 +412,9 @@ export function EvidenceSanitizerSection({
                   </a>
                   <button
                     type="button"
+                    data-testid={`remove-evidence-file-${item.id}`}
                     disabled={disabled || Boolean(item.uploadedReceipt)}
-                    onClick={() => onRemoveAttachment(item.id)}
+                    onClick={() => setPendingRemovalId(item.id)}
                     className={`${control} text-sm bg-gray-900 text-red-200 hover:bg-red-950/60`}
                   >
                     Retirar archivo
@@ -453,6 +459,45 @@ export function EvidenceSanitizerSection({
           className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 font-mono text-sm text-white"
         />
       </div>
+
+      {pendingAttachment && (
+        <ActionConfirmationModal
+          isOpen
+          tone="danger"
+          title="Revisar antes de eliminar esta evidencia"
+          actionSummary="Se eliminará el archivo preparado del borrador actual en tu navegador."
+          itemDetails={[
+            { label: 'Archivo', value: pendingAttachment.fileName, sensitive: true },
+            {
+              label: 'Formato y tamaño',
+              value: `${pendingAttachment.mime} · ${(pendingAttachment.bytes.byteLength / 1024).toFixed(1)} KiB`,
+              tabular: true,
+            },
+            {
+              label: 'Huella SHA-256',
+              value: `${pendingAttachment.sha256.slice(0, 24)}…`,
+              sensitive: true,
+              tabular: true,
+            },
+            {
+              label: 'Origen',
+              value:
+                pendingAttachment.mime === 'audio/wav'
+                  ? 'Audio higienizado o nota de voz grabada en el navegador'
+                  : 'Imagen higienizada en tu navegador',
+            },
+          ]}
+          consequence="Si confirmas, este archivo limpio se descartará de la memoria de esta pestaña y no se enviará con la denuncia. Si es una nota de voz grabada aquí y no descargaste copia, no se podrá recuperar."
+          cancelLabel="Cancelar y conservar archivo"
+          confirmLabel="Confirmar y eliminar archivo"
+          onCancel={() => setPendingRemovalId(null)}
+          onConfirm={() => {
+            const targetId = pendingAttachment.id;
+            setPendingRemovalId(null);
+            onRemoveAttachment(targetId);
+          }}
+        />
+      )}
     </div>
   );
 }

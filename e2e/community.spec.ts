@@ -109,6 +109,8 @@ test('captura real del navegador finaliza, libera micrófono y comparte solo dat
   await page.getByLabel('Comuna elegida').selectOption('10');
   await page.getByLabel('Categoría del ruido').selectOption('traffic');
   await page.getByRole('button', { name: 'Compartir observación' }).click();
+  await expect(page.getByTestId('confirm-action-dialog')).toBeVisible();
+  await page.getByTestId('confirm-action-submit').click();
   await expect(page.getByText('Observación recibida.', { exact: false })).toBeVisible();
   expect(Object.keys(JSON.parse(posts[0])).sort()).toEqual(['category', 'commune', 'day', 'requestId']);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -185,6 +187,8 @@ test('reintento después de perder confirmación mantiene payload y no duplica',
     else await route.fulfill({ response });
   });
   await page.getByRole('button', { name: 'Compartir observación' }).click();
+  await expect(page.getByTestId('confirm-action-dialog')).toBeVisible();
+  await page.getByTestId('confirm-action-submit').click();
   await expect(page.locator('.community-error')).toContainText('Confirmación perdida');
   await page.clock.setFixedTime(new Date(Date.now() + 86400000));
   await expect(page.getByLabel('Comuna elegida')).toBeDisabled();

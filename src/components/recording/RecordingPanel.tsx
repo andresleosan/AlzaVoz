@@ -13,6 +13,7 @@ import { createSession, recoverSession } from '@/lib/recording/client';
 import { ClipRecorder, emptyCapture, type CaptureState } from '@/lib/recording/recorder';
 import type { CaptureMode, RecordingSession } from '@/lib/recording/contracts';
 import { RecordingPlayback } from '@/components/recording/RecordingPlayback';
+import { ActionConfirmationModal } from '@/components/ActionConfirmationModal';
 
 const KEY = 'alzavoz_recording_key';
 const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
@@ -28,6 +29,8 @@ export function RecordingPanel() {
   const [error, setError] = useState('');
   const [key, setKey] = useState('');
   const [note, setNote] = useState('');
+  const [hasCopiedKey, setHasCopiedKey] = useState(false);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const controller = useRef<ClipRecorder | null>(null);
   const operation = useRef<AbortController | null>(null);
   const preview = useRef<HTMLVideoElement | null>(null);
@@ -47,6 +50,7 @@ export function RecordingPanel() {
     clearCapture();
     try { sessionStorage.removeItem(KEY); } catch { /* No persistent key to clear. */ }
     setSession(null); setState(emptyCapture()); setKey(''); setNote(''); setError('');
+    setHasCopiedKey(false); setIsResetConfirmOpen(false);
   }, [clearCapture]);
 
   useEffect(() => {
@@ -140,8 +144,23 @@ export function RecordingPanel() {
     } catch (cause) { if (!abort.signal.aborted) setError(cause instanceof Error ? cause.message : 'No se pudo recuperar.'); }
     finally { if (!abort.signal.aborted) setBusy(false); locked.current = false; }
   }
-  function reset() {
-    resetRecordingSession();
+  async function copyRecoveryKey() {
+    if (!recoveryKey) return;
+    try {
+      await navigator.clipboard.writeText(recoveryKey);
+      setHasCopiedKey(true);
+      setError('');
+      setNote('Clave copiada. Guárdala en un lugar privado.');
+    } catch {
+      setError('No se pudo copiar. Selecciona la clave en el campo y cópiala manualmente.');
+    }
+  }
+  function handleRequestReset() {
+    if (state.clips.length === 0) {
+      resetRecordingSession();
+      return;
+    }
+    setIsResetConfirmOpen(true);
   }
 
   const liveLabel = statusLabel !== 'Cámara y micrófono apagados' && statusLabel !== 'Captura detenida'
@@ -180,7 +199,7 @@ export function RecordingPanel() {
         <p className="text-sm text-gray-300">Quien tenga esta clave podrá acceder a tu grabación. Cópiala en un lugar seguro antes de salir. No se envía a contactos ni crea una denuncia.</p>
         <label htmlFor="recording-key" className="block text-sm">Clave de recuperación</label>
         <input id="recording-key" data-sensitive="true" type="password" readOnly value={recoveryKey} className="min-h-14 w-full rounded-lg border border-gray-600 bg-gray-950 px-3 font-mono" />
-        <button type="button" className={`${control} w-full`} onClick={() => void navigator.clipboard.writeText(recoveryKey).then(() => setNote('Clave copiada. Guárdala en un lugar privado.')).catch(() => setError('No se pudo copiar. Selecciona la clave en el campo y cópiala manualmente.'))}>Copiar clave privada</button>
+        <button type="button" className={`${control} w-full`} onClick={() => void copyRecoveryKey()}>Copiar clave privada</button>
         <p className="text-sm text-gray-300">Acceso hasta {new Date(session.expiresAt).toLocaleString('es-CO')}. Entorno de prueba: no uses evidencia real. Salir no borra lo recibido ni tus descargas.</p>
       </div>}
       {session && state.clips.length > 0 && <RecordingPlayback key={session.id} session={{ ...session, completion: state.completion ?? session.completion }} clips={state.clips} active={active} disabled={busy} completionPending={state.completionPending} />}
@@ -188,7 +207,27 @@ export function RecordingPanel() {
         <label htmlFor="recovery-input" className="block">Pega la clave privada</label><input id="recovery-input" type="password" autoComplete="off" spellCheck={false} value={key} onChange={event => setKey(event.target.value)} className="min-h-14 w-full rounded-lg border border-gray-600 bg-gray-950 px-3" />
         <button className={`${control} w-full`} disabled={busy || !key}>Recuperar clips recibidos</button>
       </form></details>}
-      {session && !active && !pending.length && !state.completionPending && <button type="button" className={`${control} w-full`} disabled={busy} onClick={reset}>Nueva grabación · guarda la clave anterior</button>}
+      {session && !active && !pending.length && !state.completionPending && <button type="button" className={`${control} w-full`} disabled={busy} onClick={handleRequestReset}>Nueva grabación · guarda la clave anterior</button>}
+      {session && (
+        <ActionConfirmationModal
+          isOpen={isResetConfirmOpen && state.clips.length > 0}
+          tone="danger"
+          title="Revisar antes de descartar esta grabación"
+          actionSummary="Se limpiará la sesión actual de esta pantalla para preparar una nueva grabación."
+          itemDetails={[
+            { label: 'Sesión actual', value: `${session.id.slice(0, 12)}…`, sensitive: true, tabular: true },
+            { label: 'Evidencia capturada', value: `${state.clips.length} parte(s) capturadas · ${received.length} confirmadas en R2`, tabular: true },
+            { label: 'Clave privada', value: hasCopiedKey ? 'Copiada en esta sesión (verifica dónde la guardaste)' : 'Aún no pulsaste «Copiar clave privada» en esta pantalla' },
+          ]}
+          consequence="Al confirmar, esta pestaña borrará tu clave de recuperación y los clips de la pantalla y de sessionStorage. Lo ya recibido en R2 no se borra del servidor, pero sin haber guardado tu clave privada no podrás volver a abrirlo ni vincularlo a una denuncia."
+          secondaryAction={!hasCopiedKey ? { label: 'Copiar clave privada ahora', onClick: () => void copyRecoveryKey(), testId: 'copy-key-before-reset-btn' } : undefined}
+          statusNote={isResetConfirmOpen ? (note || error || undefined) : undefined}
+          cancelLabel="Cancelar y conservar grabación"
+          confirmLabel="Confirmar y descartar vista"
+          onCancel={() => setIsResetConfirmOpen(false)}
+          onConfirm={resetRecordingSession}
+        />
+      )}
       {!session && !active && (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-800 bg-[#111827] px-4 py-2 text-sm text-gray-200">
           <span>¿Quieres probar cámara y micrófono sin guardar ni enviar nada?</span>

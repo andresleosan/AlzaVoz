@@ -336,7 +336,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 19: Revisar acciones difíciles de deshacer
+### [x] Tarea 19: Revisar acciones difíciles de deshacer
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I009
 - **Prioridad original:** Esencial
@@ -344,7 +344,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T5, T8
 - **Criterios de Éxito:** Eliminar o publicar exige revisar el elemento y la consecuencia; cancelar conserva el estado y SOS no recibe fricción adicional.
 - **Verificación requerida:** E2E de cancelar y confirmar; regresión del acceso rápido a SOS y comprobación del objeto afectado.
-- **Plan:** docs/planes/T019.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T019.md (redactado, auditado y cerrado).
+- **Estado:** Completada y verificada (2026-11-22). Implementado `ActionConfirmationModal` (`src/components/ActionConfirmationModal.tsx`, portal accesible en `document.body` con foco inicial en Cancelar, trampa de teclado, `Escape`, `alzavoz:escape`, `Modo Antiespía` `data-sensitive="true"` y controles `>= 56 px`). Exige revisar el elemento exacto y la consecuencia antes de descartar sesiones con clips en `/record` (`RecordingPanel.tsx`, con copia directa de clave privada), eliminar evidencias en `/report` Paso 2 (`EvidenceSanitizerSection.tsx`) y publicar en `/search` (`SearchPanel.tsx`, `NoticeWizard`) o `/community` (`CommunityPanel.tsx`). En `/report` Paso 3 (`ConfidentialReportPanel.tsx`), `Retirar` y `Desvincular` en la vista previa son exclusiones reversibles (`Volver a incluir` / `Volver a vincular`) que no destruyen evidencias del Paso 2. Cancelar conserva intacto el estado con `0` peticiones ni borrados, y `/sos`, `Salir Rápido` e inicio/parada de `/record` conservan acceso inmediato sin fricción adicional. Verificada con `impeccable detect` (`[]`), `pnpm lint`, `tsc`, `pnpm build`, `pnpm test` (`157/157`), `pnpm build:pages` + `PLAYWRIGHT_PAGES=1` (`72/72`) y subagente `browser` (`1440px`/`390px`/`320px`).
 
 ---
 
