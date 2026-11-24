@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Scale,
   MessageSquareQuote,
@@ -11,8 +11,15 @@ import {
   AlertTriangle,
   ShieldCheck,
 } from "lucide-react";
+import { VoluntarySpeechControl } from "@/components/speech/VoluntarySpeechControl";
+import { buildLegalResponseSegments, type SpeechScope } from "@/lib/speech/readAloud";
 import { type LegalResponse } from "@/types/defender";
 import { useAppMode } from "@/context/AppModeContext";
+
+const LEGAL_SPEECH_SCOPES = [
+  { id: "full", label: "Resumen completo" },
+  { id: "script", label: "Solo guion" },
+] as const;
 
 interface LegalConsultationCardProps {
   response: LegalResponse;
@@ -26,6 +33,12 @@ export function LegalConsultationCard({
   const { triggerHaptic } = useAppMode();
   const [copiedScript, setCopiedScript] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [speechScope, setSpeechScope] = useState<SpeechScope>("full");
+
+  const speechSegments = useMemo(
+    () => buildLegalResponseSegments(response, speechScope),
+    [response, speechScope]
+  );
 
   const handleCopyScript = useCallback(async () => {
     triggerHaptic(40);
@@ -66,6 +79,16 @@ export function LegalConsultationCard({
           </span>
         </div>
       </div>
+
+      {/* Control voluntario de lectura en voz alta y alternativa silenciosa (T20) */}
+      <VoluntarySpeechControl
+        contextLabel={response.title}
+        contentKey={`${response.id}:${response.title}:${speechScope}`}
+        segments={speechSegments}
+        scopes={LEGAL_SPEECH_SCOPES}
+        activeScope={speechScope}
+        onScopeChange={setSpeechScope}
+      />
 
       {/* BLOQUE 1: CITA DE NORMA EXACTA */}
       <section

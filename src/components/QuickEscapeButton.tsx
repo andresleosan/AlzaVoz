@@ -3,6 +3,7 @@
 import { LogOut } from "lucide-react";
 import { useCallback } from "react";
 import { purgeSensitiveClientStorage } from "@/context/SharedDeviceContext";
+import { cancelBrowserSpeech } from "@/lib/speech/readAloud";
 
 interface QuickEscapeButtonProps {
   className?: string;
@@ -16,8 +17,9 @@ export function QuickEscapeButton({
   targetUrl = "https://www.google.com",
 }: QuickEscapeButtonProps) {
   const handleEscape = useCallback(() => {
-    // 1. Detener captura, limpiar estado en memoria y almacenamiento local de esta sesión
+    // 1. Detener captura, síntesis de voz, limpiar estado en memoria y almacenamiento local
     if (typeof window !== "undefined") {
+      cancelBrowserSpeech();
       try {
         window.dispatchEvent(new Event("alzavoz:escape"));
       } catch {

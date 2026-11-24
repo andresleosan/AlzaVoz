@@ -6,6 +6,7 @@ import { MediaCaptureProvider } from "@/context/MediaCaptureContext";
 import { PracticeModeProvider } from "@/context/PracticeModeContext";
 import { SharedDeviceProvider } from "@/context/SharedDeviceContext";
 import { QuickEscapeLimitsModal } from "@/components/QuickEscapeLimits";
+import { VoluntarySpeechStickyBar } from "@/components/speech/VoluntarySpeechControl";
 
 export const viewport: Viewport = {
   themeColor: "#06B6D4",
@@ -63,6 +64,7 @@ export default function RootLayout({
                   {children}
                 </div>
                 <QuickEscapeLimitsModal />
+                <VoluntarySpeechStickyBar />
               </PracticeModeProvider>
             </MediaCaptureProvider>
           </SharedDeviceProvider>

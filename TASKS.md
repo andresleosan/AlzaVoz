@@ -349,7 +349,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 20: Lectura voluntaria de indicaciones
+### [x] Tarea 20: Lectura voluntaria de indicaciones
 - **Área:** Seguridad personal y control
 - **Idea de origen:** I010
 - **Prioridad original:** Explorar
@@ -357,7 +357,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T4
 - **Criterios de Éxito:** El prototipo solo lee al solicitarlo, permite parar y conserva el texto; no emite audio al cargar.
 - **Verificación requerida:** Probar inicio, detención, navegación y falta de síntesis; documentar evaluación de utilidad y decisión de alcance.
-- **Plan:** docs/planes/T020.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T020.md (redactado, auditado y cerrado).
+- **Estado:** Completada y verificada (2026-11-23). Prototipo 100 % local en el navegador (`window.speechSynthesis`, 0 red) acotado a `/defender` (`LegalConsultationCard` con alcance `Resumen completo` / `Solo guion` y pasos procedimentales sin PII en `SoloLatasAssistant`), mediante `src/lib/speech/readAloud.ts`, `src/hooks/useVoluntarySpeech.ts` (`useSyncExternalStore`, cola de fragmentos `<= 220` caracteres, `activeUtteranceRef`, cancelación automática ante cambios de caso/paso/pestaña, `Modo Antiespía`, ruta/ocultamiento `<Activity>`, `pagehide`, `SHARED_SESSION_CLEAR_EVENT` y `alzavoz:escape`), `src/components/speech/VoluntarySpeechControl.tsx` (controles `>= 56 px`, región viva, alternativa silenciosa equivalente y barra flotante `VoluntarySpeechStickyBar` montada en `src/app/layout.tsx`) y cancelación síncrona en `QuickEscapeButton`. Verificada con `pnpm lint`, `tsc --noEmit`, `pnpm build`, `pnpm test` (`166/166`, incluidas `9/9` en `e2e/voluntary-speech.spec.ts`), `pnpm build:pages` + `PLAYWRIGHT_PAGES=1` (`26/26`) y subagente `browser` (`1440×900`, `390×844` y `320×720`, `0` consola/`0` red); evaluación y decisión de alcance acotada a `/defender` registradas en `docs/planes/T020.md`.
 
 ---
 

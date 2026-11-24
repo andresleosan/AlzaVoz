@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Camera,
   Car,
@@ -16,6 +16,8 @@ import {
   ShieldAlert,
   MapPin,
 } from "lucide-react";
+import { VoluntarySpeechControl } from "@/components/speech/VoluntarySpeechControl";
+import { buildSoloLatasStepSegments } from "@/lib/speech/readAloud";
 import { useAppMode } from "@/context/AppModeContext";
 import { type SoloLatasCrashData } from "@/types/defender";
 
@@ -23,6 +25,10 @@ export function SoloLatasAssistant() {
   const { triggerHaptic } = useAppMode();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [copiedActa, setCopiedActa] = useState(false);
+  const stepSpeechSegments = useMemo(
+    () => buildSoloLatasStepSegments(currentStep),
+    [currentStep]
+  );
 
   // Estado de Fotos Obligatorias (Paso 1)
   const [photos, setPhotos] = useState<{
@@ -207,6 +213,13 @@ https://alzavoz.pages.dev`;
           3. Acta Amistosa
         </div>
       </div>
+
+      {/* Lectura voluntaria de pasos sin pronunciar datos personales (T20) */}
+      <VoluntarySpeechControl
+        contextLabel={`Choques Solo Latas · Paso ${currentStep}`}
+        contentKey={`sololatas-step-${currentStep}`}
+        segments={stepSpeechSegments}
+      />
 
       {/* PASO 1: 4 FOTOS OBLIGATORIAS */}
       {currentStep === 1 && (
