@@ -90,6 +90,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
   // Notices data state
   const [notices, setNotices] = useState<NoticeSummary[]>([]);
   const [isLoadingNotices, setIsLoadingNotices] = useState(false);
+  const [noticesError, setNoticesError] = useState<string | null>(null);
   const [selectedNoticeTips, setSelectedNoticeTips] = useState<{ noticeId: string; tips: NoticeTip[] } | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
@@ -208,6 +209,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
   // View full report detail
   const handleOpenReport = async (code: string) => {
     setIsLoadingDetail(true);
+    setReportsError(null);
     try {
       const res = await fetch(`/api/admin/reports/${code}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -216,7 +218,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
       const data = (await res.json()) as { report: AdminReportDetail };
       setSelectedReport(data.report);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error al abrir expediente.');
+      setReportsError(err instanceof Error ? err.message : 'Error al abrir expediente.');
     } finally {
       setIsLoadingDetail(false);
     }
@@ -224,30 +226,30 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
 
   // View tips for a notice
   const handleViewNoticeTips = async (noticeId: string) => {
+    setNoticesError(null);
     try {
       const res = await fetch(`/api/admin/notices/${noticeId}/tips`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
-        const data = (await res.json()) as { tips: NoticeTip[] };
-        setSelectedNoticeTips({ noticeId, tips: data.tips || [] });
-      }
-    } catch {
-      alert('Error al consultar pistas.');
+      if (!res.ok) throw new Error('No se pudieron consultar las pistas.');
+      const data = (await res.json()) as { tips: NoticeTip[] };
+      setSelectedNoticeTips({ noticeId, tips: data.tips || [] });
+    } catch (err: unknown) {
+      setNoticesError(err instanceof Error ? err.message : 'Error al consultar pistas.');
     }
   };
 
   // Render Login Card if unauthenticated
   if (!token) {
     return (
-      <main className={styles.adminContainer} style={{ padding: '24px 16px' }}>
+      <div className={styles.adminContainer} style={{ padding: '24px 16px' }}>
         <div className={styles.loginCard}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{ background: 'rgba(239, 68, 68, 0.2)', padding: 10, borderRadius: 12 }}>
               <Lock size={26} color="#EF4444" aria-hidden="true" />
             </div>
             <div>
-              <h2>Panel de Gestión Autorizado</h2>
+              <h1>Panel de Gestión Autorizado</h1>
               <span className={styles.teamBadge}>Equipo Legal y de Acompañamiento</span>
             </div>
           </div>
@@ -259,7 +261,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
 
           {authError && (
             <div role="alert" style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #EF4444', color: '#FCA5A5', padding: 12, borderRadius: 8, marginBottom: 18, fontSize: '0.9rem' }}>
-              <AlertCircle size={16} style={{ display: 'inline', marginRight: 6 }} />
+              <AlertCircle size={16} style={{ display: 'inline', marginRight: 6 }} aria-hidden="true" />
               {authError}
             </div>
           )}
@@ -316,14 +318,14 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
             </button>
           </form>
         </div>
-      </main>
+      </div>
     );
   }
 
   // If viewing a single report detail
   if (selectedReport) {
     return (
-      <main className={styles.adminContainer} style={{ padding: '24px 16px' }}>
+      <div className={styles.adminContainer} style={{ padding: '24px 16px' }}>
         <AdminReportDetailView
           report={selectedReport}
           token={token}
@@ -339,7 +341,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
             );
           }}
         />
-      </main>
+      </div>
     );
   }
 
@@ -350,7 +352,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
   const countOficio = reports.filter((r) => r.status === 'oficio_tramitado').length;
 
   return (
-    <main className={styles.adminContainer} style={{ padding: '24px 16px' }}>
+    <div className={styles.adminContainer} style={{ padding: '24px 16px' }}>
       {/* Header */}
       <header className={styles.adminHeader}>
         <div className={styles.adminHeaderTitle}>
@@ -392,18 +394,20 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
       <nav className={styles.tabsBar} aria-label="Secciones del panel">
         <button
           type="button"
+          aria-pressed={activeTab === 'reports'}
           onClick={() => setActiveTab('reports')}
           className={`${styles.tabBtn} ${activeTab === 'reports' ? styles.tabBtnActive : ''}`}
         >
-          <FolderOpen size={18} style={{ display: 'inline', marginRight: 6 }} />
+          <FolderOpen size={18} style={{ display: 'inline', marginRight: 6 }} aria-hidden="true" />
           Expedientes de Denuncia ({totalReports})
         </button>
         <button
           type="button"
+          aria-pressed={activeTab === 'notices'}
           onClick={() => setActiveTab('notices')}
           className={`${styles.tabBtn} ${activeTab === 'notices' ? styles.tabBtnActive : ''}`}
         >
-          <MessageSquare size={18} style={{ display: 'inline', marginRight: 6 }} />
+          <MessageSquare size={18} style={{ display: 'inline', marginRight: 6 }} aria-hidden="true" />
           Avisos Comunitarios y Pistas ({notices.length})
         </button>
       </nav>
@@ -525,7 +529,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
                     onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                     style={{ width: '100%', paddingLeft: 38 }}
                   />
-                  <Search size={16} color="#9CA3AF" style={{ position: 'absolute', left: 12, top: 16 }} />
+                  <Search size={16} color="#9CA3AF" style={{ position: 'absolute', left: 12, top: 16 }} aria-hidden="true" />
                 </div>
               </div>
             </div>
@@ -534,19 +538,19 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
           {/* Reports Table */}
           {reportsError && (
             <div role="alert" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', color: '#FCA5A5', padding: 14, borderRadius: 10, marginBottom: 20 }}>
-              <AlertCircle size={18} style={{ display: 'inline', marginRight: 8 }} />
+              <AlertCircle size={18} style={{ display: 'inline', marginRight: 8 }} aria-hidden="true" />
               {reportsError}
             </div>
           )}
 
           {isLoadingReports ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF' }}>
-              <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 12px' }} />
+            <div role="status" style={{ padding: 40, textAlign: 'center', color: '#9CA3AF' }}>
+              <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 12px' }} aria-hidden="true" />
               <p>Cargando expedientes desde Cloudflare D1...</p>
             </div>
           ) : reports.length === 0 ? (
             <div style={{ background: '#111827', border: '1px solid #1F2937', borderRadius: 14, padding: 40, textAlign: 'center' }}>
-              <FolderOpen size={36} color="#6B7280" style={{ margin: '0 auto 12px' }} />
+              <FolderOpen size={36} color="#6B7280" style={{ margin: '0 auto 12px' }} aria-hidden="true" />
               <h3 style={{ fontSize: '1.1rem', margin: 0 }}>No se encontraron expedientes con los filtros seleccionados</h3>
               <p style={{ color: '#9CA3AF', fontSize: '0.9rem', marginTop: 8 }}>
                 Prueba ajustando los filtros de comuna, estado o término de búsqueda.
@@ -557,13 +561,13 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
               <table className={styles.reportsTable}>
                 <thead>
                   <tr>
-                    <th>Código</th>
-                    <th>Fecha</th>
-                    <th>Comuna</th>
-                    <th>Riesgo</th>
-                    <th>Estado</th>
-                    <th>Evidencias</th>
-                    <th>Acción</th>
+                    <th scope="col">Código</th>
+                    <th scope="col">Fecha</th>
+                    <th scope="col">Comuna</th>
+                    <th scope="col">Riesgo</th>
+                    <th scope="col">Estado</th>
+                    <th scope="col">Evidencias</th>
+                    <th scope="col">Acción</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -623,9 +627,16 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
             Avisos Comunitarios de Búsqueda y Pistas Anónimas
           </h2>
 
+          {noticesError && (
+            <div role="alert" style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', color: '#FCA5A5', padding: 14, borderRadius: 10, marginBottom: 20 }}>
+              <AlertCircle size={18} style={{ display: 'inline', marginRight: 8 }} aria-hidden="true" />
+              {noticesError}
+            </div>
+          )}
+
           {isLoadingNotices ? (
-            <div style={{ padding: 40, textAlign: 'center', color: '#9CA3AF' }}>
-              <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 12px' }} />
+            <div role="status" style={{ padding: 40, textAlign: 'center', color: '#9CA3AF' }}>
+              <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 12px' }} aria-hidden="true" />
               <p>Consultando avisos...</p>
             </div>
           ) : notices.length === 0 ? (
@@ -730,6 +741,6 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
           )}
         </section>
       )}
-    </main>
+    </div>
   );
 }

@@ -113,7 +113,7 @@ export function CommunityPanel() {
         </fieldset>}
         {result && !sent && <>
           <p className="community-note">Al compartir, envías solo comuna, categoría y día, con un código aleatorio para evitar duplicados. No enviamos audio, lectura, GPS ni dirección. Se cuentan avisos de 30 días; no es una denuncia ni un envío a autoridades.</p>
-          <button className="community-primary" disabled={!commune || sending} onClick={handleRequestShare}>{sending ? 'Confirmando…' : attempted ? 'Reintentar envío' : 'Compartir observación'}</button>
+          <button type="button" className="community-primary" disabled={!commune || sending} onClick={handleRequestShare}>{sending ? 'Confirmando…' : attempted ? 'Reintentar envío' : 'Compartir observación'}</button>
         </>}
         <ActionConfirmationModal
           isOpen={isShareConfirmOpen && Boolean(result && commune && !sent)}
@@ -137,8 +137,8 @@ export function CommunityPanel() {
         />
         {sent && <p role="status" className="community-success">Observación recibida. El mapa muestra el recuento agregado.</p>}
         <div className="community-capture-actions">
-          {active ? <button className="community-secondary" onClick={() => controller.current?.abort()}><Square size={20} aria-hidden="true" />Cancelar observación</button> :
-            <button className="community-primary" disabled={sending} onClick={() => void start()}><Mic size={20} aria-hidden="true" />{result ? 'Observar de nuevo' : 'Observar 15 segundos'}</button>}
+          {active ? <button type="button" className="community-secondary" onClick={() => controller.current?.abort()}><Square size={20} aria-hidden="true" />Cancelar observación</button> :
+            <button type="button" className="community-primary" disabled={sending} onClick={() => void start()}><Mic size={20} aria-hidden="true" />{result ? 'Observar de nuevo' : 'Observar 15 segundos'}</button>}
         </div>
       </section>
       <CommunityMap key={revision} />

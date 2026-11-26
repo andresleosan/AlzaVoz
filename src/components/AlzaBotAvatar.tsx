@@ -132,14 +132,17 @@ export function AlzaBotAvatar({
       className={`relative inline-flex items-center justify-center overflow-visible bg-gray-950 transition-all duration-300 ring-2 ${
         theme.ring
       } ${sizeConfig.container} ${
-        interactive ? "cursor-pointer active:scale-95 focus:outline-none focus:ring-4" : ""
+        interactive
+          ? "cursor-pointer active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-cyan-300"
+          : ""
       } ${className}`}
     >
       {/* Contenedor de la imagen con esquinas redondeadas */}
       <div className="relative w-full h-full rounded-[inherit] overflow-hidden">
         <Image
           src={config.imageSrc}
-          alt={config.name}
+          alt=""
+          aria-hidden="true"
           width={sizeConfig.px}
           height={sizeConfig.px}
           className="w-full h-full object-cover select-none transition-transform duration-500 hover:scale-105"

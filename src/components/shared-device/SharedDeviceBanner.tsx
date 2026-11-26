@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { Info, ShieldAlert, ShieldCheck, Trash2, X } from 'lucide-react';
 import { useAppMode } from '@/context/AppModeContext';
 import { useSharedDevice } from '@/context/SharedDeviceContext';
 import { QuickEscapeButton } from '@/components/QuickEscapeButton';
+import { useDialogFocusTrap } from '@/hooks/useDialogFocusTrap';
 
 export function SharedDeviceBanner() {
   const { isSharedDevice, exitAndClearSharedSession, openExternalRecordsGuide } = useSharedDevice();
@@ -107,19 +108,15 @@ export function SharedDeviceToggle({ className = '' }: { className?: string }) {
 
 export function SharedDeviceExitModal() {
   const { isExitModalOpen, exitModalMode, closeExitModal } = useSharedDevice();
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const confirmButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    if (!isExitModalOpen) return;
-    confirmButtonRef.current?.focus();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeExitModal();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isExitModalOpen, closeExitModal]);
+  useDialogFocusTrap({
+    isOpen: isExitModalOpen,
+    dialogRef,
+    initialFocusRef: confirmButtonRef,
+    onClose: closeExitModal,
+  });
 
   if (!isExitModalOpen) {
     return null;
@@ -132,10 +129,15 @@ export function SharedDeviceExitModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="shared-device-modal-title"
+      aria-describedby="shared-device-modal-summary"
       data-testid="shared-device-exit-modal"
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/85 p-4 pb-24 sm:pb-4 backdrop-blur-sm"
     >
-      <div className="relative w-full max-w-xl max-h-[88vh] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-5 sm:p-6 text-gray-100 shadow-2xl space-y-4">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative w-full max-w-xl max-h-[88vh] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-5 sm:p-6 text-gray-100 shadow-2xl space-y-4 focus:outline-none"
+      >
         <div className="flex items-start justify-between gap-3 border-b border-gray-700 pb-3.5">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
@@ -163,11 +165,20 @@ export function SharedDeviceExitModal() {
             type="button"
             onClick={closeExitModal}
             aria-label="Cerrar aviso de sesión compartida"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-cyan-300"
+            className="touch-target-min flex min-h-14 min-w-14 shrink-0 items-center justify-center rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-cyan-300"
           >
             <X size={20} aria-hidden="true" />
           </button>
         </div>
+
+        <p
+          id="shared-device-modal-summary"
+          className="text-xs sm:text-sm leading-relaxed text-gray-200"
+        >
+          {isExited
+            ? 'AlzaVoz eliminó los borradores de esta pestaña y las claves temporales. Revisa también qué registros externos podrían permanecer en el dispositivo.'
+            : 'Esta sesión no guarda borradores ni claves en el navegador, aunque algunos rastros del dispositivo o canales externos permanecen fuera de la aplicación.'}
+        </p>
 
         <div
           data-testid="shared-exit-cleared-list"

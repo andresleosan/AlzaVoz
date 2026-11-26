@@ -165,7 +165,7 @@ export function SosEmergencyPanel() {
                   aria-label="Simulación: Llamar a Emergencias Policía 123 ahora"
                   className="touch-target-min flex h-36 w-36 flex-col items-center justify-center rounded-full bg-amber-600 text-white transition-colors hover:bg-amber-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-amber-700"
                 >
-                  <ShieldAlert className="h-10 w-10 text-white" />
+                  <ShieldAlert className="h-10 w-10 text-white" aria-hidden="true" />
                   <span className="text-2xl font-bold text-white">
                     SOS 123
                   </span>
@@ -180,7 +180,7 @@ export function SosEmergencyPanel() {
                   aria-label="Llamar a Emergencias Policía 123 ahora"
                   className="touch-target-min flex h-36 w-36 flex-col items-center justify-center rounded-full bg-red-600 text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-red-700"
                 >
-                  <ShieldAlert className="h-10 w-10 text-white" />
+                  <ShieldAlert className="h-10 w-10 text-white" aria-hidden="true" />
                   <span className="text-2xl font-bold text-white">
                     SOS 123
                   </span>
@@ -221,7 +221,7 @@ export function SosEmergencyPanel() {
               }}
               className="touch-target-min flex items-center justify-center gap-2.5 rounded-xl bg-emerald-800 p-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
             >
-              <MessageCircle className="w-5 h-5 text-white" />
+              <MessageCircle className="w-5 h-5 text-white" aria-hidden="true" />
               <span>Alerta Silenciosa WhatsApp (Simulación)</span>
             </button>
           ) : (
@@ -232,7 +232,7 @@ export function SosEmergencyPanel() {
               onClick={() => triggerHaptic(50)}
               className="touch-target-min flex items-center justify-center gap-2.5 rounded-xl bg-emerald-800 p-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
             >
-              <MessageCircle className="w-5 h-5 text-white" />
+              <MessageCircle className="w-5 h-5 text-white" aria-hidden="true" />
               <span>Alerta Silenciosa WhatsApp</span>
             </a>
           )}
@@ -241,31 +241,45 @@ export function SosEmergencyPanel() {
             type="button"
             data-testid="btn-open-sos-preview"
             onClick={() => handleOpenPreview("broadcast")}
-            aria-label="Revisar destinatarios y precisión antes de compartir"
+            aria-label="Vista previa de lo que se comparte: revisar destinatarios y precisión antes de enviar"
             className="touch-target-min flex items-center justify-center gap-2 rounded-xl border border-red-800/80 bg-red-950/40 p-3 text-sm font-semibold text-red-200 hover:bg-red-900/50 transition-colors"
           >
-            <Eye className="w-4 h-4 text-red-400" />
+            <Eye className="w-4 h-4 text-red-400" aria-hidden="true" />
             <span>Vista previa de lo que se comparte</span>
           </button>
 
           <button
             type="button"
             onClick={() => handleOpenPreview("broadcast")}
-            aria-label="Compartir alerta de ubicación a todas las redes"
+            aria-label={
+              shareSuccess
+                ? "¡Alerta Difundida! Compartir alerta de ubicación nuevamente"
+                : "Difundir a Contactos: compartir alerta de ubicación"
+            }
             className="touch-target-min flex items-center justify-center gap-2 rounded-xl border border-gray-700 bg-gray-900 p-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-gray-800"
           >
             {shareSuccess ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
                 <span className="text-emerald-400">¡Alerta Difundida!</span>
               </>
             ) : (
               <>
-                <Share2 className="w-4 h-4 text-gray-300" />
+                <Share2 className="w-4 h-4 text-gray-300" aria-hidden="true" />
                 <span>Difundir a Contactos</span>
               </>
             )}
           </button>
+          <div
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+            data-testid="sos-share-live-status"
+          >
+            {shareSuccess
+              ? "Alerta SOS preparada para compartir con los destinatarios elegidos."
+              : ""}
+          </div>
         </section>
 
         {/* 3. LECTURA GIGANTE PARA EL 123 (DIRECCIÓN, BARRIO & GPS) */}
@@ -307,10 +321,10 @@ export function SosEmergencyPanel() {
         >
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className="mb-3 flex items-center gap-2">
-              <Volume2 className="h-5 w-5 shrink-0 text-gray-400" />
-              <h3 className="text-base font-semibold text-white">
+              <Volume2 className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
+              <h2 className="text-base font-semibold text-white">
                 Guía Táctica Alza Bot (Al llamar al 123)
-              </h3>
+              </h2>
             </div>
 
             <ul className="space-y-3 text-sm leading-relaxed text-gray-300">

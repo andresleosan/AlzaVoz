@@ -38,7 +38,7 @@ export function CommunityMap() {
       </select>
     </label>
     {state === 'loading' && <p role="status">Consultando observaciones…</p>}
-    {state === 'error' && <div role="alert"><p>No se pudo consultar el mapa. No significa que haya cero observaciones.</p><button className="community-secondary" onClick={() => { setState('loading'); setRetry(value => value + 1); }}>Reintentar mapa</button></div>}
+    {state === 'error' && <div role="alert"><p>No se pudo consultar el mapa. No significa que haya cero observaciones.</p><button type="button" className="community-secondary" onClick={() => { setState('loading'); setRetry(value => value + 1); }}>Reintentar mapa</button></div>}
     <svg viewBox="0 0 420 450" role="img" aria-labelledby="commune-map-caption" className="commune-map">
       <title id="commune-map-caption">Mapa esquemático de las 16 comunas de Medellín</title>
       <text x="25" y="25" fill="currentColor">Norte ↑</text>

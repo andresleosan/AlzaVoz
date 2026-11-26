@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { AlertTriangle, Globe, Trash2, X } from 'lucide-react';
 import { useAppMode } from '@/context/AppModeContext';
 import { SHARED_SESSION_CLEAR_EVENT } from '@/context/SharedDeviceContext';
+import { useDialogFocusTrap } from '@/hooks/useDialogFocusTrap';
 
 export interface ConfirmationDetailItem {
   label: string;
@@ -37,9 +38,6 @@ export interface ActionConfirmationModalProps {
   onConfirm: () => void;
 }
 
-const FOCUSABLE_SELECTOR =
-  'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])';
-
 export function ActionConfirmationModal({
   isOpen,
   tone,
@@ -61,72 +59,33 @@ export function ActionConfirmationModal({
   const descriptionId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const cancelButtonRef = useRef<HTMLButtonElement | null>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
   const onCancelRef = useRef(onCancel);
-  const busyRef = useRef(busy);
 
   useEffect(() => {
     onCancelRef.current = onCancel;
   }, [onCancel]);
 
-  useEffect(() => {
-    busyRef.current = busy;
-  }, [busy]);
+  useDialogFocusTrap({
+    isOpen,
+    dialogRef,
+    initialFocusRef: cancelButtonRef,
+    onClose: () => onCancelRef.current(),
+    closeDisabled: busy,
+  });
 
   useEffect(() => {
     if (!isOpen) return;
-
-    previousFocusRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-
-    // Focus Cancel by default so accidental double Enter/Space does not confirm a hard-to-undo action.
-    const focusTimer = window.setTimeout(() => {
-      cancelButtonRef.current?.focus();
-    }, 0);
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        if (!busyRef.current) {
-          event.preventDefault();
-          onCancelRef.current();
-        }
-        return;
-      }
-
-      if (event.key !== 'Tab' || !dialogRef.current) return;
-      const focusables = Array.from(
-        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)
-      ).filter((el) => el.offsetParent !== null || el === document.activeElement);
-
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-
-      if (event.shiftKey && document.activeElement === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
 
     const handleSystemClear = () => {
       onCancelRef.current();
     };
 
-    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('alzavoz:escape', handleSystemClear);
     window.addEventListener(SHARED_SESSION_CLEAR_EVENT, handleSystemClear);
 
     return () => {
-      window.clearTimeout(focusTimer);
-      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('alzavoz:escape', handleSystemClear);
       window.removeEventListener(SHARED_SESSION_CLEAR_EVENT, handleSystemClear);
-      if (previousFocusRef.current && previousFocusRef.current.isConnected) {
-        previousFocusRef.current.focus();
-      }
     };
   }, [isOpen]);
 
@@ -157,7 +116,8 @@ export function ActionConfirmationModal({
       >
         <div
           ref={dialogRef}
-          className={`relative w-full max-w-lg max-h-[86vh] overflow-y-auto rounded-2xl border bg-[#111827] p-5 sm:p-6 text-[#F9FAFB] shadow-2xl space-y-4 ${
+          tabIndex={-1}
+          className={`relative w-full max-w-lg max-h-[86vh] overflow-y-auto rounded-2xl border bg-[#111827] p-5 sm:p-6 text-[#F9FAFB] shadow-2xl space-y-4 focus:outline-none ${
             isDanger ? 'border-red-500/70' : 'border-emerald-400/70'
           }`}
         >

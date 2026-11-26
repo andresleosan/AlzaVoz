@@ -1,25 +1,21 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { usePracticeMode } from '@/context/PracticeModeContext';
+import { useDialogFocusTrap } from '@/hooks/useDialogFocusTrap';
 import { PhoneCall, Send, Info, X } from 'lucide-react';
 
 export function PracticeSimulationModal() {
   const { simulationModal, closeSimulationModal } = usePracticeMode();
+  const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
-  useEffect(() => {
-    if (simulationModal) {
-      closeButtonRef.current?.focus();
-      const onKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
-          closeSimulationModal();
-        }
-      };
-      window.addEventListener('keydown', onKeyDown);
-      return () => window.removeEventListener('keydown', onKeyDown);
-    }
-  }, [simulationModal, closeSimulationModal]);
+  useDialogFocusTrap({
+    isOpen: Boolean(simulationModal),
+    dialogRef,
+    initialFocusRef: closeButtonRef,
+    onClose: closeSimulationModal,
+  });
 
   if (!simulationModal) {
     return null;
@@ -32,10 +28,15 @@ export function PracticeSimulationModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="simulation-modal-title"
+      aria-describedby="simulation-modal-description"
       data-testid="practice-simulation-modal"
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/80 p-4 pb-24 sm:pb-4 backdrop-blur-sm animate-fade-in"
     >
-      <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-2 border-amber-500/80 bg-[#111827] p-5 sm:p-6 text-white shadow-2xl space-y-4">
+      <div
+        ref={dialogRef}
+        tabIndex={-1}
+        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-2 border-amber-500/80 bg-[#111827] p-5 sm:p-6 text-white shadow-2xl space-y-4 focus:outline-none"
+      >
         {/* Encabezado con badge pedagógico */}
         <div className="flex items-start justify-between gap-3 border-b border-gray-700/80 pb-3.5">
           <div className="flex items-center gap-3">
@@ -56,14 +57,14 @@ export function PracticeSimulationModal() {
             type="button"
             onClick={closeSimulationModal}
             aria-label="Cerrar ventana de simulación"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-gray-400 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-amber-300"
+            className="touch-target-min flex min-h-14 min-w-14 shrink-0 items-center justify-center rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-amber-300"
           >
             <X size={20} aria-hidden="true" />
           </button>
         </div>
 
         {/* Explicación principal */}
-        <p className="text-sm leading-relaxed text-gray-200">
+        <p id="simulation-modal-description" className="text-sm leading-relaxed text-gray-200">
           {simulationModal.message}
         </p>
 
@@ -83,7 +84,7 @@ export function PracticeSimulationModal() {
             <ul className="text-xs space-y-1 text-gray-300">
               {simulationModal.recipients.map((r, i) => (
                 <li key={i} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                  <span className="h-1.5 w-1.5 rounded-full bg-amber-400" aria-hidden="true" />
                   <span>{r}</span>
                 </li>
               ))}

@@ -38,6 +38,7 @@ export function LegalDefenderPanel({
   const [selectedPresetId, setSelectedPresetId] = useState<string>(initialPresetId);
   const [prevPresetId, setPrevPresetId] = useState(initialPresetId);
   const [isLoading, setIsLoading] = useState(false);
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
   const [, startTransition] = useTransition();
 
   // Sincronizar preset inicial si cambia por navegación externa
@@ -53,18 +54,18 @@ export function LegalDefenderPanel({
   const renderPresetIcon = (iconName: LegalPreset["iconName"]) => {
     switch (iconName) {
       case "Camera":
-        return <Camera className="w-5 h-5 text-amber-400 shrink-0" />;
+        return <Camera className="w-5 h-5 text-amber-400 shrink-0" aria-hidden="true" />;
       case "Car":
-        return <Car className="w-5 h-5 text-red-400 shrink-0" />;
+        return <Car className="w-5 h-5 text-red-400 shrink-0" aria-hidden="true" />;
       case "FileText":
-        return <FileText className="w-5 h-5 text-emerald-400 shrink-0" />;
+        return <FileText className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />;
       case "Wine":
-        return <Wine className="w-5 h-5 text-purple-400 shrink-0" />;
+        return <Wine className="w-5 h-5 text-purple-400 shrink-0" aria-hidden="true" />;
       case "UserCheck":
-        return <UserCheck className="w-5 h-5 text-cyan-400 shrink-0" />;
+        return <UserCheck className="w-5 h-5 text-cyan-400 shrink-0" aria-hidden="true" />;
       case "ShieldAlert":
       default:
-        return <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" />;
+        return <ShieldAlert className="w-5 h-5 text-red-400 shrink-0" aria-hidden="true" />;
     }
   };
 
@@ -78,6 +79,7 @@ export function LegalDefenderPanel({
       const localDirect = LEGAL_RESPONSES_REPOSITORY[preset.id];
       if (localDirect) {
         setActiveResponse(localDirect);
+        setLiveAnnouncement(`Consulta jurídica cargada: ${localDirect.title}.`);
         return;
       }
 
@@ -92,11 +94,16 @@ export function LegalDefenderPanel({
         if (res.ok) {
           const data = (await res.json()) as LegalResponse;
           startTransition(() => setActiveResponse(data));
+          setLiveAnnouncement(`Consulta jurídica cargada: ${data.title}.`);
         } else {
-          setActiveResponse(findLocalLegalResponse(preset.query));
+          const fallback = findLocalLegalResponse(preset.query);
+          setActiveResponse(fallback);
+          setLiveAnnouncement(`Consulta jurídica cargada: ${fallback.title}.`);
         }
       } catch {
-        setActiveResponse(findLocalLegalResponse(preset.query));
+        const fallback = findLocalLegalResponse(preset.query);
+        setActiveResponse(fallback);
+        setLiveAnnouncement(`Consulta jurídica cargada: ${fallback.title}.`);
       } finally {
         setIsLoading(false);
       }
@@ -124,11 +131,16 @@ export function LegalDefenderPanel({
         if (res.ok) {
           const data = (await res.json()) as LegalResponse;
           startTransition(() => setActiveResponse(data));
+          setLiveAnnouncement(`Consulta jurídica cargada: ${data.title}.`);
         } else {
-          setActiveResponse(findLocalLegalResponse(trimmed));
+          const fallback = findLocalLegalResponse(trimmed);
+          setActiveResponse(fallback);
+          setLiveAnnouncement(`Consulta jurídica cargada: ${fallback.title}.`);
         }
       } catch {
-        setActiveResponse(findLocalLegalResponse(trimmed));
+        const fallback = findLocalLegalResponse(trimmed);
+        setActiveResponse(fallback);
+        setLiveAnnouncement(`Consulta jurídica cargada: ${fallback.title}.`);
       } finally {
         setIsLoading(false);
       }
@@ -143,6 +155,14 @@ export function LegalDefenderPanel({
       aria-label="Defensor Legal en Vivo y Choques Solo Latas"
       className={`space-y-6 ${className}`}
     >
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        data-testid="defender-live-status"
+      >
+        {liveAnnouncement}
+      </div>
       {/* Banner Principal del Defensor Legal */}
       <div className="space-y-2">
         <h1 className="text-2xl font-semibold text-white sm:text-3xl">
@@ -160,6 +180,7 @@ export function LegalDefenderPanel({
           onClick={() => {
             triggerHaptic(30);
             setActiveTab("consultor");
+            setLiveAnnouncement("Pestaña activa: Consultor Retenes.");
           }}
           aria-pressed={activeTab === "consultor"}
           className={`touch-target-min flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
@@ -168,7 +189,7 @@ export function LegalDefenderPanel({
               : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/40"
           }`}
         >
-          <Scale className="w-4 h-4" />
+          <Scale className="w-4 h-4" aria-hidden="true" />
           <span>Consultor Retenes</span>
         </button>
 
@@ -177,6 +198,7 @@ export function LegalDefenderPanel({
           onClick={() => {
             triggerHaptic(30);
             setActiveTab("sololatas");
+            setLiveAnnouncement("Pestaña activa: Choques Solo Latas.");
           }}
           aria-pressed={activeTab === "sololatas"}
           className={`touch-target-min flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${
@@ -185,7 +207,7 @@ export function LegalDefenderPanel({
               : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/40"
           }`}
         >
-          <Car className="w-4 h-4" />
+          <Car className="w-4 h-4" aria-hidden="true" />
           <span>Choques &quot;Solo Latas&quot;</span>
         </button>
       </div>
@@ -207,7 +229,7 @@ export function LegalDefenderPanel({
                   onChange={(e) => setUserQuery(e.target.value)}
                   placeholder="¿Qué te dice el policía o agente de tránsito?"
                   aria-label="Pregunta sobre retén o procedimiento policial"
-                  className="min-h-14 w-full rounded-xl border border-gray-700 bg-gray-900 px-3.5 pr-12 text-base text-white placeholder-gray-400 focus:border-red-400 focus:outline-none"
+                  className="min-h-14 w-full rounded-xl border border-gray-700 bg-gray-900 px-3.5 pr-12 text-base text-white placeholder-gray-400 focus:border-red-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
                 />
                 {userQuery && (
                   <button
@@ -216,7 +238,7 @@ export function LegalDefenderPanel({
                     aria-label="Borrar la pregunta"
                     className="absolute right-0 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center text-gray-400 hover:text-white"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-4 w-4" aria-hidden="true" />
                   </button>
                 )}
               </div>
@@ -232,9 +254,9 @@ export function LegalDefenderPanel({
                 }`}
               >
                 {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
                 ) : (
-                  <Search className="w-5 h-5" />
+                  <Search className="w-5 h-5" aria-hidden="true" />
                 )}
               </button>
             </form>
@@ -242,9 +264,9 @@ export function LegalDefenderPanel({
             {/* Presets Rápidos de 1 Toque (Ergonomía de Alto Estrés) */}
             <section aria-label="Casos Rápidos de Retén">
               <div className="mb-3">
-                <h3 className="text-base font-semibold text-white">
+                <h2 className="text-base font-semibold text-white">
                   Casos Frecuentes en Vía Pública
-                </h3>
+                </h2>
               </div>
 
               <div className="grid gap-2">
@@ -262,17 +284,17 @@ export function LegalDefenderPanel({
                           : "bg-gray-900/50 border-gray-800 text-gray-300 hover:bg-gray-800/60"
                       }`}
                     >
-                      <div className="flex w-6 shrink-0 items-center justify-center">
+                      <span className="flex w-6 shrink-0 items-center justify-center" aria-hidden="true">
                         {renderPresetIcon(preset.iconName)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold leading-snug">
+                      </span>
+                      <span className="block min-w-0 flex-1">
+                        <span className="block text-sm font-semibold leading-snug">
                           {preset.label}
-                        </p>
-                        <p className="mt-1 text-xs leading-relaxed text-gray-400">
+                        </span>
+                        <span className="mt-1 block text-xs leading-relaxed text-gray-400">
                           {preset.shortDescription}
-                        </p>
-                      </div>
+                        </span>
+                      </span>
                     </button>
                   );
                 })}
@@ -283,8 +305,11 @@ export function LegalDefenderPanel({
           <div className="min-w-0 space-y-6">
             {/* Renderizado de Asesoría en los 3 Bloques Obligatorios */}
             {isLoading ? (
-              <div className="rounded-2xl border border-red-500/40 bg-gray-900/60 p-8 flex flex-col items-center justify-center gap-3 text-center">
-                <Loader2 className="w-8 h-8 text-red-500 animate-spin" />
+              <div
+                role="status"
+                className="rounded-2xl border border-red-500/40 bg-gray-900/60 p-8 flex flex-col items-center justify-center gap-3 text-center"
+              >
+                <Loader2 className="w-8 h-8 text-red-500 animate-spin" aria-hidden="true" />
                 <p className="text-sm font-bold text-white">
                   Alza Bot analizando legislación colombiana...
                 </p>
@@ -299,7 +324,7 @@ export function LegalDefenderPanel({
             {/* Tip de Contacto Directo */}
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-800 pt-4 text-sm text-gray-400">
               <span className="flex items-center gap-1.5">
-                <HelpCircle className="w-4 h-4 text-cyan-400 shrink-0" />
+                <HelpCircle className="w-4 h-4 text-cyan-400 shrink-0" aria-hidden="true" />
                 ¿Arbitrariedad grave en retén? Documenta y solicita personero.
               </span>
               <button

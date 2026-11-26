@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   MapPin,
   Copy,
@@ -48,6 +48,10 @@ export function GiantLocationCard({
   const [manualNeighborhood, setManualNeighborhood] = useState<string>("");
   const [manualAddress, setManualAddress] = useState<string>("");
   const [manualError, setManualError] = useState<string | null>(null);
+  const [liveAnnouncement, setLiveAnnouncement] = useState<string>("");
+  const manualToggleRef = useRef<HTMLButtonElement | null>(null);
+  const manualCommuneRef = useRef<HTMLSelectElement | null>(null);
+  const manualAddressRef = useRef<HTMLInputElement | null>(null);
 
   const now = useNowTicker(location.timestamp !== null);
   const assessment = assessLocation({
@@ -78,11 +82,17 @@ export function GiantLocationCard({
 
   const handleCopy = async () => {
     triggerHaptic(40);
-    await onCopyText();
+    const copiedOk = await onCopyText();
+    setLiveAnnouncement(
+      copiedOk
+        ? "Información de ubicación copiada al portapapeles."
+        : "No se pudo copiar la ubicación automáticamente."
+    );
   };
 
   const handleRefresh = () => {
     triggerHaptic(30);
+    setLiveAnnouncement("Actualizando señal GPS del dispositivo.");
     onRefresh();
   };
 
@@ -91,6 +101,7 @@ export function GiantLocationCard({
     onSelectZone(zone);
     setShowZonePicker(false);
     setShowManualEditor(false);
+    setLiveAnnouncement(`Ubicación actualizada a ${zone.name}.`);
   };
 
   const openManualEditor = () => {
@@ -111,6 +122,17 @@ export function GiantLocationCard({
     );
     setManualError(null);
     setShowManualEditor(true);
+    window.setTimeout(() => {
+      manualCommuneRef.current?.focus();
+    }, 0);
+  };
+
+  const closeManualEditor = () => {
+    setShowManualEditor(false);
+    setManualError(null);
+    window.setTimeout(() => {
+      manualToggleRef.current?.focus();
+    }, 0);
   };
 
   const handleSaveManualCorrection = (e: React.FormEvent) => {
@@ -119,6 +141,9 @@ export function GiantLocationCard({
       setManualError(
         "Escribe una dirección, un barrio o elige una comuna para corregir tu ubicación."
       );
+      window.setTimeout(() => {
+        manualAddressRef.current?.focus();
+      }, 0);
       return;
     }
     const matchedZone = MEDELLIN_COMUNAS.find((z) => z.name === manualCommune);
@@ -131,6 +156,10 @@ export function GiantLocationCard({
     });
     setManualError(null);
     setShowManualEditor(false);
+    setLiveAnnouncement("Ubicación corregida manualmente.");
+    window.setTimeout(() => {
+      manualToggleRef.current?.focus();
+    }, 0);
   };
 
   const hasGps =
@@ -155,10 +184,19 @@ export function GiantLocationCard({
       aria-label="Ubicación GPS de Emergencia para el 123"
       className="min-w-0 space-y-5 rounded-2xl border border-gray-700 bg-gray-900/50 p-4 sm:p-5"
     >
+      <h2 className="sr-only">Ubicación para dictar al 123</h2>
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        data-testid="sos-location-live-status"
+      >
+        {liveAnnouncement}
+      </div>
       {/* Cabecera de Estado con Botón Refrescar */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-2 w-2 shrink-0">
+          <span className="flex h-2 w-2 shrink-0" aria-hidden="true">
             <span
               className={`inline-flex h-2 w-2 rounded-full ${
                 location.status === "loading"
@@ -185,6 +223,7 @@ export function GiantLocationCard({
           className="touch-target-min flex shrink-0 items-center justify-center rounded-lg bg-gray-800 text-gray-200 transition-colors hover:bg-gray-700 hover:text-white disabled:opacity-50"
         >
           <RefreshCw
+            aria-hidden="true"
             className={`w-4 h-4 ${
               location.status === "loading" ? "animate-spin text-amber-400" : ""
             }`}
@@ -194,7 +233,7 @@ export function GiantLocationCard({
 
       {/* Título de Instrucción Directa al Ciudadano Bajo Estrés */}
       <div className="flex items-start gap-2">
-        <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+        <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
         <p className="text-sm font-medium leading-relaxed text-gray-200">
           Confirma tu dirección o un punto cercano con el operador del 123.
         </p>
@@ -218,7 +257,7 @@ export function GiantLocationCard({
       {/* BLOQUE GIGANTE DE LECTURA (HIGH CONTRAST & TABULAR) */}
       <div className="space-y-4">
         <div className="flex items-start gap-2">
-          <MapPin className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" />
+          <MapPin className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
           <div className="min-w-0 flex-1">
             <span className="text-sm text-gray-300">
               Barrio / Comuna
@@ -270,12 +309,12 @@ export function GiantLocationCard({
         >
           {copied ? (
             <>
-              <Check className="w-5 h-5 text-black stroke-[3]" />
+              <Check className="w-5 h-5 text-black stroke-[3]" aria-hidden="true" />
               <span>¡Copiado al Portapapeles!</span>
             </>
           ) : (
             <>
-              <Copy className="w-5 h-5 text-black" />
+              <Copy className="w-5 h-5 text-black" aria-hidden="true" />
               <span>Copiar información de ubicación</span>
             </>
           )}
@@ -283,20 +322,22 @@ export function GiantLocationCard({
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           <button
+            ref={manualToggleRef}
             type="button"
             data-testid="sos-manual-correction-toggle"
             onClick={() => {
               if (showManualEditor) {
-                setShowManualEditor(false);
+                closeManualEditor();
               } else {
                 openManualEditor();
               }
             }}
             aria-expanded={showManualEditor}
+            aria-controls="sos-manual-correction-form"
             aria-label="Corregir ubicación o dirección manualmente"
             className="touch-target-min flex items-center justify-center gap-2 rounded-xl border border-amber-500/50 bg-amber-950/30 px-3 py-3 text-sm font-semibold text-amber-100 transition-colors hover:bg-amber-900/40"
           >
-            <PencilLine className="w-4 h-4 text-amber-300 shrink-0" />
+            <PencilLine className="w-4 h-4 text-amber-300 shrink-0" aria-hidden="true" />
             <span>Corregir ubicación</span>
           </button>
 
@@ -308,11 +349,13 @@ export function GiantLocationCard({
               setShowZonePicker(!showZonePicker);
             }}
             aria-expanded={showZonePicker}
+            aria-controls="sos-zone-picker-region"
             aria-label="Cambiar comuna manualmente"
             className="touch-target-min flex items-center justify-center gap-2 rounded-xl border border-gray-700 bg-gray-900 px-3 py-3 text-sm font-semibold text-gray-200 transition-colors hover:bg-gray-800"
           >
             <span>Elegir Comuna</span>
             <ChevronDown
+              aria-hidden="true"
               className={`w-4 h-4 transition-transform duration-200 ${
                 showZonePicker ? "rotate-180" : ""
               }`}
@@ -324,6 +367,7 @@ export function GiantLocationCard({
       {/* Editor inline de corrección manual (T17 / I007) */}
       {showManualEditor && (
         <form
+          id="sos-manual-correction-form"
           onSubmit={handleSaveManualCorrection}
           data-testid="sos-manual-correction-form"
           aria-label="Corrección manual de ubicación"
@@ -339,7 +383,11 @@ export function GiantLocationCard({
           </div>
 
           {manualError && (
-            <p role="alert" className="rounded-lg border border-red-500/60 bg-red-950/60 p-2.5 text-xs text-red-100">
+            <p
+              id="sos-manual-error"
+              role="alert"
+              className="rounded-lg border border-red-500/60 bg-red-950/60 p-2.5 text-xs text-red-100"
+            >
               {manualError}
             </p>
           )}
@@ -352,9 +400,15 @@ export function GiantLocationCard({
               Comuna o corregimiento (opcional)
             </label>
             <select
+              ref={manualCommuneRef}
               id="sos-manual-commune"
               value={manualCommune}
-              onChange={(e) => setManualCommune(e.target.value)}
+              aria-invalid={Boolean(manualError) || undefined}
+              aria-describedby={manualError ? "sos-manual-error" : undefined}
+              onChange={(e) => {
+                setManualCommune(e.target.value);
+                if (manualError) setManualError(null);
+              }}
               className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
             >
               <option value="">Sin especificar comuna</option>
@@ -380,7 +434,12 @@ export function GiantLocationCard({
               spellCheck={false}
               maxLength={120}
               value={manualNeighborhood}
-              onChange={(e) => setManualNeighborhood(e.target.value)}
+              aria-invalid={Boolean(manualError) || undefined}
+              aria-describedby={manualError ? "sos-manual-error" : undefined}
+              onChange={(e) => {
+                setManualNeighborhood(e.target.value);
+                if (manualError) setManualError(null);
+              }}
               placeholder="Ej: Provenza / Parque Lleras"
               className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white placeholder-gray-400"
             />
@@ -394,13 +453,19 @@ export function GiantLocationCard({
               Dirección exacta o punto de referencia
             </label>
             <input
+              ref={manualAddressRef}
               id="sos-manual-address"
               type="text"
               autoComplete="off"
               spellCheck={false}
               maxLength={160}
               value={manualAddress}
-              onChange={(e) => setManualAddress(e.target.value)}
+              aria-invalid={Boolean(manualError) || undefined}
+              aria-describedby={manualError ? "sos-manual-error" : undefined}
+              onChange={(e) => {
+                setManualAddress(e.target.value);
+                if (manualError) setManualError(null);
+              }}
               placeholder="Ej: Calle 10 con Cra 43A, frente a estación o CAI"
               className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white placeholder-gray-400"
             />
@@ -410,7 +475,7 @@ export function GiantLocationCard({
             <button
               type="button"
               data-testid="sos-manual-correction-cancel"
-              onClick={() => setShowManualEditor(false)}
+              onClick={closeManualEditor}
               className="min-h-14 rounded-xl border border-gray-700 bg-gray-900 px-3 text-sm font-semibold text-gray-200 hover:bg-gray-800"
             >
               Cancelar
@@ -429,6 +494,7 @@ export function GiantLocationCard({
       {/* Selector Rápido de las 16 Comunas de Medellín (Desplegable si falla GPS) */}
       {showZonePicker && (
         <div
+          id="sos-zone-picker-region"
           role="region"
           aria-label="Listado de Comunas de Medellín"
           className="max-h-72 space-y-3 overflow-y-auto border-t border-gray-700 pt-4"
@@ -443,6 +509,7 @@ export function GiantLocationCard({
                 <button
                   key={zone.number}
                   type="button"
+                  aria-pressed={isCurrent}
                   onClick={() => handleZoneSelect(zone)}
                   className={`touch-target-min rounded-lg p-3 text-left text-sm font-medium transition-colors ${
                     isCurrent
@@ -450,10 +517,10 @@ export function GiantLocationCard({
                       : "bg-gray-900/80 text-gray-200 hover:bg-gray-800 border border-gray-800/80"
                   }`}
                 >
-                  <p>{zone.name}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-gray-300">
+                  <span className="block">{zone.name}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-gray-300">
                     {zone.popularName}
-                  </p>
+                  </span>
                 </button>
               );
             })}

@@ -25,6 +25,7 @@ export function SoloLatasAssistant() {
   const { triggerHaptic } = useAppMode();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [copiedActa, setCopiedActa] = useState(false);
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
   const stepSpeechSegments = useMemo(
     () => buildSoloLatasStepSegments(currentStep),
     [currentStep]
@@ -138,6 +139,7 @@ https://alzavoz.pages.dev`;
     try {
       await navigator.clipboard.writeText(generateActaText());
       setCopiedActa(true);
+      setLiveAnnouncement("Acta rápida copiada al portapapeles.");
       setTimeout(() => setCopiedActa(false), 2500);
     } catch {
       // Manejar error silenciosamente
@@ -159,6 +161,7 @@ https://alzavoz.pages.dev`;
       platesAndDocs: false,
     });
     setCurrentStep(1);
+    setLiveAnnouncement("Asistente reiniciado al Paso 1 de 3: Fotos Obligatorias.");
   }, [triggerHaptic]);
 
   return (
@@ -166,6 +169,14 @@ https://alzavoz.pages.dev`;
       aria-label="Asistente de Choques Solo Latas"
       className="rounded-2xl border border-amber-500/40 bg-gray-900/90 shadow-[0_0_25px_rgba(245,158,11,0.2)] p-4 sm:p-5 pb-8 space-y-4 text-white mb-6"
     >
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        data-testid="sololatas-live-status"
+      >
+        {liveAnnouncement}
+      </div>
       {/* Cabecera y Alerta Legal */}
       <div className="border-b border-gray-800 pb-3">
         <div className="flex items-center gap-2 mb-1">
@@ -174,45 +185,51 @@ https://alzavoz.pages.dev`;
           </span>
           <span className="text-[10px] text-gray-400">Sin Heridos</span>
         </div>
-        <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-          <Car className="w-5 h-5 text-amber-400 shrink-0" />
+        <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+          <Car className="w-5 h-5 text-amber-400 shrink-0" aria-hidden="true" />
           <span>Asistente Choques &quot;Solo Latas&quot;</span>
-        </h3>
+        </h2>
         <p className="text-xs text-gray-300 mt-1 leading-relaxed">
           Toma las 4 fotos obligatorias, mueve los carros de la vía inmediatamente para evitar la multa de tránsito <strong>C.03 ($650.000 COP)</strong> y genera el acta para las aseguradoras.
         </p>
       </div>
 
       {/* Indicador de 3 Pasos */}
-      <div className="flex items-center justify-between gap-1 text-[11px] font-bold">
-        <div
+      <ol
+        aria-label="Pasos del asistente Choques Solo Latas"
+        className="flex items-center justify-between gap-1 text-[11px] font-bold"
+      >
+        <li
+          aria-current={currentStep === 1 ? "step" : undefined}
           className={`flex-1 py-1.5 px-2 rounded-lg text-center transition ${
             currentStep === 1
               ? "bg-amber-500/20 text-amber-300 border border-amber-500/50"
-              : "bg-black/30 text-gray-500"
+              : "bg-black/30 text-gray-400"
           }`}
         >
           1. Fotos Obligatorias
-        </div>
-        <div
+        </li>
+        <li
+          aria-current={currentStep === 2 ? "step" : undefined}
           className={`flex-1 py-1.5 px-2 rounded-lg text-center transition ${
             currentStep === 2
               ? "bg-amber-500/20 text-amber-300 border border-amber-500/50"
-              : "bg-black/30 text-gray-500"
+              : "bg-black/30 text-gray-400"
           }`}
         >
           2. Datos Conductores
-        </div>
-        <div
+        </li>
+        <li
+          aria-current={currentStep === 3 ? "step" : undefined}
           className={`flex-1 py-1.5 px-2 rounded-lg text-center transition ${
             currentStep === 3
               ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"
-              : "bg-black/30 text-gray-500"
+              : "bg-black/30 text-gray-400"
           }`}
         >
           3. Acta Amistosa
-        </div>
-      </div>
+        </li>
+      </ol>
 
       {/* Lectura voluntaria de pasos sin pronunciar datos personales (T20) */}
       <VoluntarySpeechControl
@@ -228,7 +245,7 @@ https://alzavoz.pages.dev`;
           className="space-y-3"
         >
           <div className="bg-amber-950/30 rounded-xl p-3 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200">
-            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
               <p className="font-bold">Regla de Oro Ley 2251:</p>
               <p className="text-[11px] text-gray-300">
@@ -249,19 +266,20 @@ https://alzavoz.pages.dev`;
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0">
                 <Camera
+                  aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
                     photos.panoramic ? "text-emerald-400" : "text-amber-400"
                   }`}
                 />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold truncate">1. Panorámica 360°</p>
-                  <p className="text-[10px] text-gray-400 truncate">Vía, carril y entorno</p>
-                </div>
-              </div>
+                <span className="block min-w-0">
+                  <span className="block text-xs font-bold truncate">1. Panorámica 360°</span>
+                  <span className="block text-[10px] text-gray-400 truncate">Vía, carril y entorno</span>
+                </span>
+              </span>
               {photos.panoramic ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
                 <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
@@ -280,19 +298,20 @@ https://alzavoz.pages.dev`;
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0">
                 <Car
+                  aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
                     photos.roadPosition ? "text-emerald-400" : "text-amber-400"
                   }`}
                 />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold truncate">2. Posición en Calzada</p>
-                  <p className="text-[10px] text-gray-400 truncate">Ubicación relativa</p>
-                </div>
-              </div>
+                <span className="block min-w-0">
+                  <span className="block text-xs font-bold truncate">2. Posición en Calzada</span>
+                  <span className="block text-[10px] text-gray-400 truncate">Ubicación relativa</span>
+                </span>
+              </span>
               {photos.roadPosition ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
                 <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
@@ -311,19 +330,20 @@ https://alzavoz.pages.dev`;
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0">
                 <ShieldAlert
+                  aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
                     photos.damageDetail ? "text-emerald-400" : "text-amber-400"
                   }`}
                 />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold truncate">3. Detalle de Daños</p>
-                  <p className="text-[10px] text-gray-400 truncate">Golpes y raspaduras</p>
-                </div>
-              </div>
+                <span className="block min-w-0">
+                  <span className="block text-xs font-bold truncate">3. Detalle de Daños</span>
+                  <span className="block text-[10px] text-gray-400 truncate">Golpes y raspaduras</span>
+                </span>
+              </span>
               {photos.damageDetail ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
                 <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
@@ -342,19 +362,20 @@ https://alzavoz.pages.dev`;
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0">
                 <FileCheck2
+                  aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
                     photos.platesAndDocs ? "text-emerald-400" : "text-amber-400"
                   }`}
                 />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold truncate">4. Placas y SOAT</p>
-                  <p className="text-[10px] text-gray-400 truncate">Ambos automotores</p>
-                </div>
-              </div>
+                <span className="block min-w-0">
+                  <span className="block text-xs font-bold truncate">4. Placas y SOAT</span>
+                  <span className="block text-[10px] text-gray-400 truncate">Ambos automotores</span>
+                </span>
+              </span>
               {photos.platesAndDocs ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
                 <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
@@ -368,6 +389,7 @@ https://alzavoz.pages.dev`;
             onClick={() => {
               triggerHaptic(40);
               setCurrentStep(2);
+              setLiveAnnouncement("Paso 2 de 3: Datos de Conductores.");
             }}
             disabled={!allPhotosTaken}
             className={`touch-target-min min-h-[56px] w-full flex items-center justify-center gap-2 rounded-xl text-sm font-bold shadow-lg transition active:scale-95 ${
@@ -389,7 +411,7 @@ https://alzavoz.pages.dev`;
                     ].filter(Boolean).length
                   } Fotos Obligatorias`}
             </span>
-            <ArrowRight className="w-5 h-5" />
+            <ArrowRight className="w-5 h-5" aria-hidden="true" />
           </button>
         </section>
       )}
@@ -402,7 +424,7 @@ https://alzavoz.pages.dev`;
         >
           <div className="bg-black/40 rounded-xl p-3 border border-gray-800 space-y-2">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-300">
-              <MapPin className="w-4 h-4 text-amber-400" />
+              <MapPin className="w-4 h-4 text-amber-400" aria-hidden="true" />
               <span>Lugar del Siniestro</span>
             </div>
             <input
@@ -413,13 +435,13 @@ https://alzavoz.pages.dev`;
               }
               aria-label="Dirección o vía del siniestro"
               placeholder="Ej: Calle 50 con Cra 65"
-              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-400"
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
             />
           </div>
 
           {/* Datos Vehículo A */}
           <div className="bg-black/40 rounded-xl p-3 border border-gray-800 space-y-2">
-            <h4 className="text-xs font-bold text-amber-300">Vehículo A (Tu Vehículo)</h4>
+            <h3 className="text-xs font-bold text-amber-300">Vehículo A (Tu Vehículo)</h3>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
@@ -432,7 +454,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Nombre Conductor A"
                 placeholder="Nombre completo"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -445,7 +467,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Placa Vehículo A"
                 placeholder="Placa (ej: ABC-123)"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-mono font-bold focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -460,7 +482,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Teléfono Conductor A"
                 placeholder="Celular"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -473,14 +495,14 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Aseguradora Conductor A"
                 placeholder="Aseguradora / SOAT"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
           </div>
 
           {/* Datos Vehículo B */}
           <div className="bg-black/40 rounded-xl p-3 border border-gray-800 space-y-2">
-            <h4 className="text-xs font-bold text-amber-300">Vehículo B (Contraparte)</h4>
+            <h3 className="text-xs font-bold text-amber-300">Vehículo B (Contraparte)</h3>
             <div className="grid grid-cols-2 gap-2">
               <input
                 type="text"
@@ -493,7 +515,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Nombre Conductor B"
                 placeholder="Nombre conductor contraparte"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -506,7 +528,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Placa Vehículo B"
                 placeholder="Placa (ej: XYZ-789)"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-mono font-bold focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-mono font-bold focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -521,7 +543,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Teléfono Conductor B"
                 placeholder="Celular contraparte"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -534,7 +556,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Aseguradora Conductor B"
                 placeholder="Aseguradora / SOAT"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-amber-400"
+                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
           </div>
@@ -542,10 +564,13 @@ https://alzavoz.pages.dev`;
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setCurrentStep(1)}
+              onClick={() => {
+                setCurrentStep(1);
+                setLiveAnnouncement("Paso 1 de 3: Fotos Obligatorias.");
+              }}
               className="touch-target-min min-h-[52px] px-4 flex items-center justify-center rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-bold active:scale-95 transition"
             >
-              <ArrowLeft className="w-4 h-4 mr-1" />
+              <ArrowLeft className="w-4 h-4 mr-1" aria-hidden="true" />
               Atrás
             </button>
             <button
@@ -553,11 +578,12 @@ https://alzavoz.pages.dev`;
               onClick={() => {
                 triggerHaptic(40);
                 setCurrentStep(3);
+                setLiveAnnouncement("Paso 3 de 3: Acta Amistosa generada.");
               }}
               className="touch-target-min min-h-[52px] flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 active:scale-95 transition"
             >
               <span>Generar Acta Rápida</span>
-              <FileCheck2 className="w-4 h-4" />
+              <FileCheck2 className="w-4 h-4" aria-hidden="true" />
             </button>
           </div>
         </section>
@@ -570,7 +596,7 @@ https://alzavoz.pages.dev`;
           className="space-y-3"
         >
           <div className="bg-emerald-950/40 rounded-xl p-3 border border-emerald-500/40 flex items-start gap-2.5 text-xs text-emerald-200">
-            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
               <p className="font-bold">¡Acta Digital Generada Exitosamente!</p>
               <p className="text-[11px] text-gray-300">
@@ -594,12 +620,12 @@ https://alzavoz.pages.dev`;
             >
               {copiedActa ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-400" />
+                  <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
                   <span className="text-emerald-300">¡Copiada!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 text-amber-400" />
+                  <Copy className="w-4 h-4 text-amber-400" aria-hidden="true" />
                   <span>Copiar Acta</span>
                 </>
               )}
@@ -611,7 +637,7 @@ https://alzavoz.pages.dev`;
               aria-label="Compartir acta por WhatsApp"
               className="touch-target-min min-h-[52px] flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold active:scale-95 transition shadow-lg shadow-emerald-900/40"
             >
-              <Share2 className="w-4 h-4" />
+              <Share2 className="w-4 h-4" aria-hidden="true" />
               <span>Enviar WhatsApp</span>
             </button>
           </div>
@@ -622,7 +648,7 @@ https://alzavoz.pages.dev`;
             aria-label="Iniciar nuevo reporte de choque"
             className="touch-target-min min-h-[44px] w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-white transition active:scale-95"
           >
-            <RotateCcw className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Nuevo Reporte de Choque</span>
           </button>
         </section>

@@ -65,6 +65,7 @@ export function AdminReportDetailView({
   const [draftContent, setDraftContent] = useState('');
   const [copiedDraft, setCopiedDraft] = useState(false);
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   // Safe contact simulation state (Idea I001)
   const [simulatedChannel, setSimulatedChannel] = useState<SafeContactChannel | ''>('');
@@ -143,6 +144,7 @@ export function AdminReportDetailView({
   };
 
   const handleDownloadAttachment = async (slotIndex: number, ext: string) => {
+    setActionError(null);
     try {
       const res = await fetch(`/api/admin/reports/${report.code}/attachments/${slotIndex}`, {
         headers: {
@@ -160,11 +162,12 @@ export function AdminReportDetailView({
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error al descargar archivo.');
+      setActionError(err instanceof Error ? err.message : 'Error al descargar archivo.');
     }
   };
 
   const handleDownloadClip = async (clipIndex: number) => {
+    setActionError(null);
     try {
       const res = await fetch(`/api/admin/reports/${report.code}/recording/${clipIndex}`, {
         headers: {
@@ -182,7 +185,7 @@ export function AdminReportDetailView({
       a.remove();
       URL.revokeObjectURL(url);
     } catch (err: unknown) {
-      alert(err instanceof Error ? err.message : 'Error al descargar clip.');
+      setActionError(err instanceof Error ? err.message : 'Error al descargar clip.');
     }
   };
 
@@ -226,12 +229,13 @@ export function AdminReportDetailView({
   };
 
   const handleCopyDraft = async () => {
+    setActionError(null);
     try {
       await navigator.clipboard.writeText(draftContent);
       setCopiedDraft(true);
       setTimeout(() => setCopiedDraft(false), 3000);
     } catch {
-      alert('No se pudo copiar automáticamente. Puedes seleccionar el texto y copiarlo.');
+      setActionError('No se pudo copiar automáticamente. Puedes seleccionar el texto y copiarlo.');
     }
   };
 
@@ -261,9 +265,9 @@ export function AdminReportDetailView({
             <ArrowLeft size={18} aria-hidden="true" />
             <span>Volver</span>
           </button>
-          <h2 style={{ fontSize: '1.35rem', margin: 0 }}>
+          <h1 style={{ fontSize: '1.35rem', margin: 0 }}>
             Expediente <span className={styles.codeCell}>{report.code}</span>
-          </h2>
+          </h1>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -283,6 +287,24 @@ export function AdminReportDetailView({
           </span>
         </div>
       </header>
+
+      {actionError && (
+        <div
+          role="alert"
+          style={{
+            marginBottom: 16,
+            background: 'rgba(239, 68, 68, 0.15)',
+            border: '1px solid #EF4444',
+            color: '#FCA5A5',
+            padding: 12,
+            borderRadius: 8,
+            fontSize: '0.9rem',
+          }}
+        >
+          <AlertTriangle size={16} style={{ display: 'inline', marginRight: 6 }} aria-hidden="true" />
+          {actionError}
+        </div>
+      )}
 
       {/* Factual Metadata Grid */}
       <section className={styles.detailGrid} aria-label="Metadatos del expediente">
@@ -321,9 +343,9 @@ export function AdminReportDetailView({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
             <AlertTriangle size={24} color="#EF4444" aria-hidden="true" />
-            <h3 id="safe-contact-heading" style={{ fontSize: '1.05rem', fontWeight: 700, color: '#FCA5A5', margin: 0 }}>
+            <h2 id="safe-contact-heading" style={{ fontSize: '1.05rem', fontWeight: 700, color: '#FCA5A5', margin: 0 }}>
               REGLA DE SEGURIDAD PERSONAL: NO CONTACTAR (RESERVA TOTAL)
-            </h3>
+            </h2>
           </div>
           <p style={{ margin: 0, fontSize: '0.92rem', color: '#E5E7EB', lineHeight: 1.5 }}>
             El ciudadano ha configurado expresamente la opción de <strong>NO RECIBIR MENSAJES NI LLAMADAS</strong>.
@@ -337,19 +359,23 @@ export function AdminReportDetailView({
           aria-labelledby="safe-contact-heading"
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 12 }}>
-            <h3 id="safe-contact-heading" style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#F9FAFB' }}>
+            <h2 id="safe-contact-heading" style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: '#F9FAFB' }}>
               Condición de Contacto Seguro Autorizada
-            </h3>
+            </h2>
             {(() => {
               const check = isCurrentTimeInSafeWindow(report.safeContact);
               return check.allowed ? (
                 <div data-testid="safe-window-status-allowed" className={styles.safeWindowAllowed}>
-                  <span>🟢 EN FRANJA SEGURA</span>
+                  <span>
+                    <span aria-hidden="true">🟢 </span>EN FRANJA SEGURA
+                  </span>
                   <span style={{ fontSize: '0.78rem', color: '#D1FAE5' }}>({check.colombiaTime})</span>
                 </div>
               ) : (
                 <div data-testid="safe-window-status-blocked" className={styles.safeWindowBlocked}>
-                  <span>🔴 FUERA DE FRANJA SEGURA</span>
+                  <span>
+                    <span aria-hidden="true">🔴 </span>FUERA DE FRANJA SEGURA
+                  </span>
                   <span style={{ fontSize: '0.78rem', color: '#FEE2E2' }}>({check.colombiaTime})</span>
                 </div>
               );
@@ -404,9 +430,9 @@ export function AdminReportDetailView({
 
       {/* Herramienta de Simulación y Verificación de Envíos */}
       <section className={styles.simulateSection} aria-labelledby="simulate-heading">
-        <h4 id="simulate-heading" style={{ fontSize: '1rem', fontWeight: 650, margin: '0 0 6px 0', color: '#F9FAFB' }}>
+        <h2 id="simulate-heading" style={{ fontSize: '1rem', fontWeight: 650, margin: '0 0 6px 0', color: '#F9FAFB' }}>
           Simulación de Despacho y Auditoría de Reglas
-        </h4>
+        </h2>
         <p style={{ fontSize: '0.85rem', color: '#9CA3AF', margin: '0 0 14px 0' }}>
           Verifica si un intento de comunicación cumple las condiciones vigentes. La acción es una simulación lógica y <strong>no contacta a nadie en la realidad</strong>.
         </p>
@@ -467,6 +493,8 @@ export function AdminReportDetailView({
 
         {simulationResult && (
           <div
+            aria-live="polite"
+            aria-atomic="true"
             data-testid={simulationResult.allowed ? 'simulate-contact-allowed' : 'simulate-contact-blocked'}
             style={{
               marginTop: 14,
@@ -503,9 +531,9 @@ export function AdminReportDetailView({
 
       {/* Narrative Summary */}
       <section aria-labelledby="summary-heading">
-        <h3 id="summary-heading" style={{ fontSize: '1.1rem', fontWeight: 650, marginBottom: 8 }}>
+        <h2 id="summary-heading" style={{ fontSize: '1.1rem', fontWeight: 650, marginBottom: 8 }}>
           Relato Fáctico Ciudadano
-        </h3>
+        </h2>
         <div className={`${styles.summaryBox} data-sensitive`}>
           <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{report.summary}</p>
         </div>
@@ -513,9 +541,9 @@ export function AdminReportDetailView({
 
       {/* Multimedia Evidence from R2 */}
       <section aria-labelledby="evidence-heading" style={{ marginTop: 24 }}>
-        <h3 id="evidence-heading" style={{ fontSize: '1.1rem', fontWeight: 650, marginBottom: 8 }}>
+        <h2 id="evidence-heading" style={{ fontSize: '1.1rem', fontWeight: 650, marginBottom: 8 }}>
           Bóveda de Evidencias Higienizadas (Cloudflare R2)
-        </h3>
+        </h2>
 
         {report.attachments.length === 0 && !report.recordingSessionId && (
           <p style={{ color: '#9CA3AF', fontSize: '0.95rem' }}>
@@ -547,6 +575,7 @@ export function AdminReportDetailView({
                   </div>
                   <button
                     type="button"
+                    aria-label={`Descargar prueba del adjunto ${att.index + 1}`}
                     onClick={() => handleDownloadAttachment(att.index, ext)}
                     className={styles.btnSecondary}
                     style={{ minHeight: 48, width: '100%', marginTop: 'auto' }}
@@ -576,6 +605,7 @@ export function AdminReportDetailView({
                   <button
                     key={clip.index}
                     type="button"
+                    aria-label={`Descargar clip de grabación ${clip.index + 1}`}
                     onClick={() => handleDownloadClip(clip.index)}
                     className={styles.btnSmall}
                     style={{ display: 'flex', alignItems: 'center', gap: 6 }}
@@ -599,10 +629,10 @@ export function AdminReportDetailView({
         aria-labelledby="status-management-heading"
         style={{ marginTop: 28, background: '#0B0F19', padding: 20, borderRadius: 14, border: '1px solid #1F2937' }}
       >
-        <h3 id="status-management-heading" style={{ fontSize: '1.1rem', fontWeight: 650, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <h2 id="status-management-heading" style={{ fontSize: '1.1rem', fontWeight: 650, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
           <Clock size={18} color="#F59E0B" aria-hidden="true" />
           <span>Gestión de Estado y Bitácora Interna</span>
-        </h3>
+        </h2>
 
         <form onSubmit={handleSaveStatus}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginBottom: 16 }}>
@@ -665,10 +695,10 @@ export function AdminReportDetailView({
 
       {/* AI Legal Draft Generator (Derecho de Petición / Oficio Oficial) */}
       <section className={styles.draftSection} aria-labelledby="draft-generator-heading">
-        <h3 id="draft-generator-heading" style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <h2 id="draft-generator-heading" style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 8, display: 'flex', alignItems: 'center', gap: 10 }}>
           <Sparkles size={22} color="#EF4444" aria-hidden="true" />
           <span>Generador de Documentos Jurídicos con IA (DeepSeek)</span>
-        </h3>
+        </h2>
         <p style={{ color: '#9CA3AF', fontSize: '0.92rem', marginBottom: 20 }}>
           Redacta un borrador formal fundamentado en la legislación colombiana (Ley 1755 de 2015, Ley 1801 de 2016, Ley 769 de 2002).
           El documento incluye campos pendientes señalados y requiere validación humana obligatoria.
@@ -771,7 +801,7 @@ export function AdminReportDetailView({
 
         {draftError && (
           <div role="alert" style={{ marginTop: 16, color: '#FCA5A5', background: 'rgba(239, 68, 68, 0.1)', padding: 12, borderRadius: 8 }}>
-            <AlertTriangle size={16} style={{ display: 'inline', marginRight: 6 }} />
+            <AlertTriangle size={16} style={{ display: 'inline', marginRight: 6 }} aria-hidden="true" />
             {draftError}
           </div>
         )}
@@ -780,7 +810,7 @@ export function AdminReportDetailView({
           <div style={{ marginTop: 24 }}>
             {/* Mandatory Banner */}
             <div className={styles.draftBanner} role="note">
-              <FileCheck size={20} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} />
+              <FileCheck size={20} style={{ display: 'inline', marginRight: 8, verticalAlign: 'text-bottom' }} aria-hidden="true" />
               <strong>{MANDATORY_HUMAN_REVIEW_NOTICE}</strong>
             </div>
 

@@ -775,6 +775,7 @@ export function DeviceCheckPanel() {
                 <Link
                   href={item.href}
                   prefetch={false}
+                  aria-label={`Abrir ${item.toolName}`}
                   className="touch-target-min inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-600 bg-[#0B0F19] px-4 py-2.5 text-xs font-semibold text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
                 >
                   <span>Abrir</span>

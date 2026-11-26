@@ -91,12 +91,12 @@ export function VoluntarySpeechControl({
           />
         )}
         <div className="min-w-0 flex-1 space-y-1">
-          <h4
+          <h3
             id={headingId}
             className="text-sm font-semibold text-white leading-snug"
           >
             {title}
-          </h4>
+          </h3>
           <p className="text-xs leading-relaxed text-gray-300">
             Solo suena si la activas. Audio local del navegador; usa audífonos o
             volumen bajo si hay terceros cerca.

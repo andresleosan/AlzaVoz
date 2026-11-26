@@ -26,19 +26,20 @@ export function ZeroPeepToggle({
       aria-pressed={isCamouflaged}
       aria-label={
         isCamouflaged
-          ? "Desactivar modo antiespía (datos desenfocados)"
-          : "Activar modo antiespía (desenfoca datos personales de miradas curiosas)"
+          ? "Desactivar modo antiespía (datos desenfocados en pantalla)"
+          : "Activar modo antiespía (desenfoca datos personales en pantalla)"
       }
       title="Modo Antiespía: desenfoca datos sensibles"
     >
       {isCamouflaged ? (
-        <EyeOff className="w-5 h-5 text-amber-400" />
+        <EyeOff className="w-5 h-5 text-amber-400" aria-hidden="true" />
       ) : (
-        <Eye className="w-5 h-5 text-gray-400" />
+        <Eye className="w-5 h-5 text-gray-400" aria-hidden="true" />
       )}
       {showLabel && (
         <span className="text-xs font-semibold">
-          {isCamouflaged ? "Antiespía ON" : "Antiespía"}
+          Antiespía
+          {isCamouflaged ? <span className="sr-only"> (activo)</span> : null}
         </span>
       )}
     </button>

@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { MapPin, ShieldCheck } from "lucide-react";
 import { useAppMode } from "@/context/AppModeContext";
+import { usePracticeMode } from "@/context/PracticeModeContext";
+import { useSharedDevice } from "@/context/SharedDeviceContext";
 import { BottomNav } from "@/components/BottomNav";
 import { ZeroPeepToggle } from "@/components/ZeroPeepToggle";
 import { QuickEscapeButton } from "@/components/QuickEscapeButton";
@@ -42,12 +44,73 @@ function Brand() {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { isCamouflaged } = useAppMode();
+  const { isPracticeMode } = usePracticeMode();
+  const { isSharedDevice } = useSharedDevice();
   const pathname = usePathname();
+  const [liveAnnouncement, setLiveAnnouncement] = useState("");
+  const prevStateRef = useRef<{
+    pathname: string;
+    isCamouflaged: boolean;
+    isPracticeMode: boolean;
+    isSharedDevice: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    prevStateRef.current = {
+      pathname,
+      isCamouflaged,
+      isPracticeMode,
+      isSharedDevice,
+    };
+    if (!prev) return;
+
+    const messages: string[] = [];
+    if (prev.pathname !== pathname) {
+      messages.push(`Sección cargada: ${pageNames[pathname] ?? "AlzaVoz"}.`);
+    }
+    if (prev.isCamouflaged !== isCamouflaged) {
+      messages.push(
+        isCamouflaged
+          ? "Modo antiespía activado: datos sensibles desenfocados visualmente."
+          : "Modo antiespía desactivado: datos sensibles visibles."
+      );
+    }
+    if (prev.isPracticeMode !== isPracticeMode) {
+      messages.push(
+        isPracticeMode
+          ? "Modo de práctica activado: ensayos sin envíos reales."
+          : "Modo de práctica desactivado: modo operativo activo."
+      );
+    }
+    if (prev.isSharedDevice !== isSharedDevice) {
+      messages.push(
+        isSharedDevice
+          ? "Sesión en dispositivo compartido activada: sin guardar borradores locales."
+          : "Sesión compartida cerrada y borradores locales limpiados."
+      );
+    }
+
+    if (messages.length === 0) return;
+    const nextMessage = messages.join(" ");
+    const timer = window.setTimeout(() => {
+      setLiveAnnouncement(nextMessage);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [pathname, isCamouflaged, isPracticeMode, isSharedDevice]);
 
   return (
     <div className={`app-shell min-h-dvh ${isCamouflaged ? "privacy-peep-active" : ""}`}>
       <a href="#contenido" className="skip-link">Ir al contenido</a>
-      <aside className="app-sidebar">
+      <div
+        data-testid="app-live-announcer"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {liveAnnouncement}
+      </div>
+      <aside className="app-sidebar" aria-label="Navegación lateral">
         <Brand />
         <BottomNav placement="sidebar" />
         <div className="sidebar-footer">

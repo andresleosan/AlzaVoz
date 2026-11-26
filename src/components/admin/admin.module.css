@@ -59,6 +59,7 @@
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
 }
 
+.loginCard h1,
 .loginCard h2 {
   font-size: 1.4rem;
   font-weight: 700;

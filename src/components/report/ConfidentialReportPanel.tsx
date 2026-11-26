@@ -84,6 +84,12 @@ const control =
 
 type Step = 1 | 2 | 3;
 
+const STEP_TITLES: Record<Step, string> = {
+  1: 'Paso 1: Relato y lugar de los hechos',
+  2: 'Paso 2: Evidencias limpias y protección de voz',
+  3: 'Paso 3: Contacto seguro, vista previa y envío',
+};
+
 interface ReportLocationState {
   source: LocationSourceKind;
   manualKind?: ManualLocationKind;
@@ -172,11 +178,16 @@ function SafeContactStatusCard({
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const editToggleRef = useRef<HTMLButtonElement | null>(null);
+  const valueInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactValue.trim()) {
       setError('Indica tu número, usuario o correo de contacto seguro.');
+      window.setTimeout(() => {
+        valueInputRef.current?.focus();
+      }, 0);
       return;
     }
     setIsSaving(true);
@@ -260,9 +271,17 @@ function SafeContactStatusCard({
               : 'bg-emerald-950/80 text-emerald-200 border border-emerald-500/40'
           }`}
         >
-          {currentConfig.preference === 'no_contact'
-            ? '🚫 Sin contacto (No recibir mensajes)'
-            : `🛡️ Contacto seguro (${currentConfig.channel?.toUpperCase()})`}
+          {currentConfig.preference === 'no_contact' ? (
+            <>
+              <span aria-hidden="true">🚫 </span>
+              <span>Sin contacto (No recibir mensajes)</span>
+            </>
+          ) : (
+            <>
+              <span aria-hidden="true">🛡️ </span>
+              <span>Contacto seguro ({currentConfig.channel?.toUpperCase()})</span>
+            </>
+          )}
         </span>
       </div>
 
@@ -306,7 +325,7 @@ function SafeContactStatusCard({
         </p>
       )}
       {error && (
-        <p role="alert" className="text-xs text-red-300 font-medium">
+        <p id="safe-contact-edit-error" role="alert" className="text-xs text-red-300 font-medium">
           {error}
         </p>
       )}
@@ -314,6 +333,7 @@ function SafeContactStatusCard({
       {!isEditing ? (
         <div className="flex flex-wrap gap-2 pt-1">
           <button
+            ref={editToggleRef}
             type="button"
             id="btn-edit-safe-contact"
             onClick={() => {
@@ -327,6 +347,9 @@ function SafeContactStatusCard({
               setIsEditing(true);
               setMessage(null);
               setError(null);
+              window.setTimeout(() => {
+                valueInputRef.current?.focus();
+              }, 0);
             }}
             className="min-h-12 px-3 py-2 text-xs font-semibold rounded-lg bg-gray-800 text-white hover:bg-gray-700 border border-gray-600"
           >
@@ -369,12 +392,18 @@ function SafeContactStatusCard({
                 Dato de contacto (teléfono, usuario o correo)
               </label>
               <input
+                ref={valueInputRef}
                 id="edit-safe-value"
                 type="text"
                 autoComplete="off"
                 spellCheck={false}
                 value={contactValue}
-                onChange={(e) => setContactValue(e.target.value)}
+                aria-invalid={Boolean(error) || undefined}
+                aria-describedby={error ? 'safe-contact-edit-error' : undefined}
+                onChange={(e) => {
+                  setContactValue(e.target.value);
+                  if (error) setError(null);
+                }}
                 placeholder="+57 300 0000000"
                 className="min-h-12 w-full rounded-lg border border-gray-600 bg-gray-950 px-3 text-xs text-white"
               />
@@ -475,7 +504,13 @@ function SafeContactStatusCard({
             </button>
             <button
               type="button"
-              onClick={() => setIsEditing(false)}
+              onClick={() => {
+                setIsEditing(false);
+                setError(null);
+                window.setTimeout(() => {
+                  editToggleRef.current?.focus();
+                }, 0);
+              }}
               className="min-h-12 px-3 py-2 text-xs font-semibold rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700"
             >
               Cancelar
@@ -489,7 +524,7 @@ function SafeContactStatusCard({
 
 export function ConfidentialReportPanel() {
   const { setNavigationLocked, triggerHaptic } = useAppMode();
-  const { isPracticeMode, showSimulationModal } = usePracticeMode();
+  const { isPracticeMode, showSimulationModal, simulationModal } = usePracticeMode();
   const { isSharedDevice, openExternalRecordsGuide } = useSharedDevice();
   const [step, setStep] = useState<Step>(1);
   const [category, setCategory] = useState<ReportCategory>(DEFAULT_DRAFT.category);
@@ -509,6 +544,8 @@ export function ConfidentialReportPanel() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
+  const [invalidField, setInvalidField] = useState<'summary' | 'safeContact' | 'privacyAck' | null>(null);
+  const [stepLiveMessage, setStepLiveMessage] = useState('');
 
   const [lookupKey, setLookupKey] = useState('');
   const [lookupResult, setLookupResult] = useState<ReportRecord | null>(null);
@@ -535,6 +572,25 @@ export function ConfidentialReportPanel() {
   const locationRequestIdRef = useRef(0);
   const isMountedRef = useRef(true);
   const neighborhoodInputRef = useRef<HTMLInputElement | null>(null);
+  const stepHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const summaryInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const safeContactInputRef = useRef<HTMLInputElement | null>(null);
+  const privacyAckRef = useRef<HTMLInputElement | null>(null);
+  const receiptHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const previewCardRef = useRef<HTMLDivElement | null>(null);
+  const unlinkRecordingBtnRef = useRef<HTMLButtonElement | null>(null);
+  const restoreRecordingBtnRef = useRef<HTMLButtonElement | null>(null);
+  const focusReceiptOnModalCloseRef = useRef(false);
+
+  useEffect(() => {
+    if (!simulationModal && focusReceiptOnModalCloseRef.current) {
+      focusReceiptOnModalCloseRef.current = false;
+      const timer = window.setTimeout(() => {
+        receiptHeadingRef.current?.focus();
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [simulationModal]);
 
   const includedAttachments = attachments.filter((item) => !excludedAttachmentIds.includes(item.id));
   const excludedPreviewAttachments = attachments.filter((item) => excludedAttachmentIds.includes(item.id));
@@ -705,16 +761,26 @@ export function ConfidentialReportPanel() {
 
   function goToStep(target: Step) {
     setError('');
+    setInvalidField(null);
     setStep(target);
+    setStepLiveMessage(
+      `Paso ${target} de 3: ${STEP_TITLES[target].replace(/^Paso \d+: /, '')}.`
+    );
+    window.setTimeout(() => {
+      stepHeadingRef.current?.focus();
+    }, 0);
   }
 
   function handleNextFromStep1() {
     if (summary.trim().length < 15) {
       setError('Describe brevemente lo ocurrido (mínimo 15 caracteres) antes de continuar.');
+      setInvalidField('summary');
+      window.setTimeout(() => {
+        summaryInputRef.current?.focus();
+      }, 0);
       return;
     }
-    setError('');
-    setStep(2);
+    goToStep(2);
   }
 
   function handleLoadPracticeData() {
@@ -860,17 +926,31 @@ export function ConfidentialReportPanel() {
     if (busy) return;
     if (summary.trim().length < 15) {
       setError('El relato debe tener al menos 15 caracteres.');
+      setInvalidField('summary');
       setStep(1);
+      setStepLiveMessage('Falta el relato en el Paso 1.');
+      window.setTimeout(() => {
+        summaryInputRef.current?.focus();
+      }, 0);
       return;
     }
     if (contactPreference === 'safe_contact' && !safeContactValue.trim()) {
       setError('Indica tu teléfono o dato de contacto seguro antes de continuar, o selecciona la opción "No recibir mensajes".');
+      setInvalidField('safeContact');
+      window.setTimeout(() => {
+        safeContactInputRef.current?.focus();
+      }, 0);
       return;
     }
     if (!privacyAck) {
       setError('Marca la casilla confirmando que leíste qué comparte cada canal y los límites de privacidad.');
+      setInvalidField('privacyAck');
+      window.setTimeout(() => {
+        privacyAckRef.current?.focus();
+      }, 0);
       return;
     }
+    setInvalidField(null);
 
     setBusy(true);
     setError('');
@@ -945,6 +1025,7 @@ export function ConfidentialReportPanel() {
       setStatusMessage('Expediente educativo simulado con éxito. Ningún dato fue transmitido a Cloudflare.');
       setBusy(false);
       triggerHaptic(40);
+      focusReceiptOnModalCloseRef.current = true;
 
       showSimulationModal({
         title: `Simulación: Radicado ${mockCode}`,
@@ -1003,6 +1084,10 @@ export function ConfidentialReportPanel() {
       const refreshed = await getReportByKey(`${baseRecord.code}.${clientSecret}`, AbortSignal.timeout(15_000));
       setSubmittedRecord(refreshed.record);
       setStatusMessage('Expediente radicado y verificado en Cloudflare D1.');
+      setStepLiveMessage(`Expediente radicado con éxito. Código ${refreshed.record.code}.`);
+      window.setTimeout(() => {
+        receiptHeadingRef.current?.focus();
+      }, 0);
       try {
         sessionStorage.removeItem(DRAFT_STORAGE_KEY);
       } catch {
@@ -1136,8 +1221,17 @@ export function ConfidentialReportPanel() {
         </button>
       </nav>
 
+      <div
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        data-testid="report-step-live-status"
+      >
+        {stepLiveMessage}
+      </div>
+
       {error && (
-        <p role="alert" className="rounded-xl border border-amber-300 bg-gray-900 p-4 text-amber-100">
+        <p id="report-form-error" role="alert" className="rounded-xl border border-amber-300 bg-gray-900 p-4 text-amber-100">
           {error}
         </p>
       )}
@@ -1149,6 +1243,13 @@ export function ConfidentialReportPanel() {
 
       {step === 1 && (
         <div className="space-y-5 rounded-xl border border-gray-700 bg-[#111827] p-5">
+          <h2
+            ref={stepHeadingRef}
+            tabIndex={-1}
+            className="text-lg font-bold text-white focus:outline-none"
+          >
+            {STEP_TITLES[1]}
+          </h2>
           {isPracticeMode && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-500/50 bg-amber-950/40 p-3 text-xs sm:text-sm text-amber-200">
               <div className="flex items-center gap-2">
@@ -1208,9 +1309,9 @@ export function ConfidentialReportPanel() {
           <div className="space-y-3 rounded-xl border border-gray-700/80 bg-[#0B0F19] p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <h2 className="text-sm font-bold text-white">
+                <h3 className="text-sm font-bold text-white">
                   Ubicación aproximada del lugar (opcional)
-                </h2>
+                </h3>
                 <p className="mt-1 text-xs leading-relaxed text-gray-300">
                   Nunca consultamos tu GPS al abrir esta pantalla ni enviamos coordenadas exactas a D1. Puedes estimar tu comuna ahora o elegir y corregir todo manualmente.
                 </p>
@@ -1333,9 +1434,12 @@ export function ConfidentialReportPanel() {
               <label htmlFor="report-summary" className="font-semibold text-white">
                 Qué ocurrió (mínimo 15 caracteres)
               </label>
-              <span className="font-tabular text-xs text-gray-300">{summary.trim().length} / 2000</span>
+              <span id="report-summary-counter" className="font-tabular text-xs text-gray-300">
+                {summary.trim().length} / 2000
+              </span>
             </div>
             <textarea
+              ref={summaryInputRef}
               id="report-summary"
               data-sensitive="true"
               autoComplete="off"
@@ -1344,7 +1448,19 @@ export function ConfidentialReportPanel() {
               maxLength={2000}
               disabled={busy || isComplete}
               value={summary}
-              onChange={(e) => setSummary(e.target.value)}
+              aria-invalid={invalidField === 'summary' || undefined}
+              aria-describedby={
+                invalidField === 'summary'
+                  ? 'report-summary-counter report-form-error'
+                  : 'report-summary-counter'
+              }
+              onChange={(e) => {
+                setSummary(e.target.value);
+                if (invalidField === 'summary') {
+                  setInvalidField(null);
+                  setError('');
+                }
+              }}
               placeholder="Describe los hechos relevantes. Si prefieres no identificarte, evita incluir tu nombre completo o teléfono en este texto."
               className="w-full rounded-xl border border-gray-600 bg-gray-950 p-3 text-white leading-relaxed"
             />
@@ -1353,52 +1469,84 @@ export function ConfidentialReportPanel() {
       )}
 
       {step === 2 && (
-        <EvidenceSanitizerSection
-          attachments={attachments}
-          onAddAttachment={handleAddAttachment}
-          onRemoveAttachment={handleRemoveAttachment}
-          recordingKey={recordingKey}
-          onRecordingKeyChange={(value) => {
-            setRecordingKey(value);
-            setIsRecordingExcluded(false);
-          }}
-          sessionRecordingKey={sessionRecordingKey}
-          disabled={busy || isComplete}
-        />
+        <div className="space-y-5">
+          <h2
+            ref={stepHeadingRef}
+            tabIndex={-1}
+            className="text-lg font-bold text-white focus:outline-none"
+          >
+            {STEP_TITLES[2]}
+          </h2>
+          <EvidenceSanitizerSection
+            attachments={attachments}
+            onAddAttachment={handleAddAttachment}
+            onRemoveAttachment={handleRemoveAttachment}
+            recordingKey={recordingKey}
+            onRecordingKeyChange={(value) => {
+              setRecordingKey(value);
+              setIsRecordingExcluded(false);
+            }}
+            sessionRecordingKey={sessionRecordingKey}
+            disabled={busy || isComplete}
+          />
+        </div>
       )}
 
       {step === 3 && (
         <div className="space-y-5">
+          <h2
+            ref={stepHeadingRef}
+            tabIndex={-1}
+            className="text-lg font-bold text-white focus:outline-none"
+          >
+            {STEP_TITLES[3]}
+          </h2>
           {/* Condiciones de contacto seguro (Tarea 11 / Idea I001) */}
           <div className="rounded-xl border border-violet-500/30 bg-[#111827] p-5 space-y-4">
             <div className="flex items-center gap-2">
               <span className="flex h-3 w-3 rounded-full bg-violet-400" aria-hidden="true" />
-              <h2 className="text-lg font-bold text-white">
+              <h3 className="text-lg font-bold text-white">
                 Condiciones de contacto seguro (Protección personal)
-              </h2>
+              </h3>
             </div>
             <p className="text-sm leading-relaxed text-gray-300">
               Si tu situación es de alto riesgo o convives con un presunto agresor, puedes ordenar que nadie intente comunicarse contigo o limitar el contacto a un canal y horario seguro.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div
+              role="group"
+              aria-label="Preferencia de contacto seguro"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+            >
               <button
                 type="button"
                 id="contact-pref-none"
-                onClick={() => setContactPreference('no_contact')}
+                aria-pressed={contactPreference === 'no_contact'}
+                onClick={() => {
+                  setContactPreference('no_contact');
+                  if (invalidField === 'safeContact') {
+                    setInvalidField(null);
+                    setError('');
+                  }
+                }}
                 className={`min-h-14 rounded-xl border p-4 text-left transition ${
                   contactPreference === 'no_contact'
                     ? 'border-amber-400 bg-amber-950/40 text-white font-bold'
                     : 'border-gray-700 bg-[#0B0F19] text-gray-300 hover:border-gray-500'
                 }`}
               >
-                <div className="text-base font-semibold">🚫 No recibir mensajes</div>
-                <div className="text-xs text-gray-400 mt-1">Reserva total. Nadie te llamará ni te escribirá. Consultas tú con tu clave privada.</div>
+                <span className="block text-base font-semibold">
+                  <span aria-hidden="true">🚫 </span>No recibir mensajes
+                </span>
+                <span className="block text-xs text-gray-400 mt-1">
+                  Reserva total. Nadie te llamará ni te escribirá. Consultas tú con tu clave privada.
+                </span>
               </button>
 
               <button
                 type="button"
                 id="contact-pref-safe"
+                aria-pressed={contactPreference === 'safe_contact'}
                 onClick={() => setContactPreference('safe_contact')}
                 className={`min-h-14 rounded-xl border p-4 text-left transition ${
                   contactPreference === 'safe_contact'
@@ -1406,8 +1554,12 @@ export function ConfidentialReportPanel() {
                     : 'border-gray-700 bg-[#0B0F19] text-gray-300 hover:border-gray-500'
                 }`}
               >
-                <div className="text-base font-semibold">🛡️ Autorizar contacto seguro</div>
-                <div className="text-xs text-gray-400 mt-1">Solo por el canal y franja horaria que elijas a continuación.</div>
+                <span className="block text-base font-semibold">
+                  <span aria-hidden="true">🛡️ </span>Autorizar contacto seguro
+                </span>
+                <span className="block text-xs text-gray-400 mt-1">
+                  Solo por el canal y franja horaria que elijas a continuación.
+                </span>
               </button>
             </div>
 
@@ -1437,12 +1589,21 @@ export function ConfidentialReportPanel() {
                       Teléfono, usuario o correo seguro
                     </label>
                     <input
+                      ref={safeContactInputRef}
                       id="safe-contact-value-input"
                       type="text"
                       autoComplete="off"
                       spellCheck={false}
                       value={safeContactValue}
-                      onChange={(e) => setSafeContactValue(e.target.value)}
+                      aria-invalid={invalidField === 'safeContact' || undefined}
+                      aria-describedby={invalidField === 'safeContact' ? 'report-form-error' : undefined}
+                      onChange={(e) => {
+                        setSafeContactValue(e.target.value);
+                        if (invalidField === 'safeContact') {
+                          setInvalidField(null);
+                          setError('');
+                        }
+                      }}
                       placeholder="Ej: +57 300 1234567 o usuario"
                       className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
                     />
@@ -1538,15 +1699,17 @@ export function ConfidentialReportPanel() {
 
           {/* Vista previa de lo que se comparte (Tarea 12 / Idea I002) */}
           <div
+            ref={previewCardRef}
+            tabIndex={-1}
             data-testid="report-share-preview-card"
-            className="rounded-xl border border-amber-300/40 bg-[#111827] p-5 space-y-4"
+            className="rounded-xl border border-amber-300/40 bg-[#111827] p-5 space-y-4 focus:outline-none"
           >
             <div className="flex items-center gap-2">
-              <Eye className="h-5 w-5 text-amber-300 shrink-0" />
+              <Eye className="h-5 w-5 text-amber-300 shrink-0" aria-hidden="true" />
               <div>
-                <h2 className="text-lg font-bold text-white">
+                <h3 className="text-lg font-bold text-white">
                   Vista previa de lo que se comparte
-                </h2>
+                </h3>
                 <p className="text-xs text-gray-300">
                   Saber quién recibirá cada dato antes de confirmar un envío.
                 </p>
@@ -1556,25 +1719,27 @@ export function ConfidentialReportPanel() {
             {/* 1. Destinatarios */}
             <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
-                <Users className="h-4 w-4 text-amber-300" />
+                <Users className="h-4 w-4 text-amber-300" aria-hidden="true" />
                 Destinatarios autorizados para este reporte
               </span>
               <ul className="space-y-1.5 text-xs text-gray-200">
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span className="text-emerald-400 font-bold" aria-hidden="true">✓</span>
                   <div>
                     <strong className="text-white">Bóveda AlzaVoz (Cloudflare D1 + R2):</strong> Recepción cifrada en tránsito; el equipo cívico procesa tu caso según el nivel de riesgo ({riskLevel}) y categoría ({category}).
                   </div>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span>
+                  <span className="text-emerald-400 font-bold" aria-hidden="true">✓</span>
                   <div>
                     <strong className="text-white">Regla de contacto:</strong>{' '}
                     {contactPreference === 'no_contact' ? (
-                      <span className="text-amber-200">🚫 Sin contacto (nadie te llamará ni escribirá).</span>
+                      <span className="text-amber-200">
+                        <span aria-hidden="true">🚫 </span>Sin contacto (nadie te llamará ni escribirá).
+                      </span>
                     ) : (
                       <span className="text-violet-200">
-                        📱 Canal {safeChannel} ({safeContactValue || 'Sin dato'}) en franja {safeTimeSlot}.
+                        <span aria-hidden="true">📱 </span>Canal {safeChannel} ({safeContactValue || 'Sin dato'}) en franja {safeTimeSlot}.
                       </span>
                     )}
                   </div>
@@ -1586,7 +1751,7 @@ export function ConfidentialReportPanel() {
             <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
-                  <FileText className="h-4 w-4 text-cyan-400" />
+                  <FileText className="h-4 w-4 text-cyan-400" aria-hidden="true" />
                   Archivos y evidencias a transmitir ({includedAttachments.length})
                 </span>
                 <span className="text-[11px] text-gray-400">Puedes retirar o volver a incluir antes de enviar</span>
@@ -1617,11 +1782,20 @@ export function ConfidentialReportPanel() {
                           setExcludedAttachmentIds((prev) =>
                             prev.includes(item.id) ? prev : [...prev, item.id]
                           );
+                          setStepLiveMessage(
+                            `Evidencia ${item.fileName || idx + 1} apartada de este envío. Puedes volver a incluirla antes de radicar.`
+                          );
+                          window.setTimeout(() => {
+                            const restoreBtn = document.querySelector<HTMLElement>(
+                              `[data-testid="restore-attachment-preview-${item.id}"]`
+                            );
+                            (restoreBtn ?? previewCardRef.current)?.focus();
+                          }, 0);
                         }}
                         aria-label={`Retirar evidencia ${item.fileName || idx + 1} de este envío`}
                         className="touch-target-min flex items-center gap-1 rounded-lg border border-red-800/60 bg-red-950/40 px-2.5 py-1.5 text-xs font-medium text-red-300 hover:bg-red-900/50 transition disabled:opacity-50"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
                         <span>Retirar</span>
                       </button>
                     </div>
@@ -1651,6 +1825,15 @@ export function ConfidentialReportPanel() {
                         onClick={() => {
                           triggerHaptic(20);
                           setExcludedAttachmentIds((prev) => prev.filter((id) => id !== item.id));
+                          setStepLiveMessage(
+                            `Evidencia ${item.fileName} incluida nuevamente en este envío.`
+                          );
+                          window.setTimeout(() => {
+                            const removeBtn = document.querySelector<HTMLElement>(
+                              `[data-testid="remove-attachment-preview-${item.id}"]`
+                            );
+                            (removeBtn ?? previewCardRef.current)?.focus();
+                          }, 0);
                         }}
                         className="touch-target-min inline-flex min-h-14 items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-gray-800 disabled:opacity-50"
                       >
@@ -1673,16 +1856,21 @@ export function ConfidentialReportPanel() {
                     </p>
                   </div>
                   <button
+                    ref={unlinkRecordingBtnRef}
                     type="button"
                     data-testid="unlink-recording-preview-btn"
                     disabled={busy || isComplete}
                     onClick={() => {
                       triggerHaptic(30);
                       setIsRecordingExcluded(true);
+                      setStepLiveMessage('Grabación apartada solo de este envío.');
+                      window.setTimeout(() => {
+                        (restoreRecordingBtnRef.current ?? previewCardRef.current)?.focus();
+                      }, 0);
                     }}
                     className="touch-target-min flex items-center gap-1 rounded-lg border border-amber-700 bg-amber-900/40 px-2.5 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-800/50 transition disabled:opacity-50"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Desvincular</span>
                   </button>
                 </div>
@@ -1695,12 +1883,17 @@ export function ConfidentialReportPanel() {
                 >
                   <span>Grabación apartada solo de este envío (la clave sigue en el Paso 2).</span>
                   <button
+                    ref={restoreRecordingBtnRef}
                     type="button"
                     data-testid="restore-recording-preview-btn"
                     disabled={busy || isComplete}
                     onClick={() => {
                       triggerHaptic(20);
                       setIsRecordingExcluded(false);
+                      setStepLiveMessage('Grabación vinculada nuevamente a este envío.');
+                      window.setTimeout(() => {
+                        (unlinkRecordingBtnRef.current ?? previewCardRef.current)?.focus();
+                      }, 0);
                     }}
                     className="touch-target-min inline-flex min-h-14 items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-gray-800 disabled:opacity-50"
                   >
@@ -1714,15 +1907,23 @@ export function ConfidentialReportPanel() {
             {/* 3. Precisión de ubicación */}
             <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2.5">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
-                <MapPin className="h-4 w-4 text-red-400" />
+                <MapPin className="h-4 w-4 text-red-400" aria-hidden="true" />
                 Precisión territorial de la denuncia
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div
+                role="group"
+                aria-label="Precisión territorial de la denuncia"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-2"
+              >
                 <button
                   type="button"
                   data-testid="report-precision-full-btn"
-                  onClick={() => setReportLocationPrecision('full')}
+                  aria-pressed={reportLocationPrecision === 'full'}
+                  onClick={() => {
+                    setReportLocationPrecision('full');
+                    setStepLiveMessage('Precisión territorial: Comuna y referencia.');
+                  }}
                   className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
                     reportLocationPrecision === 'full'
                       ? 'border-amber-400 bg-amber-950/40 text-amber-100 font-bold'
@@ -1736,7 +1937,11 @@ export function ConfidentialReportPanel() {
                 <button
                   type="button"
                   data-testid="report-precision-commune-btn"
-                  onClick={() => setReportLocationPrecision('commune_only')}
+                  aria-pressed={reportLocationPrecision === 'commune_only'}
+                  onClick={() => {
+                    setReportLocationPrecision('commune_only');
+                    setStepLiveMessage('Precisión territorial: Solo Comuna.');
+                  }}
                   className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
                     reportLocationPrecision === 'commune_only'
                       ? 'border-amber-400 bg-amber-950/40 text-amber-100 font-bold'
@@ -1750,7 +1955,11 @@ export function ConfidentialReportPanel() {
                 <button
                   type="button"
                   data-testid="report-precision-none-btn"
-                  onClick={() => setReportLocationPrecision('none')}
+                  aria-pressed={reportLocationPrecision === 'none'}
+                  onClick={() => {
+                    setReportLocationPrecision('none');
+                    setStepLiveMessage('Precisión territorial: Sin Ubicación.');
+                  }}
                   className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
                     reportLocationPrecision === 'none'
                       ? 'border-violet-400 bg-violet-950/40 text-violet-100 font-bold'
@@ -1806,13 +2015,13 @@ export function ConfidentialReportPanel() {
           </div>
 
           <div className="rounded-xl border border-gray-700 bg-[#111827] p-5 space-y-4">
-            <h2 className="text-lg font-bold text-white">Qué comparte y qué observa cada canal</h2>
+            <h3 className="text-lg font-bold text-white">Qué comparte y qué observa cada canal</h3>
             <p className="text-sm leading-relaxed text-gray-300">
               Ningún sistema en internet ofrece anonimato mágico. Revisa qué datos recibe cada opción antes de elegir:
             </p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-xl border border-gray-600 bg-[#0B0F19] p-4 space-y-2">
-                <h3 className="font-bold text-white">Opción A · Bóveda AlzaVoz (Cloudflare D1 + R2)</h3>
+                <h4 className="font-bold text-white">Opción A · Bóveda AlzaVoz (Cloudflare D1 + R2)</h4>
                 <ul className="list-disc pl-5 text-sm leading-relaxed text-gray-300 space-y-1">
                   <li>
                     <strong>Qué se guarda:</strong> tu relato, categoría, nivel de riesgo, comuna elegida, archivos ya
@@ -1831,7 +2040,7 @@ export function ConfidentialReportPanel() {
               </div>
 
               <div className="rounded-xl border border-gray-600 bg-[#0B0F19] p-4 space-y-2">
-                <h3 className="font-bold text-white">Opción B · Compartir por WhatsApp (+57 3234306794)</h3>
+                <h4 className="font-bold text-white">Opción B · Compartir por WhatsApp (+57 3234306794)</h4>
                 <ul className="list-disc pl-5 text-sm leading-relaxed text-gray-300 space-y-1">
                   <li>
                     <strong>Qué se envía:</strong> un mensaje de texto con el resumen del caso (y el código{' '}
@@ -1855,7 +2064,7 @@ export function ConfidentialReportPanel() {
             data-testid="quick-escape-explanation"
             className="rounded-xl border border-gray-700 bg-[#111827] p-5 space-y-3"
           >
-            <h2 className="text-lg font-bold text-white">Qué oculta Antiespía y qué limpia o deja Salir Rápido</h2>
+            <h3 className="text-lg font-bold text-white">Qué oculta Antiespía y qué limpia o deja Salir Rápido</h3>
             <QuickEscapeLimitsContent compact />
             <QuickEscapeButton variant="full" />
           </div>
@@ -1866,11 +2075,20 @@ export function ConfidentialReportPanel() {
               className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-gray-600 bg-[#111827] p-4"
             >
               <input
+                ref={privacyAckRef}
                 id="report-privacy-ack"
                 type="checkbox"
                 checked={privacyAck}
                 disabled={busy}
-                onChange={(e) => setPrivacyAck(e.target.checked)}
+                aria-invalid={invalidField === 'privacyAck' || undefined}
+                aria-describedby={invalidField === 'privacyAck' ? 'report-form-error' : undefined}
+                onChange={(e) => {
+                  setPrivacyAck(e.target.checked);
+                  if (invalidField === 'privacyAck' && e.target.checked) {
+                    setInvalidField(null);
+                    setError('');
+                  }
+                }}
                 className="h-6 w-6 accent-amber-300"
               />
               <span className="text-sm font-medium leading-relaxed text-white">
@@ -1890,7 +2108,12 @@ export function ConfidentialReportPanel() {
                   <span>Simulación Educativa · Sin efecto legal</span>
                 </div>
               )}
-              <h2 className="text-xl font-bold text-white">
+              <h2
+                ref={receiptHeadingRef}
+                tabIndex={-1}
+                data-testid="report-receipt-heading"
+                className="text-xl font-bold text-white focus:outline-none"
+              >
                 {isPracticeMode
                   ? 'Expediente simulado (Modo de práctica)'
                   : isPartiallySubmitted
@@ -1959,7 +2182,7 @@ export function ConfidentialReportPanel() {
           )}
 
           <div className="rounded-xl border border-gray-700 bg-[#111827] p-5 space-y-3">
-            <h2 className="text-lg font-bold text-white">Canal opcional: vista previa para WhatsApp</h2>
+            <h3 className="text-lg font-bold text-white">Canal opcional: vista previa para WhatsApp</h3>
             <p className="text-sm text-gray-300">
               Este es el texto exacto que se preparará si decides abrir WhatsApp. No se envía nada automáticamente:
             </p>

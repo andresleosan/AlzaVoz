@@ -62,8 +62,8 @@ export function MediaCaptureIndicator() {
 
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs sm:text-sm font-bold text-red-100 flex items-center gap-1.5">
-              {hasActiveVideo && <Video size={16} className="text-red-400 shrink-0" aria-label="Cámara" />}
-              {hasActiveAudio && <Mic size={16} className="text-amber-400 shrink-0" aria-label="Micrófono" />}
+              {hasActiveVideo && <Video size={16} className="text-red-400 shrink-0" aria-hidden="true" />}
+              {hasActiveAudio && <Mic size={16} className="text-amber-400 shrink-0" aria-hidden="true" />}
               <span data-testid="banner-status-text">En vivo: {statusLabel}</span>
             </span>
 

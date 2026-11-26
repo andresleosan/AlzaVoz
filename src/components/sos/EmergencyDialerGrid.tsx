@@ -48,20 +48,21 @@ export function EmergencyDialerGrid() {
                   <Icon
                     className="w-6 h-6"
                     style={{ color: service.accentColor }}
+                    aria-hidden="true"
                   />
                 </div>
 
                 <div className="min-w-0 text-left">
-                  <p className="text-base font-semibold leading-snug text-white">
+                  <span className="block text-base font-semibold leading-snug text-white">
                     {service.shortName}
-                  </p>
-                  <p className="mt-1 text-sm leading-relaxed text-gray-400">
+                  </span>
+                  <span className="mt-1 block text-sm leading-relaxed text-gray-400">
                     {service.description}
-                  </p>
+                  </span>
                 </div>
               </div>
 
-              <Phone className="h-5 w-5 shrink-0 text-gray-400" />
+              <Phone className="h-5 w-5 shrink-0 text-gray-400" aria-hidden="true" />
             </>
           );
 

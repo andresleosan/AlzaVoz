@@ -107,7 +107,8 @@ body {
 }
 
 .privacy-peep-active [data-sensitive="true"]:active,
-.privacy-peep-active [data-sensitive="true"]:focus {
+.privacy-peep-active [data-sensitive="true"]:focus,
+.privacy-peep-active [data-sensitive="true"]:focus-within {
   filter: blur(0);
 }
 
@@ -130,8 +131,9 @@ body {
 .app-main { width: 100%; max-width: 1280px; margin-inline: auto; padding: 28px 16px 32px; scroll-margin-top: 88px; }
 .app-privacy-footer { width: 100%; max-width: 1280px; margin-inline: auto; padding: 20px 16px 120px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-start; }
 .app-main:focus { outline: none; }
-.skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 16px; background: var(--text-primary); color: var(--text-inverse); border-radius: 8px; }
-.skip-link:focus { top: 12px; }
+.skip-link { position: fixed; top: -100px; left: 16px; z-index: 100; padding: 16px; background: var(--text-primary); color: var(--text-inverse); border-radius: 8px; font-weight: 700; text-decoration: none; }
+.skip-link:focus,
+.skip-link:focus-visible { top: 12px; outline: 3px solid #FDE68A; outline-offset: 2px; }
 :where(a, button, input, summary, select, textarea):focus-visible { outline: 2px solid var(--mode-standard); outline-offset: 4px; }
 ::selection { background: var(--mode-standard); color: var(--text-inverse); }
 input, textarea { caret-color: var(--mode-standard); }

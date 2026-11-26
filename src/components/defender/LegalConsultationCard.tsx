@@ -69,9 +69,9 @@ export function LegalConsultationCard({
     >
       {/* Cabecera del Caso */}
       <div className="space-y-3">
-        <h3 className="text-xl font-semibold leading-snug text-white">
+        <h2 className="text-xl font-semibold leading-snug text-white">
           {response.title}
-        </h3>
+        </h2>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-gray-400">
           <span>{response.category.toUpperCase()}</span>
           <span>
@@ -95,10 +95,10 @@ export function LegalConsultationCard({
         aria-label="Bloque 1: Cita de Norma Exacta"
         className="space-y-4 border-t border-gray-800 pt-6"
       >
-        <div className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
-          <Scale className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
+        <h3 className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
+          <Scale className="mt-1 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
           <span>1. Cita de Norma Exacta (Sustento Jurídico)</span>
-        </div>
+        </h3>
 
         <div className="space-y-3">
           <p className="text-base font-semibold leading-relaxed text-amber-200">
@@ -124,10 +124,10 @@ export function LegalConsultationCard({
         className="space-y-4 border-t border-gray-800 pt-6"
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
-            <MessageSquareQuote className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
+          <h3 className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
+            <MessageSquareQuote className="mt-1 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
             <span>2. Guion para Leer al Agente / Policía</span>
-          </div>
+          </h3>
           <button
             type="button"
             onClick={handleCopyScript}
@@ -136,16 +136,19 @@ export function LegalConsultationCard({
           >
             {copiedScript ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" />
+                <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
                 <span className="text-emerald-300">¡Copiado!</span>
               </>
             ) : (
               <>
-                <Copy className="h-4 w-4 text-gray-300" />
+                <Copy className="h-4 w-4 text-gray-300" aria-hidden="true" />
                 <span>Copiar Guion</span>
               </>
             )}
           </button>
+          <div aria-live="polite" aria-atomic="true" className="sr-only">
+            {copiedScript ? "Guion copiado al portapapeles." : ""}
+          </div>
         </div>
 
         {/* Caja de Texto Gigante de Alta Legibilidad */}
@@ -159,7 +162,7 @@ export function LegalConsultationCard({
         </div>
 
         <div className="flex items-start gap-2 text-sm leading-relaxed text-gray-400">
-          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
           <div>
             <span className="font-bold text-gray-300">Consejo de Tono: </span>
             {response.agentScript.toneAdvice}
@@ -172,10 +175,10 @@ export function LegalConsultationCard({
         aria-label="Bloque 3: Checklist de Pruebas a Grabar"
         className="space-y-4 border-t border-gray-800 pt-6"
       >
-        <div className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
-          <CheckSquare className="mt-1 h-4 w-4 shrink-0 text-gray-400" />
+        <h3 className="flex items-start gap-2 text-base font-semibold leading-relaxed text-white">
+          <CheckSquare className="mt-1 h-4 w-4 shrink-0 text-gray-400" aria-hidden="true" />
           <span>3. Checklist de Pruebas a Grabar en Vivo</span>
-        </div>
+        </h3>
 
         <ul className="divide-y divide-gray-800">
           {response.evidenceChecklist.map((item) => {
@@ -192,14 +195,14 @@ export function LegalConsultationCard({
                       : "text-gray-300 hover:bg-gray-800/50"
                   }`}
                 >
-                  <span className="mt-0.5 shrink-0">
+                  <span className="mt-0.5 shrink-0" aria-hidden="true">
                     {isChecked ? (
                       <CheckSquare className="w-5 h-5 text-emerald-400" />
                     ) : (
                       <Square className="h-5 w-5 text-gray-400" />
                     )}
                   </span>
-                  <div className="min-w-0 flex-1 text-sm leading-relaxed">
+                  <span className="block min-w-0 flex-1 text-sm leading-relaxed">
                     <span className={isChecked ? "line-through opacity-80" : ""}>
                       {item.instruction}
                     </span>
@@ -208,7 +211,7 @@ export function LegalConsultationCard({
                         [Vital]
                       </span>
                     )}
-                  </div>
+                  </span>
                 </button>
               </li>
             );
@@ -219,7 +222,7 @@ export function LegalConsultationCard({
       {/* Alerta Preventiva Clave */}
       {response.keyWarning && (
         <div className="flex items-start gap-3 border-t border-red-900 pt-6 text-sm leading-relaxed text-red-200">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" />
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-400" aria-hidden="true" />
           <div>
             <span className="font-semibold text-red-300">
               Advertencia Crucial:{" "}

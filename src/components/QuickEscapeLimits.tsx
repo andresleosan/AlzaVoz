@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
+import { useId, useRef } from 'react';
 import { EyeOff, Globe, Info, ShieldAlert, Trash2, X } from 'lucide-react';
 import { useAppMode } from '@/context/AppModeContext';
 import { QuickEscapeButton } from '@/components/QuickEscapeButton';
+import { useDialogFocusTrap } from '@/hooks/useDialogFocusTrap';
 
 export type EscapeLimitsButtonVariant = 'home' | 'report' | 'sidebar' | 'footer';
 
@@ -127,45 +128,13 @@ export function QuickEscapeLimitsModal() {
   const { isEscapeLimitsOpen, closeEscapeLimits } = useAppMode();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
-  const previousFocusRef = useRef<HTMLElement | null>(null);
 
-  useEffect(() => {
-    if (!isEscapeLimitsOpen) return;
-
-    previousFocusRef.current =
-      document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    closeButtonRef.current?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        closeEscapeLimits();
-        return;
-      }
-      if (event.key === 'Tab' && dialogRef.current) {
-        const focusable = Array.from(
-          dialogRef.current.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
-          )
-        );
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('keydown', onKeyDown);
-      previousFocusRef.current?.focus?.();
-    };
-  }, [isEscapeLimitsOpen, closeEscapeLimits]);
+  useDialogFocusTrap({
+    isOpen: isEscapeLimitsOpen,
+    dialogRef,
+    initialFocusRef: closeButtonRef,
+    onClose: closeEscapeLimits,
+  });
 
   if (!isEscapeLimitsOpen) {
     return null;
@@ -176,12 +145,14 @@ export function QuickEscapeLimitsModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="escape-limits-modal-title"
+      aria-describedby="escape-limits-modal-intro"
       data-testid="quick-escape-limits-modal"
       className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/85 p-4 pb-24 sm:pb-4 backdrop-blur-sm"
     >
       <div
         ref={dialogRef}
-        className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-5 sm:p-6 text-gray-100 shadow-2xl space-y-4"
+        tabIndex={-1}
+        className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-5 sm:p-6 text-gray-100 shadow-2xl space-y-4 focus:outline-none"
       >
         <div className="flex items-start justify-between gap-3 border-b border-gray-700 pb-3.5">
           <div className="flex items-center gap-3">
@@ -208,7 +179,10 @@ export function QuickEscapeLimitsModal() {
           </button>
         </div>
 
-        <p className="rounded-xl border border-gray-700 bg-[#0B0F19] px-3.5 py-2.5 text-xs sm:text-sm text-gray-200 leading-relaxed">
+        <p
+          id="escape-limits-modal-intro"
+          className="rounded-xl border border-gray-700 bg-[#0B0F19] px-3.5 py-2.5 text-xs sm:text-sm text-gray-200 leading-relaxed"
+        >
           Consultar esta guía no frena la salida de emergencia: el botón <strong className="text-white">Salir Rápido</strong> de la cabecera y la barra móvil sigue saliendo a Google con un solo toque sin pedir confirmación.
         </p>
 

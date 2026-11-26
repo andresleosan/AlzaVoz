@@ -362,7 +362,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 21: Recorrido completo con lector de pantalla
+### [x] Tarea 21: Recorrido completo con lector de pantalla
 - **Área:** Accesibilidad y comprensión
 - **Idea de origen:** I011
 - **Prioridad original:** Esencial
@@ -370,7 +370,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T2, T3, T6
 - **Criterios de Éxito:** Los recorridos críticos se completan con nombres accesibles, foco ordenado y anuncios de error o entrega sin depender del color.
 - **Verificación requerida:** E2E con teclado y árbol accesible, más recorrido con lector de pantalla y registro de correcciones.
-- **Plan:** docs/planes/T021.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T021.md (redactado, auditado y cerrado).
+- **Resultado verificado (2026-11-26):** Hook compartido `useDialogFocusTrap` (atrapamiento circular `Tab`/`Shift+Tab`, `Escape` y retorno síncrono de foco en modales globales y `/sos`), región viva global `app-live-announcer` y regiones vivas locales sin colisión con `role="status"`, `metadata.title` único por ruta, contenedor `<main>` y `<h1>` únicos con jerarquía continua (`AdminPanel` sin `<main>` anidado), validación accesible con `role="alert"` + `aria-invalid` + `aria-describedby` y movimiento de foco en `/sos` y `/report`, estados con `aria-pressed` / `aria-current="step"`, y descarga/retiro accesible por archivo. Verificado con `tsc --noEmit`, `eslint .`, `pnpm build`, 171/171 pruebas E2E en Next (`e2e/screen-reader-a11y.spec.ts` 5/5), `pnpm build:pages` + 43/43 pruebas en `PLAYWRIGHT_PAGES=1` y recorrido interactivo `browser` (`1440×900`, `390×844` y `320×720`, 0 errores).
 
 ---
 

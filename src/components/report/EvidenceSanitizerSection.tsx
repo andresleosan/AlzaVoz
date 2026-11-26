@@ -251,36 +251,36 @@ export function EvidenceSanitizerSection({
   return (
     <div className="space-y-6">
       <div className="rounded-xl border border-gray-700 bg-[#111827] p-4 space-y-4">
-        <h2 className="text-lg font-bold text-white">1. Limpieza local de imágenes y documentos</h2>
+        <h3 className="text-lg font-bold text-white">1. Limpieza local de imágenes y documentos</h3>
         <p className="text-sm leading-relaxed text-gray-300">
           Antes de enviar cualquier archivo, tu navegador inspecciona sus bytes y elimina metadatos identificables:
           coordenadas <strong>GPS</strong>, datos de cámara <strong>EXIF/XMP/IPTC</strong>, fecha de toma y nombre original
           del archivo. Los formatos que no permitan verificar su limpieza (como PDF, Word, MP4 o ejecutables) se rechazan.
         </p>
         <div>
-          <label
-            htmlFor="report-file-input"
-            className={`${control} w-full cursor-pointer bg-gray-800 border-amber-200 hover:bg-gray-700`}
-          >
-            {processing ? 'Procesando y verificando archivo…' : 'Seleccionar foto (JPEG/PNG/WebP) o audio'}
-          </label>
           <input
             id="report-file-input"
             type="file"
             disabled={disabled || processing || attachments.length >= MAX_REPORT_ATTACHMENTS}
             accept="image/jpeg,image/png,image/webp,audio/wav,audio/webm,audio/ogg,audio/mpeg"
-            className="sr-only"
+            className="peer sr-only"
             onChange={(e) => {
               const selected = e.target.files?.[0] ?? null;
               e.target.value = '';
               void handleFileSelection(selected);
             }}
           />
+          <label
+            htmlFor="report-file-input"
+            className={`${control} w-full cursor-pointer bg-gray-800 border-amber-200 hover:bg-gray-700 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-4 peer-focus-visible:outline-amber-200`}
+          >
+            {processing ? 'Procesando y verificando archivo…' : 'Seleccionar foto (JPEG/PNG/WebP) o audio'}
+          </label>
         </div>
       </div>
 
       <div className="rounded-xl border border-gray-700 bg-[#111827] p-4 space-y-4">
-        <h2 className="text-lg font-bold text-white">2. Protección opcional de voz (Web Audio)</h2>
+        <h3 className="text-lg font-bold text-white">2. Protección opcional de voz (Web Audio)</h3>
         <p className="text-sm leading-relaxed text-gray-300">
           Si grabas o adjuntas una nota de voz, puedes activar la transformación acústica para desplazar el tono, modular
           los formantes y exportar un archivo WAV sin etiquetas <code>ID3/INFO</code>.
@@ -406,6 +406,7 @@ export function EvidenceSanitizerSection({
                   <a
                     href={item.previewUrl}
                     download={item.fileName}
+                    aria-label={`Descargar copia limpia de ${item.fileName}`}
                     className={`${control} text-sm bg-gray-900`}
                   >
                     Descargar copia limpia
@@ -414,6 +415,7 @@ export function EvidenceSanitizerSection({
                     type="button"
                     data-testid={`remove-evidence-file-${item.id}`}
                     disabled={disabled || Boolean(item.uploadedReceipt)}
+                    aria-label={`Retirar archivo ${item.fileName}`}
                     onClick={() => setPendingRemovalId(item.id)}
                     className={`${control} text-sm bg-gray-900 text-red-200 hover:bg-red-950/60`}
                   >
@@ -427,7 +429,7 @@ export function EvidenceSanitizerSection({
       </div>
 
       <div className="rounded-xl border border-gray-700 bg-[#111827] p-4 space-y-3">
-        <h2 className="text-lg font-bold text-white">3. Vincular grabación de Caja Negra R2 (Opcional)</h2>
+        <h3 className="text-lg font-bold text-white">3. Vincular grabación de Caja Negra R2 (Opcional)</h3>
         <p className="text-sm leading-relaxed text-gray-300">
           Si grabaste video o audio en <strong>Grabar evidencia</strong>, puedes vincular esa sesión a este expediente.
           El servidor comprobará que la clave tenga clips confirmados en R2 y guardará en D1 únicamente el identificador de
