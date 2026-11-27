@@ -19,14 +19,14 @@ export function SharedDeviceBanner() {
     <aside
       aria-label="Aviso de sesión en dispositivo compartido"
       data-testid="shared-device-banner"
-      className="sticky top-[88px] z-30 w-full border-b border-cyan-500/60 bg-[#0B1628]/95 px-4 py-2.5 text-slate-100 shadow-md backdrop-blur-md"
+      className="w-full border-b border-cyan-500/60 bg-[#0B1628]/95 px-4 py-2.5 text-slate-100 shadow-md backdrop-blur-md"
     >
       <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-300">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <span className="flex h-[32px] w-[32px] shrink-0 items-center justify-center rounded-lg bg-cyan-500/20 text-cyan-300">
             <ShieldAlert size={18} aria-hidden="true" />
           </span>
-          <div className="text-xs sm:text-sm leading-snug">
+          <div className="min-w-0 text-xs sm:text-sm leading-snug">
             <strong className="block font-bold text-white">
               Sesión en dispositivo compartido activa
             </strong>
@@ -36,7 +36,7 @@ export function SharedDeviceBanner() {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 max-w-full">
           <button
             type="button"
             onClick={() => {
@@ -44,9 +44,9 @@ export function SharedDeviceBanner() {
               openExternalRecordsGuide();
             }}
             data-testid="open-shared-device-info-button"
-            className="inline-flex min-h-14 min-w-14 items-center justify-center gap-1.5 rounded-xl border border-cyan-400/50 bg-[#111827] px-3.5 py-2 text-xs sm:text-sm font-semibold text-cyan-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
+            className="touch-target-min inline-flex min-h-[56px] min-w-[56px] max-w-full items-center justify-center gap-1.5 rounded-xl border border-cyan-400/50 bg-[#111827] px-3.5 py-2 text-center text-xs sm:text-sm font-semibold leading-snug text-cyan-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
           >
-            <Info size={16} aria-hidden="true" />
+            <Info size={16} className="shrink-0" aria-hidden="true" />
             <span>Registros externos</span>
           </button>
 
@@ -58,9 +58,9 @@ export function SharedDeviceBanner() {
             }}
             data-testid="exit-shared-session-button"
             aria-label="Salir de la sesión compartida y limpiar borradores locales"
-            className="inline-flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-xl border border-cyan-300/70 bg-cyan-950 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-cyan-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
+            className="touch-target-min inline-flex min-h-[56px] min-w-[56px] max-w-full items-center justify-center gap-2 rounded-xl border border-cyan-300/70 bg-cyan-950 px-4 py-2 text-center text-xs sm:text-sm font-bold leading-snug text-white hover:bg-cyan-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
           >
-            <Trash2 size={16} aria-hidden="true" />
+            <Trash2 size={16} className="shrink-0" aria-hidden="true" />
             <span>Salir y limpiar sesión</span>
           </button>
         </div>
@@ -88,7 +88,7 @@ export function SharedDeviceToggle({ className = '' }: { className?: string }) {
       onClick={handleClick}
       data-testid="toggle-shared-device-button"
       aria-pressed={isSharedDevice}
-      className={`inline-flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95 ${
+      className={`touch-target-min inline-flex min-h-[56px] min-w-[56px] max-w-full items-center justify-center gap-2 rounded-xl border px-3.5 py-2 text-left text-xs sm:text-sm font-semibold leading-snug transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95 ${
         isSharedDevice
           ? 'border-cyan-400 bg-cyan-950/90 text-white hover:bg-cyan-900'
           : 'border-gray-600 bg-[#111827] text-gray-100 hover:bg-gray-800'
@@ -131,29 +131,29 @@ export function SharedDeviceExitModal() {
       aria-labelledby="shared-device-modal-title"
       aria-describedby="shared-device-modal-summary"
       data-testid="shared-device-exit-modal"
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/85 p-4 pb-24 sm:pb-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center overflow-y-auto bg-black/85 p-2 sm:p-4 pb-24 sm:pb-4 backdrop-blur-sm"
     >
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="relative w-full max-w-xl max-h-[88vh] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-5 sm:p-6 text-gray-100 shadow-2xl space-y-4 focus:outline-none"
+        className="relative my-auto w-full max-w-xl max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-[16px] sm:p-6 text-gray-100 shadow-2xl space-y-4 focus:outline-none"
       >
         <div className="flex items-start justify-between gap-3 border-b border-gray-700 pb-3.5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
               {isExited ? (
                 <ShieldCheck size={22} aria-hidden="true" />
               ) : (
                 <Info size={22} aria-hidden="true" />
               )}
             </span>
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-300">
+            <div className="min-w-0">
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">
                 {isExited
                   ? 'Sesión compartida cerrada y limpia'
                   : 'Teléfono o navegador compartido'}
               </span>
-              <h2 id="shared-device-modal-title" className="text-lg sm:text-xl font-bold text-white">
+              <h2 id="shared-device-modal-title" className="text-lg sm:text-xl font-bold text-white break-words">
                 {isExited
                   ? 'Borradores eliminados de esta aplicación'
                   : 'Qué no se guarda y qué puede quedar fuera'}
@@ -165,7 +165,7 @@ export function SharedDeviceExitModal() {
             type="button"
             onClick={closeExitModal}
             aria-label="Cerrar aviso de sesión compartida"
-            className="touch-target-min flex min-h-14 min-w-14 shrink-0 items-center justify-center rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-cyan-300"
+            className="touch-target-min flex min-h-[56px] min-w-[56px] shrink-0 items-center justify-center rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-cyan-300"
           >
             <X size={20} aria-hidden="true" />
           </button>
@@ -234,7 +234,7 @@ export function SharedDeviceExitModal() {
             type="button"
             onClick={closeExitModal}
             data-testid="close-shared-exit-modal-button"
-            className="w-full min-h-14 inline-flex items-center justify-center rounded-xl bg-cyan-400 hover:bg-cyan-300 px-4 py-3 text-sm sm:text-base font-bold text-[#0B0F19] shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 motion-safe:active:scale-95"
+            className="touch-target-min w-full min-h-[56px] inline-flex items-center justify-center rounded-xl bg-cyan-400 hover:bg-cyan-300 px-4 py-3 text-sm sm:text-base font-bold text-[#0B0F19] shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 motion-safe:active:scale-95"
           >
             Entendido, cerrar aviso
           </button>

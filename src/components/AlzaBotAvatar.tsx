@@ -25,25 +25,25 @@ const SIZE_MAP: Record<
   }
 > = {
   sm: {
-    container: "w-10 h-10 rounded-xl",
+    container: "w-[40px] h-[40px] shrink-0 rounded-xl",
     px: 40,
     badge: "w-2.5 h-2.5 -top-0.5 -right-0.5 ring-1",
     glowRadius: "0 0 12px",
   },
   md: {
-    container: "w-14 h-14 rounded-2xl touch-target-min",
+    container: "w-[56px] h-[56px] shrink-0 rounded-2xl touch-target-min",
     px: 56,
     badge: "w-3 h-3 top-0 right-0 ring-2",
     glowRadius: "0 0 20px",
   },
   lg: {
-    container: "w-24 h-24 rounded-3xl",
+    container: "w-[96px] h-[96px] shrink-0 rounded-3xl",
     px: 96,
     badge: "w-3.5 h-3.5 top-1 right-1 ring-2",
     glowRadius: "0 0 30px",
   },
   xl: {
-    container: "w-36 h-36 rounded-3xl",
+    container: "w-[144px] h-[144px] shrink-0 rounded-3xl",
     px: 144,
     badge: "w-4 h-4 top-1.5 right-1.5 ring-2",
     glowRadius: "0 0 45px",

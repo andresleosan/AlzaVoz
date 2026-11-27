@@ -6,7 +6,7 @@ import type { ClipReceipt, RecordingSession } from '@/lib/recording/contracts';
 import type { CapturedClip } from '@/lib/recording/recorder';
 import { ContinuousRecordingPlayback } from './ContinuousRecordingPlayback';
 
-const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
+const control = 'touch-target-min min-h-[56px] min-w-[56px] max-w-full rounded-xl border border-gray-600 px-4 py-3 text-center font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
 const time = (ms: number) => `${(ms / 1000).toFixed(2)} s`;
 type LoadedClip = { url: string; receipt: ClipReceipt };
 type LoadResult = { clip: LoadedClip } | { error: string } | null;
@@ -185,7 +185,7 @@ function LegacyRecordingPlayback({ session, clips, active, disabled }: Recording
       <h2 className="pt-2 font-bold">Clips de esta grabación</h2>
       <ol className="divide-y divide-gray-700">
         {clips.map((clip, i) => <li key={clip.index} className="space-y-2 py-3">
-          <div className="flex justify-between gap-3 font-semibold"><span>Clip {clip.index + 1}</span><span>{clip.status === 'received' ? 'Recibido' : clip.status === 'sending' ? 'Enviando' : clip.status === 'lost' ? 'No conservado' : 'Pendiente'}</span></div>
+          <div className="flex flex-wrap justify-between gap-2 font-semibold"><span>Clip {clip.index + 1}</span><span>{clip.status === 'received' ? 'Recibido' : clip.status === 'sending' ? 'Enviando' : clip.status === 'lost' ? 'No conservado' : 'Pendiente'}</span></div>
           <p className="font-tabular text-sm text-gray-300">{time(clip.startMs)}–{time(clip.endMs)} · {(clip.bytes / 1024).toFixed(1)} KiB{ i > 0 ? ` · Pausa: ${Math.max(0, clip.startMs - clips[i - 1].endMs)} ms` : ''}</p>
           {clip.receipt && <button type="button" className={`${control} w-full`} disabled={disabled} onClick={() => { if (clip.receipt) start([clip.receipt]); }}>Reproducir clip {clip.index + 1}</button>}
         </li>)}

@@ -139,13 +139,13 @@ export function SosEmergencyPanel() {
         {/* 1. BOTÓN DE PÁNICO HERO (UX BAJO ESTRÉS - FITTS' LAW) */}
         <section
           aria-label="Botón de Pánico Principal"
-          className="flex flex-col items-center justify-center rounded-2xl border border-red-900 bg-red-950/30 p-6 text-center"
+          className="flex flex-col items-center justify-center rounded-2xl border border-red-900 bg-red-950/30 p-[16px] sm:p-6 text-center"
         >
-          <div className="flex flex-col items-center">
+          <div className="flex max-w-full flex-col items-center">
             <h1 className="mb-4 text-2xl font-semibold text-white">Emergencia SOS</h1>
 
             {/* Gran Pulsador Circular de Pánico (Touch Target > 140px) */}
-            <div className="relative my-2">
+            <div className="relative my-2 max-w-full">
               {isPracticeMode ? (
                 <button
                   type="button"
@@ -163,7 +163,7 @@ export function SosEmergencyPanel() {
                     });
                   }}
                   aria-label="Simulación: Llamar a Emergencias Policía 123 ahora"
-                  className="touch-target-min flex h-36 w-36 flex-col items-center justify-center rounded-full bg-amber-600 text-white transition-colors hover:bg-amber-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-amber-700"
+                  className="touch-target-min flex min-h-[144px] min-w-[144px] max-w-full flex-col items-center justify-center rounded-full bg-amber-600 px-5 py-4 text-white transition-colors hover:bg-amber-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-amber-700"
                 >
                   <ShieldAlert className="h-10 w-10 text-white" aria-hidden="true" />
                   <span className="text-2xl font-bold text-white">
@@ -178,7 +178,7 @@ export function SosEmergencyPanel() {
                   href="tel:123"
                   onClick={handleMainSosCall}
                   aria-label="Llamar a Emergencias Policía 123 ahora"
-                  className="touch-target-min flex h-36 w-36 flex-col items-center justify-center rounded-full bg-red-600 text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-red-700"
+                  className="touch-target-min flex min-h-[144px] min-w-[144px] max-w-full flex-col items-center justify-center rounded-full bg-red-600 px-5 py-4 text-white transition-colors hover:bg-red-500 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:bg-red-700"
                 >
                   <ShieldAlert className="h-10 w-10 text-white" aria-hidden="true" />
                   <span className="text-2xl font-bold text-white">
@@ -344,7 +344,7 @@ export function SosEmergencyPanel() {
                 href="/device-check"
                 prefetch={false}
                 data-testid="sos-device-check-link"
-                className="touch-target-min inline-flex min-h-14 items-center gap-2 rounded-xl border border-gray-700 bg-[#111827] px-4 py-2.5 text-xs font-semibold text-cyan-200 underline underline-offset-4 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+                className="touch-target-min inline-flex min-h-[56px] max-w-full items-center gap-2 rounded-xl border border-gray-700 bg-[#111827] px-4 py-2.5 text-xs font-semibold text-cyan-200 underline underline-offset-4 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
               >
                 Comprobar cámara, micrófono y ubicación sin enviar datos
               </Link>

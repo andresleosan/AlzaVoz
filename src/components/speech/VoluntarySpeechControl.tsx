@@ -122,7 +122,7 @@ export function VoluntarySpeechControl({
                   triggerHaptic(30);
                   onScopeChange(scope.id);
                 }}
-                className={`touch-target-min min-h-14 min-w-14 rounded-xl border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${
+                className={`touch-target-min min-h-[56px] min-w-[56px] rounded-xl border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${
                   isSelected
                     ? "border-amber-400/80 bg-gray-700 text-white"
                     : "border-gray-700 bg-[#111827] text-gray-200 hover:bg-gray-800"
@@ -142,7 +142,7 @@ export function VoluntarySpeechControl({
           disabled={isUnsupported || totalSegments === 0}
           aria-pressed={isUnsupported ? undefined : isSpeaking}
           onClick={handleToggleSpeech}
-          className={`touch-target-min min-h-14 min-w-14 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${
+          className={`touch-target-min min-h-[56px] min-w-[56px] inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300 ${
             isUnsupported || totalSegments === 0
               ? "cursor-not-allowed border border-gray-600 bg-gray-800 text-gray-300"
               : isSpeaking
@@ -177,7 +177,7 @@ export function VoluntarySpeechControl({
           aria-expanded={isSilentOpen}
           aria-controls={silentPanelId}
           onClick={handleToggleSilent}
-          className="touch-target-min min-h-14 min-w-14 inline-flex items-center justify-center gap-2 rounded-xl border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm font-semibold text-gray-100 transition-colors hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+          className="touch-target-min min-h-[56px] min-w-[56px] inline-flex items-center justify-center gap-2 rounded-xl border border-gray-600 bg-gray-800 px-4 py-2.5 text-sm font-semibold text-gray-100 transition-colors hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
         >
           <FileText className="h-4 w-4 shrink-0 text-gray-200" aria-hidden="true" />
           <span>
@@ -286,11 +286,11 @@ export function VoluntarySpeechStickyBar() {
       role="region"
       aria-label="Control rápido para detener lectura en voz alta"
       data-testid="speech-sticky-stop-bar"
-      className="pointer-events-none fixed bottom-[calc(84px+env(safe-area-inset-bottom))] left-4 right-4 z-40 lg:bottom-5 lg:left-[calc(240px+40px)] lg:right-10"
+      className="speech-sticky-bar pointer-events-none fixed bottom-[calc(3.25rem+40px+env(safe-area-inset-bottom))] left-4 right-4 z-40 lg:bottom-5 lg:left-[calc(240px+40px)] lg:right-10"
     >
       <div className="pointer-events-auto mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-red-400 bg-[#0B0F19] p-3 shadow-2xl">
-        <div className="min-w-[130px] flex-1 space-y-0.5">
-          <p className="truncate text-xs font-semibold text-red-200">
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <p className="break-words text-xs font-semibold text-red-200">
             {banner.contextLabel}
           </p>
           <p className="text-sm font-semibold text-white break-words">
@@ -308,7 +308,7 @@ export function VoluntarySpeechStickyBar() {
             triggerHaptic(30);
             banner.onStop();
           }}
-          className="touch-target-min min-h-14 min-w-14 inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-xl border border-red-300 bg-red-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          className="touch-target-min min-h-[56px] min-w-[56px] inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-xl border border-red-300 bg-red-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
         >
           <Square className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span>Detener lectura</span>

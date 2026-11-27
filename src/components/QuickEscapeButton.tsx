@@ -56,10 +56,10 @@ export function QuickEscapeButton({
       <button
         type="button"
         onClick={handleEscape}
-        className={`touch-target-min min-h-[56px] w-full flex items-center justify-center gap-2.5 px-4 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-200 border border-red-500/40 text-xs font-semibold tracking-wide uppercase transition active:scale-95 shadow-[0_0_15px_rgba(239,68,68,0.2)] ${className}`}
+        className={`touch-target-min min-h-[56px] w-full flex items-center justify-center gap-2.5 px-4 py-2 rounded-xl bg-red-950/60 hover:bg-red-900/80 text-red-200 border border-red-500/40 text-xs font-semibold leading-snug tracking-wide uppercase transition active:scale-95 shadow-[0_0_15px_rgba(239,68,68,0.2)] ${className}`}
         aria-label="Salida Rápida de Pánico: limpia borradores locales, detiene captura y abre Google reemplazando la página actual"
       >
-        <LogOut className="w-4 h-4 text-red-400" aria-hidden="true" />
+        <LogOut className="w-4 h-4 shrink-0 text-red-400" aria-hidden="true" />
         <span>Salida Rápida de Pánico (Abrir Google)</span>
       </button>
     );
@@ -70,11 +70,11 @@ export function QuickEscapeButton({
     <button
       type="button"
       onClick={handleEscape}
-      className={`touch-target-min min-h-[56px] inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900/90 hover:bg-red-950 text-red-300 hover:text-red-200 border border-gray-800 hover:border-red-500/50 text-[11px] font-semibold transition active:scale-95 ${className}`}
+      className={`touch-target-min min-h-[56px] inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gray-900/90 hover:bg-red-950 text-red-300 hover:text-red-200 border border-gray-800 hover:border-red-500/50 text-xs font-semibold transition active:scale-95 ${className}`}
       aria-label="Salida Rápida de Pánico: limpia esta pestaña y abre Google"
       title="Salida Rápida (Abre Google)"
     >
-      <LogOut className="w-4 h-4 text-red-400" aria-hidden="true" />
+      <LogOut className="w-4 h-4 shrink-0 text-red-400" aria-hidden="true" />
       <span className="escape-label">Salir Rápido</span>
     </button>
   );

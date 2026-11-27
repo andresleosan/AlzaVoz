@@ -56,7 +56,12 @@ export function CommunityMap() {
     <p className="community-note">Centros aproximados de comunas, sin límites oficiales. Círculo lleno: hay observaciones. Los números identifican comunas, nunca ubicaciones de personas.</p>
     {state === 'ready' && <>
       {filtered.length === 0 && <p role="status">Sin observaciones para esta categoría en los últimos 30 días.</p>}
-      <div className="community-table-wrap"><table>
+      <div
+        className="community-table-wrap"
+        tabIndex={0}
+        role="region"
+        aria-label="Tabla desplazable de recuentos por comuna y categoría"
+      ><table>
         <caption>Recuentos por comuna y categoría</caption>
         <thead><tr><th scope="col">Comuna</th><th scope="col">Categoría</th><th scope="col">Avisos</th></tr></thead>
         <tbody>{filtered.map(group => <tr key={`${group.commune}-${group.category}`}>

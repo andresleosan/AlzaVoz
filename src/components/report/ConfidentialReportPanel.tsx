@@ -80,7 +80,7 @@ function createPracticeReportCode(): string {
 }
 
 const control =
-  'min-h-14 min-w-14 inline-flex items-center justify-center rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
+  'touch-target-min min-h-[56px] min-w-[56px] max-w-full inline-flex items-center justify-center rounded-xl border border-gray-600 px-4 py-3 text-center font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
 
 type Step = 1 | 2 | 3;
 
@@ -448,7 +448,7 @@ function SafeContactStatusCard({
           </div>
 
           {timeSlot === 'custom' && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label htmlFor="edit-custom-start" className="block text-xs text-gray-300 mb-1">
                   Hora inicio (HH:MM)
@@ -493,7 +493,7 @@ function SafeContactStatusCard({
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               type="submit"
               id="btn-save-safe-contact"
@@ -1151,10 +1151,10 @@ export function ConfidentialReportPanel() {
   return (
     <section aria-labelledby="report-title" className="mx-auto w-full max-w-3xl space-y-6 pb-12 text-base text-gray-100">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4 min-w-0 flex-1">
           <AlzaBotAvatar mode="violet" size="md" showLivePulse={false} />
-          <div>
-            <h1 id="report-title" className="text-2xl font-bold text-white">
+          <div className="min-w-0 flex-1">
+            <h1 id="report-title" className="text-2xl font-bold text-white break-words">
               Denuncia confidencial y bóveda D1
             </h1>
             <p className="mt-1 text-sm text-gray-300">
@@ -1162,7 +1162,7 @@ export function ConfidentialReportPanel() {
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5 max-w-full">
           <SharedDeviceToggle />
           <PracticeModeToggle />
           <EscapeLimitsButton variant="report" />
@@ -1181,14 +1181,14 @@ export function ConfidentialReportPanel() {
           <button
             type="button"
             onClick={openExternalRecordsGuide}
-            className="min-h-14 inline-flex items-center justify-center rounded-xl border border-cyan-400/50 bg-[#111827] px-3.5 py-2 text-xs font-semibold text-cyan-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-cyan-300"
+            className="touch-target-min min-h-[56px] max-w-full inline-flex items-center justify-center rounded-xl border border-cyan-400/50 bg-[#111827] px-3.5 py-2 text-center text-xs font-semibold text-cyan-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-cyan-300"
           >
             Qué registros externos permanecen
           </button>
         </div>
       )}
 
-      <nav aria-label="Pasos de la denuncia confidencial" className="grid grid-cols-3 gap-2">
+      <nav aria-label="Pasos de la denuncia confidencial" className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <button
           type="button"
           onClick={() => goToStep(1)}
@@ -1242,7 +1242,7 @@ export function ConfidentialReportPanel() {
       )}
 
       {step === 1 && (
-        <div className="space-y-5 rounded-xl border border-gray-700 bg-[#111827] p-5">
+        <div className="space-y-5 rounded-xl border border-gray-700 bg-[#111827] p-[16px] sm:p-5">
           <h2
             ref={stepHeadingRef}
             tabIndex={-1}
@@ -1262,7 +1262,7 @@ export function ConfidentialReportPanel() {
                 type="button"
                 data-testid="load-practice-report-button"
                 onClick={handleLoadPracticeData}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-400/60 bg-amber-900/60 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800 focus-visible:outline-2 focus-visible:outline-amber-300 active:scale-95 transition-transform"
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded-lg border border-amber-400/60 bg-amber-900/60 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-800 focus-visible:outline-2 focus-visible:outline-amber-300 active:scale-95 transition-transform"
               >
                 Cargar ejemplo de práctica
               </button>
@@ -1277,7 +1277,7 @@ export function ConfidentialReportPanel() {
               disabled={busy || isComplete}
               value={category}
               onChange={(e) => setCategory(e.target.value as ReportCategory)}
-              className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
+              className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
             >
               {REPORT_CATEGORIES.map((item) => (
                 <option key={item.id} value={item.id}>
@@ -1376,7 +1376,7 @@ export function ConfidentialReportPanel() {
                   setCommune(e.target.value);
                   markManualLocationOverride();
                 }}
-                className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
+                className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
               >
                 {REPORT_COMMUNES.map((c) => (
                   <option key={c} value={c}>
@@ -1406,7 +1406,7 @@ export function ConfidentialReportPanel() {
                     markManualLocationOverride();
                   }}
                   placeholder="Ej. Cerca a estación o vía pública (no pongas tu casa)"
-                  className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
+                  className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
                 />
               </div>
               <div className="space-y-2">
@@ -1423,14 +1423,14 @@ export function ConfidentialReportPanel() {
                   value={incidentDate}
                   onChange={(e) => setIncidentDate(e.target.value)}
                   placeholder="Ej. Hoy 7:30 p. m."
-                  className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
+                  className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-white"
                 />
               </div>
             </div>
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <label htmlFor="report-summary" className="font-semibold text-white">
                 Qué ocurrió (mínimo 15 caracteres)
               </label>
@@ -1502,9 +1502,9 @@ export function ConfidentialReportPanel() {
             {STEP_TITLES[3]}
           </h2>
           {/* Condiciones de contacto seguro (Tarea 11 / Idea I001) */}
-          <div className="rounded-xl border border-violet-500/30 bg-[#111827] p-5 space-y-4">
+          <div className="rounded-xl border border-violet-500/30 bg-[#111827] p-[16px] sm:p-5 space-y-4">
             <div className="flex items-center gap-2">
-              <span className="flex h-3 w-3 rounded-full bg-violet-400" aria-hidden="true" />
+              <span className="flex h-3 w-3 shrink-0 rounded-full bg-violet-400" aria-hidden="true" />
               <h3 className="text-lg font-bold text-white">
                 Condiciones de contacto seguro (Protección personal)
               </h3>
@@ -1529,7 +1529,7 @@ export function ConfidentialReportPanel() {
                     setError('');
                   }
                 }}
-                className={`min-h-14 rounded-xl border p-4 text-left transition ${
+                className={`min-h-[56px] rounded-xl border p-4 text-left transition ${
                   contactPreference === 'no_contact'
                     ? 'border-amber-400 bg-amber-950/40 text-white font-bold'
                     : 'border-gray-700 bg-[#0B0F19] text-gray-300 hover:border-gray-500'
@@ -1548,7 +1548,7 @@ export function ConfidentialReportPanel() {
                 id="contact-pref-safe"
                 aria-pressed={contactPreference === 'safe_contact'}
                 onClick={() => setContactPreference('safe_contact')}
-                className={`min-h-14 rounded-xl border p-4 text-left transition ${
+                className={`min-h-[56px] rounded-xl border p-4 text-left transition ${
                   contactPreference === 'safe_contact'
                     ? 'border-violet-400 bg-violet-950/40 text-white font-bold'
                     : 'border-gray-700 bg-[#0B0F19] text-gray-300 hover:border-gray-500'
@@ -1574,7 +1574,7 @@ export function ConfidentialReportPanel() {
                       id="safe-channel-select"
                       value={safeChannel}
                       onChange={(e) => setSafeChannel(e.target.value as SafeContactChannel)}
-                      className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
+                      className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
                     >
                       {SAFE_CONTACT_CHANNELS.map((ch) => (
                         <option key={ch.id} value={ch.id}>
@@ -1605,7 +1605,7 @@ export function ConfidentialReportPanel() {
                         }
                       }}
                       placeholder="Ej: +57 300 1234567 o usuario"
-                      className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
+                      className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
                     />
                   </div>
                 </div>
@@ -1619,7 +1619,7 @@ export function ConfidentialReportPanel() {
                       id="safe-timeslot-select"
                       value={safeTimeSlot}
                       onChange={(e) => setSafeTimeSlot(e.target.value as SafeContactTimeSlot)}
-                      className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
+                      className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
                     >
                       {SAFE_CONTACT_TIME_SLOTS.map((slot) => (
                         <option key={slot.id} value={slot.id}>
@@ -1637,7 +1637,7 @@ export function ConfidentialReportPanel() {
                       id="safe-days-select"
                       value={safeDays}
                       onChange={(e) => setSafeDays(e.target.value as SafeContactDays)}
-                      className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
+                      className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
                     >
                       {SAFE_CONTACT_DAYS.map((d) => (
                         <option key={d.id} value={d.id}>
@@ -1649,7 +1649,7 @@ export function ConfidentialReportPanel() {
                 </div>
 
                 {safeTimeSlot === 'custom' && (
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label htmlFor="safe-custom-start-input" className="block text-xs text-gray-300 mb-1">
                         Hora inicio (HH:MM)
@@ -1659,7 +1659,7 @@ export function ConfidentialReportPanel() {
                         type="time"
                         value={safeCustomStart}
                         onChange={(e) => setSafeCustomStart(e.target.value)}
-                        className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white font-tabular"
+                        className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white font-tabular"
                       />
                     </div>
                     <div>
@@ -1671,7 +1671,7 @@ export function ConfidentialReportPanel() {
                         type="time"
                         value={safeCustomEnd}
                         onChange={(e) => setSafeCustomEnd(e.target.value)}
-                        className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white font-tabular"
+                        className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white font-tabular"
                       />
                     </div>
                   </div>
@@ -1690,7 +1690,7 @@ export function ConfidentialReportPanel() {
                     onChange={(e) => setSafeNotes(e.target.value)}
                     maxLength={200}
                     placeholder="Ej: Preguntar por 'María', decir que es encuesta cívica, no dejar correo de voz."
-                    className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
+                    className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
                   />
                 </div>
               </div>
@@ -1702,7 +1702,7 @@ export function ConfidentialReportPanel() {
             ref={previewCardRef}
             tabIndex={-1}
             data-testid="report-share-preview-card"
-            className="rounded-xl border border-amber-300/40 bg-[#111827] p-5 space-y-4 focus:outline-none"
+            className="rounded-xl border border-amber-300/40 bg-[#111827] p-[16px] sm:p-5 space-y-4 focus:outline-none"
           >
             <div className="flex items-center gap-2">
               <Eye className="h-5 w-5 text-amber-300 shrink-0" aria-hidden="true" />
@@ -1719,8 +1719,8 @@ export function ConfidentialReportPanel() {
             {/* 1. Destinatarios */}
             <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
-                <Users className="h-4 w-4 text-amber-300" aria-hidden="true" />
-                Destinatarios autorizados para este reporte
+                <Users className="h-4 w-4 shrink-0 text-amber-300" aria-hidden="true" />
+                <span>Destinatarios autorizados para este reporte</span>
               </span>
               <ul className="space-y-1.5 text-xs text-gray-200">
                 <li className="flex items-start gap-2">
@@ -1749,27 +1749,27 @@ export function ConfidentialReportPanel() {
 
             {/* 2. Archivos y evidencias a transmitir */}
             <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2.5">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
-                  <FileText className="h-4 w-4 text-cyan-400" aria-hidden="true" />
-                  Archivos y evidencias a transmitir ({includedAttachments.length})
+                  <FileText className="h-4 w-4 shrink-0 text-cyan-400" aria-hidden="true" />
+                  <span>Archivos y evidencias a transmitir ({includedAttachments.length})</span>
                 </span>
-                <span className="text-[11px] text-gray-400">Puedes retirar o volver a incluir antes de enviar</span>
+                <span className="text-xs text-gray-400">Puedes retirar o volver a incluir antes de enviar</span>
               </div>
 
               {includedAttachments.length > 0 ? (
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2 max-h-60 overflow-y-auto">
                   {includedAttachments.map((item, idx) => (
                     <div
                       key={item.id}
                       data-testid={`attachment-preview-row-${idx}`}
-                      className="flex items-center justify-between gap-3 rounded-lg border border-gray-700 bg-gray-900/60 p-2.5 text-xs text-gray-200"
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-700 bg-gray-900/60 p-2.5 text-xs text-gray-200"
                     >
-                      <div className="min-w-0 flex-1 truncate">
-                        <p className="font-semibold text-white truncate">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-white break-words">
                           {item.fileName || `Evidencia ${idx + 1}`}
                         </p>
-                        <p className="text-[11px] text-gray-400 font-tabular">
+                        <p className="text-xs text-gray-400 font-tabular break-words">
                           {item.mime} · {(item.bytes.byteLength / 1024).toFixed(1)} KB (Limpio de EXIF)
                         </p>
                       </div>
@@ -1793,9 +1793,9 @@ export function ConfidentialReportPanel() {
                           }, 0);
                         }}
                         aria-label={`Retirar evidencia ${item.fileName || idx + 1} de este envío`}
-                        className="touch-target-min flex items-center gap-1 rounded-lg border border-red-800/60 bg-red-950/40 px-2.5 py-1.5 text-xs font-medium text-red-300 hover:bg-red-900/50 transition disabled:opacity-50"
+                        className="touch-target-min min-h-[56px] min-w-[56px] flex items-center gap-1 rounded-lg border border-red-800/60 bg-red-950/40 px-3 py-2 text-xs font-medium text-red-300 hover:bg-red-900/50 transition disabled:opacity-50"
                       >
-                        <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                        <Trash2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>Retirar</span>
                       </button>
                     </div>
@@ -1835,7 +1835,7 @@ export function ConfidentialReportPanel() {
                             (removeBtn ?? previewCardRef.current)?.focus();
                           }, 0);
                         }}
-                        className="touch-target-min inline-flex min-h-14 items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-gray-800 disabled:opacity-50"
+                        className="touch-target-min inline-flex min-h-[56px] max-w-full items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-left text-xs font-semibold text-cyan-200 break-words hover:bg-gray-800 disabled:opacity-50"
                       >
                         <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                         <span>Volver a incluir {item.fileName}</span>
@@ -1846,12 +1846,12 @@ export function ConfidentialReportPanel() {
               )}
 
               {Boolean(recordingKey.trim()) && !isRecordingExcluded && (
-                <div className="flex items-center justify-between gap-2 rounded-lg border border-amber-500/40 bg-amber-950/20 p-2.5 text-xs text-amber-200">
+                <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-500/40 bg-amber-950/20 p-2.5 text-xs text-amber-200">
                   <div className="min-w-0 flex-1">
-                    <p className="font-semibold text-white truncate">
+                    <p className="font-semibold text-white break-words">
                       Grabación de caja negra vinculada
                     </p>
-                    <p className="font-mono text-[11px] text-amber-300 truncate">
+                    <p className="font-mono text-xs text-amber-300 break-all">
                       {recordingKey}
                     </p>
                   </div>
@@ -1868,9 +1868,9 @@ export function ConfidentialReportPanel() {
                         (restoreRecordingBtnRef.current ?? previewCardRef.current)?.focus();
                       }, 0);
                     }}
-                    className="touch-target-min flex items-center gap-1 rounded-lg border border-amber-700 bg-amber-900/40 px-2.5 py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-800/50 transition disabled:opacity-50"
+                    className="touch-target-min min-h-[56px] min-w-[56px] flex items-center gap-1 rounded-lg border border-amber-700 bg-amber-900/40 px-3 py-2 text-xs font-medium text-amber-200 hover:bg-amber-800/50 transition disabled:opacity-50"
                   >
-                    <X className="h-3.5 w-3.5" aria-hidden="true" />
+                    <X className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span>Desvincular</span>
                   </button>
                 </div>
@@ -1895,7 +1895,7 @@ export function ConfidentialReportPanel() {
                         (unlinkRecordingBtnRef.current ?? previewCardRef.current)?.focus();
                       }, 0);
                     }}
-                    className="touch-target-min inline-flex min-h-14 items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-gray-800 disabled:opacity-50"
+                    className="touch-target-min inline-flex min-h-[56px] max-w-full items-center gap-1.5 rounded-lg border border-cyan-500/50 bg-[#0B0F19] px-3 py-2 text-xs font-semibold text-cyan-200 hover:bg-gray-800 disabled:opacity-50"
                   >
                     <RotateCcw className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                     <span>Volver a vincular grabación</span>
@@ -1907,8 +1907,8 @@ export function ConfidentialReportPanel() {
             {/* 3. Precisión de ubicación */}
             <div className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2.5">
               <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-300">
-                <MapPin className="h-4 w-4 text-red-400" aria-hidden="true" />
-                Precisión territorial de la denuncia
+                <MapPin className="h-4 w-4 shrink-0 text-red-400" aria-hidden="true" />
+                <span>Precisión territorial de la denuncia</span>
               </span>
 
               <div
@@ -1924,14 +1924,14 @@ export function ConfidentialReportPanel() {
                     setReportLocationPrecision('full');
                     setStepLiveMessage('Precisión territorial: Comuna y referencia.');
                   }}
-                  className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
+                  className={`min-h-[56px] rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
                     reportLocationPrecision === 'full'
                       ? 'border-amber-400 bg-amber-950/40 text-amber-100 font-bold'
                       : 'border-gray-700 bg-gray-900 text-gray-400 hover:bg-gray-800'
                   }`}
                 >
                   <span className="text-xs">Comuna + Referencia</span>
-                  <span className="text-[10px] text-gray-400">Información completa</span>
+                  <span className="text-xs text-gray-400">Información completa</span>
                 </button>
 
                 <button
@@ -1942,14 +1942,14 @@ export function ConfidentialReportPanel() {
                     setReportLocationPrecision('commune_only');
                     setStepLiveMessage('Precisión territorial: Solo Comuna.');
                   }}
-                  className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
+                  className={`min-h-[56px] rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
                     reportLocationPrecision === 'commune_only'
                       ? 'border-amber-400 bg-amber-950/40 text-amber-100 font-bold'
                       : 'border-gray-700 bg-gray-900 text-gray-400 hover:bg-gray-800'
                   }`}
                 >
                   <span className="text-xs">Solo Comuna</span>
-                  <span className="text-[10px] text-gray-400">Ocultar referencia exacta</span>
+                  <span className="text-xs text-gray-400">Ocultar referencia exacta</span>
                 </button>
 
                 <button
@@ -1960,14 +1960,14 @@ export function ConfidentialReportPanel() {
                     setReportLocationPrecision('none');
                     setStepLiveMessage('Precisión territorial: Sin Ubicación.');
                   }}
-                  className={`min-h-14 rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
+                  className={`min-h-[56px] rounded-xl border p-2 text-center flex flex-col items-center justify-center transition ${
                     reportLocationPrecision === 'none'
                       ? 'border-violet-400 bg-violet-950/40 text-violet-100 font-bold'
                       : 'border-gray-700 bg-gray-900 text-gray-400 hover:bg-gray-800'
                   }`}
                 >
                   <span className="text-xs">Sin Ubicación</span>
-                  <span className="text-[10px] text-gray-400">Reserva territorial total</span>
+                  <span className="text-xs text-gray-400">Reserva territorial total</span>
                 </button>
               </div>
 
@@ -2072,7 +2072,7 @@ export function ConfidentialReportPanel() {
           {!isComplete && (
             <label
               htmlFor="report-privacy-ack"
-              className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border border-gray-600 bg-[#111827] p-4"
+              className="flex min-h-[56px] cursor-pointer items-center gap-3 rounded-xl border border-gray-600 bg-[#111827] p-4"
             >
               <input
                 ref={privacyAckRef}
@@ -2089,7 +2089,7 @@ export function ConfidentialReportPanel() {
                     setError('');
                   }
                 }}
-                className="h-6 w-6 accent-amber-300"
+                className="h-6 w-6 shrink-0 accent-amber-300"
               />
               <span className="text-sm font-medium leading-relaxed text-white">
                 Entiendo qué datos comparte cada canal, los límites de la transformación de voz y qué limpia la salida
@@ -2189,7 +2189,7 @@ export function ConfidentialReportPanel() {
             <pre
               data-testid="whatsapp-preview-text"
               data-sensitive="true"
-              className="whitespace-pre-wrap rounded-xl border border-gray-700 bg-[#0B0F19] p-3 font-sans text-xs leading-relaxed text-gray-200"
+              className="whitespace-pre-wrap break-words rounded-xl border border-gray-700 bg-[#0B0F19] p-3 font-sans text-xs leading-relaxed text-gray-200"
             >
               {whatsappData.previewText}
             </pre>
@@ -2239,7 +2239,7 @@ export function ConfidentialReportPanel() {
             Continuar a evidencias y voz
           </button>
         ) : step === 2 ? (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button type="button" onClick={() => goToStep(1)} className={`${control} w-full bg-gray-900`}>
               Volver a hechos
             </button>

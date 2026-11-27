@@ -119,10 +119,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             prefetch={false}
             data-testid="sidebar-device-check-link"
             aria-current={pathname === "/device-check" ? "page" : undefined}
-            className="touch-target-min inline-flex min-h-14 w-full items-center gap-2 rounded-xl border border-gray-700 bg-[#0B0F19] px-3.5 py-2.5 text-xs font-semibold text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+            className="touch-target-min inline-flex min-h-[56px] w-full items-center gap-2 rounded-xl border border-gray-700 bg-[#0B0F19] px-3.5 py-2.5 text-left text-xs font-semibold leading-snug text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
           >
             <ShieldCheck size={16} className="shrink-0 text-cyan-300" aria-hidden="true" />
-            <span>Comprobar dispositivo</span>
+            <span className="min-w-0 break-words">Comprobar dispositivo</span>
           </Link>
           <EscapeLimitsButton variant="sidebar" />
           <div className="sidebar-note"><MapPin size={16} aria-hidden="true" /><span>Medellín, Colombia</span></div>
@@ -130,16 +130,18 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       <div className="app-workspace">
-        <header className="app-header">
-          <div className="mobile-brand"><Brand /></div>
-          <div className="desktop-page-name">{pageNames[pathname] ?? "AlzaVoz"}</div>
-          <div className="header-controls">
-            <span className="header-city"><MapPin size={15} aria-hidden="true" />Medellín</span>
-            <ZeroPeepToggle showLabel={false} />
-            <QuickEscapeButton variant="badge" />
-          </div>
-        </header>
-        <MediaCaptureIndicator />
+        <div className="app-sticky-chrome">
+          <header className="app-header">
+            <div className="mobile-brand"><Brand /></div>
+            <div className="desktop-page-name">{pageNames[pathname] ?? "AlzaVoz"}</div>
+            <div className="header-controls">
+              <span className="header-city"><MapPin size={15} aria-hidden="true" />Medellín</span>
+              <ZeroPeepToggle showLabel={false} />
+              <QuickEscapeButton variant="badge" />
+            </div>
+          </header>
+          <MediaCaptureIndicator />
+        </div>
         <PracticeModeBanner />
         <SharedDeviceBanner />
         <main id="contenido" tabIndex={-1} className={`app-main ${pathname === "/" ? "app-main-home" : ""}`}>{children}</main>

@@ -254,7 +254,7 @@ export function AdminReportDetailView({
   return (
     <article className={styles.detailContainer}>
       <header className={styles.detailHeader}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
           <button
             type="button"
             onClick={onBack}
@@ -270,7 +270,7 @@ export function AdminReportDetailView({
           </h1>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10 }}>
           <span
             className={
               report.riskLevel === 'alto'
@@ -437,7 +437,7 @@ export function AdminReportDetailView({
           Verifica si un intento de comunicación cumple las condiciones vigentes. La acción es una simulación lógica y <strong>no contacta a nadie en la realidad</strong>.
         </p>
 
-        <form onSubmit={handleSimulateContact} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, alignItems: 'end' }}>
+        <form onSubmit={handleSimulateContact} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 14rem), 1fr))', gap: 12, alignItems: 'end' }}>
           <div>
             <label htmlFor="sim-channel-select" style={{ display: 'block', fontSize: '0.8rem', color: '#D1D5DB', marginBottom: 4 }}>
               Canal de envío simulado
@@ -446,7 +446,7 @@ export function AdminReportDetailView({
               id="sim-channel-select"
               value={simulatedChannel}
               onChange={(e) => setSimulatedChannel(e.target.value as SafeContactChannel)}
-              className={styles.filterSelect}
+              className={styles.formInput}
               style={{ width: '100%', minHeight: 48 }}
             >
               <option value="">Canal por defecto del caso</option>
@@ -467,7 +467,7 @@ export function AdminReportDetailView({
               type="datetime-local"
               value={simulatedTime}
               onChange={(e) => setSimulatedTime(e.target.value)}
-              className={styles.filterInput}
+              className={styles.formInput}
               style={{ width: '100%', minHeight: 48 }}
             />
           </div>
@@ -635,7 +635,7 @@ export function AdminReportDetailView({
         </h2>
 
         <form onSubmit={handleSaveStatus}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 14rem), 1fr))', gap: 16, marginBottom: 16 }}>
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label htmlFor="case-status-select">Estado del Expediente</label>
               <select
@@ -672,7 +672,7 @@ export function AdminReportDetailView({
               type="submit"
               disabled={isSavingStatus}
               className={styles.btnPrimary}
-              style={{ maxWidth: 280 }}
+              style={{ maxWidth: 'min(100%, 24rem)' }}
             >
               <CheckCircle size={18} aria-hidden="true" />
               <span>{isSavingStatus ? 'Guardando...' : 'Guardar Estado y Notas'}</span>
@@ -705,7 +705,7 @@ export function AdminReportDetailView({
         </p>
 
         <form onSubmit={handleGenerateDraft}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 14rem), 1fr))', gap: 16, marginBottom: 16 }}>
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label htmlFor="target-entity-select">Entidad Destinataria</label>
               <select
@@ -739,7 +739,7 @@ export function AdminReportDetailView({
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16, marginBottom: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 14rem), 1fr))', gap: 16, marginBottom: 16 }}>
             <div className={styles.formGroup} style={{ margin: 0 }}>
               <label htmlFor="applicant-name">Nombre del Peticionario (Opcional)</label>
               <input
@@ -792,7 +792,7 @@ export function AdminReportDetailView({
             type="submit"
             disabled={isGeneratingDraft}
             className={styles.btnPrimary}
-            style={{ maxWidth: 360 }}
+            style={{ maxWidth: 'min(100%, 24rem)' }}
           >
             <Scale size={20} aria-hidden="true" />
             <span>{isGeneratingDraft ? 'Redactando con IA...' : 'Generar Borrador Jurídico'}</span>

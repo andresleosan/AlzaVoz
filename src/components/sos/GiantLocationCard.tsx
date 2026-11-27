@@ -182,7 +182,7 @@ export function GiantLocationCard({
   return (
     <section
       aria-label="Ubicación GPS de Emergencia para el 123"
-      className="min-w-0 space-y-5 rounded-2xl border border-gray-700 bg-gray-900/50 p-4 sm:p-5"
+      className="min-w-0 space-y-5 rounded-2xl border border-gray-700 bg-gray-900/50 p-[16px] sm:p-5"
     >
       <h2 className="sr-only">Ubicación para dictar al 123</h2>
       <div
@@ -409,7 +409,7 @@ export function GiantLocationCard({
                 setManualCommune(e.target.value);
                 if (manualError) setManualError(null);
               }}
-              className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
+              className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white"
             >
               <option value="">Sin especificar comuna</option>
               {SOS_COMMUNE_OPTIONS.map((item) => (
@@ -441,7 +441,7 @@ export function GiantLocationCard({
                 if (manualError) setManualError(null);
               }}
               placeholder="Ej: Provenza / Parque Lleras"
-              className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white placeholder-gray-400"
+              className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white placeholder-gray-400"
             />
           </div>
 
@@ -467,23 +467,23 @@ export function GiantLocationCard({
                 if (manualError) setManualError(null);
               }}
               placeholder="Ej: Calle 10 con Cra 43A, frente a estación o CAI"
-              className="min-h-14 w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white placeholder-gray-400"
+              className="min-h-[56px] w-full rounded-xl border border-gray-600 bg-gray-950 px-3 text-sm text-white placeholder-gray-400"
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-2.5 pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
             <button
               type="button"
               data-testid="sos-manual-correction-cancel"
               onClick={closeManualEditor}
-              className="min-h-14 rounded-xl border border-gray-700 bg-gray-900 px-3 text-sm font-semibold text-gray-200 hover:bg-gray-800"
+              className="touch-target-min min-h-[56px] rounded-xl border border-gray-700 bg-gray-900 px-3 py-2 text-sm font-semibold text-gray-200 hover:bg-gray-800"
             >
               Cancelar
             </button>
             <button
               type="submit"
               data-testid="sos-manual-correction-save"
-              className="min-h-14 rounded-xl bg-amber-500 px-3 text-sm font-bold text-gray-950 hover:bg-amber-400"
+              className="touch-target-min min-h-[56px] rounded-xl bg-amber-500 px-3 py-2 text-sm font-bold text-gray-950 hover:bg-amber-400"
             >
               Guardar corrección
             </button>

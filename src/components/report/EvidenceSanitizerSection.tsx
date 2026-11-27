@@ -30,7 +30,7 @@ interface EvidenceSanitizerSectionProps {
 }
 
 const control =
-  'min-h-14 min-w-14 inline-flex items-center justify-center rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
+  'touch-target-min min-h-[56px] min-w-[56px] max-w-full inline-flex items-center justify-center rounded-xl border border-gray-600 px-4 py-3 text-center font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
 
 function createSyntheticVoiceWav(): Blob {
   const durationSec = 1.6;
@@ -357,7 +357,7 @@ export function EvidenceSanitizerSection({
       )}
 
       <div className="rounded-xl border border-gray-700 bg-[#111827] p-4 space-y-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-bold text-white">Archivos listos y verificados</h3>
           <span className="font-tabular text-sm text-gray-300">
             {attachments.length} / {MAX_REPORT_ATTACHMENTS}
@@ -376,7 +376,7 @@ export function EvidenceSanitizerSection({
                 className="rounded-xl border border-gray-700 bg-[#0B0F19] p-4 space-y-2"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <strong className="text-sm text-white">{item.fileName}</strong>
+                  <strong className="text-sm text-white break-words">{item.fileName}</strong>
                   <span className="font-tabular text-xs text-gray-300">
                     {item.mime} · {item.bytes.byteLength} bytes
                   </span>
@@ -390,8 +390,8 @@ export function EvidenceSanitizerSection({
                       ? ` · Voz transformada (cambio acústico ${item.summary.acousticDeltaPercent ?? 0}%).`
                       : ' · Voz sin distorsión (solo limpieza de contenedor).')}
                 </p>
-                <p className="font-tabular text-xs text-gray-300">
-                  SHA-256: <code>{item.sha256.slice(0, 24)}…</code>
+                <p className="font-tabular text-xs text-gray-300 break-words">
+                  SHA-256: <code className="break-all">{item.sha256.slice(0, 24)}…</code>
                   {item.uploadedReceipt ? ' · Guardado en R2/D1' : ' · Listo en navegador'}
                 </p>
                 {item.mime === 'audio/wav' && (

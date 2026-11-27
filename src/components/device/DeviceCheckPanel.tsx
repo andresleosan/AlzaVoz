@@ -271,17 +271,17 @@ export function DeviceCheckPanel() {
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 pb-20 text-gray-100">
-      <header className="flex flex-col gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-4">
+      <header className="flex flex-col gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-[16px] sm:p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-wrap sm:flex-nowrap items-start gap-4">
           <Image
             src="/assets/alzabot/bot-standard.png"
             alt="Alza Bot Cívico"
             width={56}
             height={56}
-            className="h-14 w-14 shrink-0 rounded-xl border border-cyan-500/40 bg-[#0B0F19]"
+            className="h-[56px] w-[56px] shrink-0 rounded-xl border border-cyan-500/40 bg-[#0B0F19]"
           />
-          <div className="min-w-0 space-y-1.5">
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl break-words">
               Comprobación previa del dispositivo
             </h1>
             <p className="max-w-2xl text-sm leading-relaxed text-gray-200">
@@ -294,7 +294,7 @@ export function DeviceCheckPanel() {
 
       <section
         aria-label="Garantía de prueba local y controles generales"
-        className="space-y-4 rounded-2xl border border-cyan-500/40 bg-[#111827] p-4 sm:p-5"
+        className="space-y-4 rounded-2xl border border-cyan-500/40 bg-[#111827] p-[16px] sm:p-5"
       >
         <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-cyan-100">
           <span className="inline-flex items-center gap-2 rounded-lg border border-cyan-500/40 bg-[#0B0F19] px-3 py-1.5 font-semibold">
@@ -313,9 +313,9 @@ export function DeviceCheckPanel() {
               type="button"
               onClick={stopSequence}
               data-testid="device-check-stop-sequence"
-              className="touch-target-min inline-flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl border border-red-400/60 bg-red-800 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 motion-safe:active:scale-95"
+              className="touch-target-min inline-flex min-h-[56px] min-w-[56px] flex-1 items-center justify-center gap-2 rounded-xl border border-red-400/60 bg-red-800 px-5 py-3 text-center text-sm font-bold text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 motion-safe:active:scale-95"
             >
-              <Square size={18} aria-hidden="true" />
+              <Square size={18} className="shrink-0" aria-hidden="true" />
               <span>Detener secuencia</span>
             </button>
           ) : (
@@ -323,9 +323,9 @@ export function DeviceCheckPanel() {
               type="button"
               onClick={() => void runSequentialCheck()}
               data-testid="device-check-run-all"
-              className="touch-target-min inline-flex min-h-14 flex-1 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-sm font-bold text-[#0B0F19] hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 motion-safe:active:scale-95"
+              className="touch-target-min inline-flex min-h-[56px] min-w-[56px] flex-1 items-center justify-center gap-2 rounded-xl bg-cyan-400 px-5 py-3 text-center text-sm font-bold text-[#0B0F19] hover:bg-cyan-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 motion-safe:active:scale-95"
             >
-              <Play size={18} aria-hidden="true" />
+              <Play size={18} className="shrink-0" aria-hidden="true" />
               <span>Comprobar los tres en secuencia</span>
             </button>
           )}
@@ -335,9 +335,9 @@ export function DeviceCheckPanel() {
               type="button"
               onClick={resetAllChecks}
               data-testid="device-check-reset"
-              className="touch-target-min inline-flex min-h-14 items-center justify-center gap-2 rounded-xl border border-gray-600 bg-[#0B0F19] px-4 py-3 text-sm font-semibold text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
+              className="touch-target-min inline-flex min-h-[56px] min-w-[56px] items-center justify-center gap-2 rounded-xl border border-gray-600 bg-[#0B0F19] px-4 py-3 text-center text-sm font-semibold text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
             >
-              <RotateCcw size={17} aria-hidden="true" />
+              <RotateCcw size={17} className="shrink-0" aria-hidden="true" />
               <span>Limpiar resultados</span>
             </button>
           )}
@@ -349,7 +349,7 @@ export function DeviceCheckPanel() {
         <section
           aria-labelledby="camera-check-title"
           data-testid="sensor-card-camera"
-          className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-5"
+          className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-[16px] sm:p-5"
         >
           <div className="space-y-4">
             <SensorHeader
@@ -361,10 +361,10 @@ export function DeviceCheckPanel() {
               badgeTestId="camera-status-badge"
             />
 
-            <dl className="grid grid-cols-1 gap-1.5 rounded-xl border border-gray-800 bg-[#0B0F19] p-3 text-xs text-gray-200">
-              <div className="flex items-center justify-between gap-2">
+            <dl className="grid grid-cols-1 gap-2 rounded-xl border border-gray-800 bg-[#0B0F19] p-3 text-xs text-gray-200">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Video WebM (grabar)</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {!capabilitiesReady
                     ? "Verificando…"
                     : capabilities.supportsVideoWebm
@@ -374,9 +374,9 @@ export function DeviceCheckPanel() {
                         : "No compatible"}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Cámaras detectadas</dt>
-                <dd className="font-tabular font-semibold text-white">
+                <dd className="font-tabular font-semibold text-white break-words">
                   {!capabilitiesReady
                     ? "…"
                     : capabilities.cameraDeviceCount === null
@@ -384,9 +384,9 @@ export function DeviceCheckPanel() {
                       : `${capabilities.cameraDeviceCount}`}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Permiso previo</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {permissionHintLabel(capabilities.permissionHints.camera)}
                 </dd>
               </div>
@@ -450,7 +450,7 @@ export function DeviceCheckPanel() {
                 type="button"
                 onClick={() => releaseCamera("verified")}
                 data-testid="camera-stop-btn"
-                className="touch-target-min inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-red-400/60 bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 motion-safe:active:scale-95"
+                className="touch-target-min inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl border border-red-400/60 bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 motion-safe:active:scale-95"
               >
                 <Square size={17} aria-hidden="true" />
                 <span>Apagar y liberar cámara</span>
@@ -461,7 +461,7 @@ export function DeviceCheckPanel() {
                 disabled={cameraStatus === "requesting" || isRunningSequence}
                 onClick={() => void runCameraCheck()}
                 data-testid="camera-test-btn"
-                className="touch-target-min inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-sm font-bold text-cyan-100 hover:bg-gray-800 disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
+                className="touch-target-min inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-sm font-bold text-cyan-100 hover:bg-gray-800 disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
               >
                 {cameraStatus === "idle" ? (
                   <Camera size={18} aria-hidden="true" />
@@ -484,7 +484,7 @@ export function DeviceCheckPanel() {
         <section
           aria-labelledby="mic-check-title"
           data-testid="sensor-card-microphone"
-          className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-5"
+          className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-[16px] sm:p-5"
         >
           <div className="space-y-4">
             <SensorHeader
@@ -496,10 +496,10 @@ export function DeviceCheckPanel() {
               badgeTestId="microphone-status-badge"
             />
 
-            <dl className="grid grid-cols-1 gap-1.5 rounded-xl border border-gray-800 bg-[#0B0F19] p-3 text-xs text-gray-200">
-              <div className="flex items-center justify-between gap-2">
+            <dl className="grid grid-cols-1 gap-2 rounded-xl border border-gray-800 bg-[#0B0F19] p-3 text-xs text-gray-200">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Audio WebM (Opus)</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {!capabilitiesReady
                     ? "Verificando…"
                     : capabilities.supportsAudioWebm
@@ -509,9 +509,9 @@ export function DeviceCheckPanel() {
                         : "No compatible"}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Sonómetro (AudioWorklet)</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {!capabilitiesReady
                     ? "…"
                     : capabilities.supportsAudioContext && capabilities.supportsAudioWorklet
@@ -519,9 +519,9 @@ export function DeviceCheckPanel() {
                       : "No disponible"}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Micrófonos detectados</dt>
-                <dd className="font-tabular font-semibold text-white">
+                <dd className="font-tabular font-semibold text-white break-words">
                   {!capabilitiesReady
                     ? "…"
                     : capabilities.microphoneDeviceCount === null
@@ -529,9 +529,9 @@ export function DeviceCheckPanel() {
                       : `${capabilities.microphoneDeviceCount}`}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Permiso previo</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {permissionHintLabel(capabilities.permissionHints.microphone)}
                 </dd>
               </div>
@@ -539,7 +539,7 @@ export function DeviceCheckPanel() {
 
             {micStatus === "active" && (
               <div className="space-y-2.5 rounded-xl border border-cyan-500/50 bg-[#0B0F19] p-3.5">
-                <div className="flex items-center justify-between gap-2 text-xs text-cyan-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-cyan-100">
                   <span className="inline-flex items-center gap-1.5 font-semibold">
                     <Volume2 size={15} className="text-cyan-300" aria-hidden="true" />
                     <span>Nivel local de entrada</span>
@@ -608,7 +608,7 @@ export function DeviceCheckPanel() {
                 type="button"
                 onClick={() => releaseMicrophone("verified")}
                 data-testid="microphone-stop-btn"
-                className="touch-target-min inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-red-400/60 bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 motion-safe:active:scale-95"
+                className="touch-target-min inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl border border-red-400/60 bg-red-800 px-4 py-3 text-sm font-bold text-white hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-200 motion-safe:active:scale-95"
               >
                 <Square size={17} aria-hidden="true" />
                 <span>Apagar y liberar micrófono</span>
@@ -619,7 +619,7 @@ export function DeviceCheckPanel() {
                 disabled={micStatus === "requesting" || isRunningSequence}
                 onClick={() => void runMicrophoneCheck()}
                 data-testid="microphone-test-btn"
-                className="touch-target-min inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-sm font-bold text-cyan-100 hover:bg-gray-800 disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
+                className="touch-target-min inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-sm font-bold text-cyan-100 hover:bg-gray-800 disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
               >
                 {micStatus === "idle" ? (
                   <Mic size={18} aria-hidden="true" />
@@ -642,7 +642,7 @@ export function DeviceCheckPanel() {
         <section
           aria-labelledby="location-check-title"
           data-testid="sensor-card-location"
-          className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-5"
+          className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-gray-700 bg-[#111827] p-[16px] sm:p-5"
         >
           <div className="space-y-4">
             <SensorHeader
@@ -654,10 +654,10 @@ export function DeviceCheckPanel() {
               badgeTestId="location-status-badge"
             />
 
-            <dl className="grid grid-cols-1 gap-1.5 rounded-xl border border-gray-800 bg-[#0B0F19] p-3 text-xs text-gray-200">
-              <div className="flex items-center justify-between gap-2">
+            <dl className="grid grid-cols-1 gap-2 rounded-xl border border-gray-800 bg-[#0B0F19] p-3 text-xs text-gray-200">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Contexto seguro</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {!capabilitiesReady
                     ? "Verificando…"
                     : capabilities.isSecureContext
@@ -665,9 +665,9 @@ export function DeviceCheckPanel() {
                       : "Sin HTTPS"}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">API de geolocalización</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {!capabilitiesReady
                     ? "…"
                     : capabilities.hasGeolocation
@@ -675,9 +675,9 @@ export function DeviceCheckPanel() {
                       : "No disponible"}
                 </dd>
               </div>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
                 <dt className="text-gray-300">Permiso previo</dt>
-                <dd className="font-semibold text-white">
+                <dd className="font-semibold text-white break-words">
                   {permissionHintLabel(capabilities.permissionHints.location)}
                 </dd>
               </div>
@@ -711,7 +711,7 @@ export function DeviceCheckPanel() {
                 type="button"
                 onClick={() => cancelLocationWait(false)}
                 data-testid="location-cancel-btn"
-                className="touch-target-min inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-amber-400/60 bg-amber-950/60 px-4 py-3 text-sm font-bold text-amber-100 hover:bg-amber-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200 motion-safe:active:scale-95"
+                className="touch-target-min inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl border border-amber-400/60 bg-amber-950/60 px-4 py-3 text-sm font-bold text-amber-100 hover:bg-amber-900/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200 motion-safe:active:scale-95"
               >
                 <Square size={17} aria-hidden="true" />
                 <span>Cancelar espera</span>
@@ -722,7 +722,7 @@ export function DeviceCheckPanel() {
                 disabled={isRunningSequence}
                 onClick={() => void runLocationCheck()}
                 data-testid="location-test-btn"
-                className="touch-target-min inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-sm font-bold text-cyan-100 hover:bg-gray-800 disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
+                className="touch-target-min inline-flex min-h-[56px] w-full items-center justify-center gap-2 rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-sm font-bold text-cyan-100 hover:bg-gray-800 disabled:opacity-55 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95"
               >
                 {locationStatus === "idle" ? (
                   <MapPin size={18} aria-hidden="true" />
@@ -742,7 +742,7 @@ export function DeviceCheckPanel() {
       <section
         aria-labelledby="readiness-title"
         data-testid="tool-readiness-summary"
-        className="space-y-4 rounded-2xl border border-gray-700 bg-[#111827] p-5"
+        className="space-y-4 rounded-2xl border border-gray-700 bg-[#111827] p-[16px] sm:p-5"
       >
         <div className="flex items-center gap-2.5">
           <ShieldCheck size={22} className="shrink-0 text-cyan-300" aria-hidden="true" />
@@ -776,7 +776,7 @@ export function DeviceCheckPanel() {
                   href={item.href}
                   prefetch={false}
                   aria-label={`Abrir ${item.toolName}`}
-                  className="touch-target-min inline-flex min-h-14 shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-600 bg-[#0B0F19] px-4 py-2.5 text-xs font-semibold text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+                  className="touch-target-min inline-flex min-h-[56px] shrink-0 items-center justify-center gap-2 rounded-xl border border-gray-600 bg-[#0B0F19] px-4 py-2.5 text-xs font-semibold text-gray-100 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
                 >
                   <span>Abrir</span>
                   <ArrowRight size={15} aria-hidden="true" />

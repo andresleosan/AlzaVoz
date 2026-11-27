@@ -244,11 +244,11 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
     return (
       <div className={styles.adminContainer} style={{ padding: '24px 16px' }}>
         <div className={styles.loginCard}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{ background: 'rgba(239, 68, 68, 0.2)', padding: 10, borderRadius: 12 }}>
               <Lock size={26} color="#EF4444" aria-hidden="true" />
             </div>
-            <div>
+            <div style={{ minWidth: 0, flex: '1 1 12rem' }}>
               <h1>Panel de Gestión Autorizado</h1>
               <span className={styles.teamBadge}>Equipo Legal y de Acompañamiento</span>
             </div>
@@ -366,7 +366,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
           <button
             type="button"
             onClick={() => setRefreshTrigger((prev) => prev + 1)}
@@ -529,7 +529,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
                     onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                     style={{ width: '100%', paddingLeft: 38 }}
                   />
-                  <Search size={16} color="#9CA3AF" style={{ position: 'absolute', left: 12, top: 16 }} aria-hidden="true" />
+                  <Search size={16} color="#9CA3AF" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)' }} aria-hidden="true" />
                 </div>
               </div>
             </div>
@@ -557,7 +557,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
               </p>
             </div>
           ) : (
-            <section className={styles.tableWrap} aria-label="Tabla de expedientes">
+            <section className={styles.tableWrap} tabIndex={0} aria-label="Tabla de expedientes">
               <table className={styles.reportsTable}>
                 <thead>
                   <tr>
@@ -660,8 +660,8 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
                     gap: 12,
                   }}
                 >
-                  <div style={{ maxWidth: '80%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                  <div style={{ minWidth: 0, flex: '1 1 16rem' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 10, marginBottom: 6 }}>
                       <span className={styles.badgeStatus}>{not.kind}</span>
                       <strong style={{ fontSize: '1.05rem', color: '#F9FAFB' }}>{not.title}</strong>
                       <span style={{ fontSize: '0.85rem', color: '#9CA3AF' }}>
@@ -701,7 +701,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
                 padding: 20,
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>
                   Pistas Anónimas para el Aviso ({selectedNoticeTips.tips.length})
                 </h3>
@@ -729,7 +729,7 @@ export function AdminPanel({ initialToken }: AdminPanelProps) {
                       }}
                     >
                       <p style={{ margin: '0 0 8px', color: '#F9FAFB', fontSize: '0.92rem' }}>{t.text}</p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#9CA3AF' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8, fontSize: '0.8rem', color: '#9CA3AF' }}>
                         <span>Contacto: <code className="data-sensitive">{t.contact || 'Anónimo'}</code></span>
                         <span>{new Date(t.created_at).toLocaleString('es-CO')}</span>
                       </div>

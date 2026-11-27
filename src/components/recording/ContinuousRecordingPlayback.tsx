@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { downloadRecording } from '@/lib/recording/client';
 import type { RecordingPlaybackProps } from './RecordingPlayback';
 
-const control = 'min-h-14 min-w-14 rounded-xl border border-gray-600 px-4 py-3 font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
+const control = 'touch-target-min min-h-[56px] min-w-[56px] max-w-full rounded-xl border border-gray-600 px-4 py-3 text-center font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-amber-200 disabled:opacity-50 motion-safe:active:scale-95';
 type RecordingFile = { url: string; mime: string; complete: boolean; play: boolean };
 
 export function ContinuousRecordingPlayback({ session, clips, active, disabled, completionPending }: RecordingPlaybackProps) {
@@ -104,7 +104,7 @@ export function ContinuousRecordingPlayback({ session, clips, active, disabled, 
     <details className="border-t border-gray-700 pt-2">
       <summary className="min-h-14 cursor-pointer py-4 font-semibold">Detalle del envío · {received.length} partes recibidas</summary>
       <p className="pb-3 text-sm text-gray-300">Estas partes pertenecen al mismo archivo y se unen al recuperarlo.</p>
-      <ol className="divide-y divide-gray-700">{clips.map(clip => <li key={clip.index} className="flex justify-between gap-3 py-3 text-sm">
+      <ol className="divide-y divide-gray-700">{clips.map(clip => <li key={clip.index} className="flex flex-wrap justify-between gap-2 py-3 text-sm">
         <span>Parte {clip.index + 1} · {(clip.bytes / 1024).toFixed(1)} KiB</span>
         <span>{clip.status === 'received' ? 'Recibido' : clip.status === 'sending' ? 'Enviando' : clip.status === 'lost' ? 'No conservado' : 'Pendiente'}</span>
       </li>)}</ol>

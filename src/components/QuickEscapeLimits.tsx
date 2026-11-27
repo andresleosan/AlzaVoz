@@ -116,10 +116,10 @@ export function EscapeLimitsButton({
       type="button"
       onClick={openEscapeLimits}
       data-testid={BUTTON_TEST_IDS[variant]}
-      className={`touch-target-min inline-flex min-h-14 min-w-14 items-center gap-2 rounded-xl border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95 ${styleByVariant[variant]} ${className}`}
+      className={`touch-target-min inline-flex min-h-[56px] min-w-[56px] max-w-full items-center gap-2 rounded-xl border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 motion-safe:active:scale-95 ${styleByVariant[variant]} ${className}`}
     >
       <Info size={16} className="shrink-0 text-cyan-300" aria-hidden="true" />
-      <span className="min-w-0 text-left leading-snug">{label}</span>
+      <span className="min-w-0 text-left leading-snug break-words">{label}</span>
     </button>
   );
 }
@@ -147,23 +147,23 @@ export function QuickEscapeLimitsModal() {
       aria-labelledby="escape-limits-modal-title"
       aria-describedby="escape-limits-modal-intro"
       data-testid="quick-escape-limits-modal"
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/85 p-4 pb-24 sm:pb-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center overflow-y-auto bg-black/85 p-2 sm:p-4 pb-24 sm:pb-4 backdrop-blur-sm"
     >
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="relative w-full max-w-2xl max-h-[88vh] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-5 sm:p-6 text-gray-100 shadow-2xl space-y-4 focus:outline-none"
+        className="relative my-auto w-full max-w-2xl max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl border-2 border-cyan-500/70 bg-[#111827] p-[16px] sm:p-6 text-gray-100 shadow-2xl space-y-4 focus:outline-none"
       >
         <div className="flex items-start justify-between gap-3 border-b border-gray-700 pb-3.5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-xl bg-cyan-500/20 text-cyan-300">
               <ShieldAlert size={22} aria-hidden="true" />
             </span>
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-cyan-300">
+            <div className="min-w-0">
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-300">
                 Alcance real antes de usar la salida
               </span>
-              <h2 id="escape-limits-modal-title" className="text-lg sm:text-xl font-bold text-white">
+              <h2 id="escape-limits-modal-title" className="text-lg sm:text-xl font-bold text-white break-words">
                 Qué oculta Antiespía y qué limpia Salir Rápido
               </h2>
             </div>
@@ -173,7 +173,7 @@ export function QuickEscapeLimitsModal() {
             type="button"
             onClick={closeEscapeLimits}
             aria-label="Cerrar guía de límites de Antiespía y Salir Rápido"
-            className="touch-target-min flex min-h-14 min-w-14 shrink-0 items-center justify-center rounded-xl text-gray-200 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-cyan-300"
+            className="touch-target-min flex min-h-[56px] min-w-[56px] shrink-0 items-center justify-center rounded-xl text-gray-200 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-cyan-300"
           >
             <X size={20} aria-hidden="true" />
           </button>
@@ -194,7 +194,7 @@ export function QuickEscapeLimitsModal() {
             type="button"
             onClick={closeEscapeLimits}
             data-testid="close-escape-limits-modal"
-            className="touch-target-min w-full min-h-14 inline-flex items-center justify-center rounded-xl bg-cyan-400 hover:bg-cyan-300 px-4 py-3 text-sm sm:text-base font-bold text-[#0B0F19] shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 motion-safe:active:scale-95"
+            className="touch-target-min w-full min-h-[56px] inline-flex items-center justify-center rounded-xl bg-cyan-400 hover:bg-cyan-300 px-4 py-3 text-sm sm:text-base font-bold text-[#0B0F19] shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200 motion-safe:active:scale-95"
           >
             Entendido, seguir aquí
           </button>

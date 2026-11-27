@@ -167,7 +167,7 @@ https://alzavoz.pages.dev`;
   return (
     <div
       aria-label="Asistente de Choques Solo Latas"
-      className="rounded-2xl border border-amber-500/40 bg-gray-900/90 shadow-[0_0_25px_rgba(245,158,11,0.2)] p-4 sm:p-5 pb-8 space-y-4 text-white mb-6"
+      className="rounded-2xl border border-amber-500/40 bg-gray-900/90 shadow-[0_0_25px_rgba(245,158,11,0.2)] p-[16px] sm:p-5 pb-8 space-y-4 text-white mb-6"
     >
       <div
         aria-live="polite"
@@ -179,11 +179,11 @@ https://alzavoz.pages.dev`;
       </div>
       {/* Cabecera y Alerta Legal */}
       <div className="border-b border-gray-800 pb-3">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-950/90 text-amber-300 border border-amber-600/60 font-mono">
+        <div className="flex flex-wrap items-center gap-2 mb-1">
+          <span className="px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider bg-amber-950/90 text-amber-300 border border-amber-600/60 font-mono">
             Ley 2251 de 2022 • Art. 16
           </span>
-          <span className="text-[10px] text-gray-400">Sin Heridos</span>
+          <span className="text-xs text-gray-400">Sin Heridos</span>
         </div>
         <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
           <Car className="w-5 h-5 text-amber-400 shrink-0" aria-hidden="true" />
@@ -197,11 +197,11 @@ https://alzavoz.pages.dev`;
       {/* Indicador de 3 Pasos */}
       <ol
         aria-label="Pasos del asistente Choques Solo Latas"
-        className="flex items-center justify-between gap-1 text-[11px] font-bold"
+        className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 text-xs font-bold"
       >
         <li
           aria-current={currentStep === 1 ? "step" : undefined}
-          className={`flex-1 py-1.5 px-2 rounded-lg text-center transition ${
+          className={`py-2 px-2 rounded-lg text-center transition ${
             currentStep === 1
               ? "bg-amber-500/20 text-amber-300 border border-amber-500/50"
               : "bg-black/30 text-gray-400"
@@ -211,7 +211,7 @@ https://alzavoz.pages.dev`;
         </li>
         <li
           aria-current={currentStep === 2 ? "step" : undefined}
-          className={`flex-1 py-1.5 px-2 rounded-lg text-center transition ${
+          className={`py-2 px-2 rounded-lg text-center transition ${
             currentStep === 2
               ? "bg-amber-500/20 text-amber-300 border border-amber-500/50"
               : "bg-black/30 text-gray-400"
@@ -221,7 +221,7 @@ https://alzavoz.pages.dev`;
         </li>
         <li
           aria-current={currentStep === 3 ? "step" : undefined}
-          className={`flex-1 py-1.5 px-2 rounded-lg text-center transition ${
+          className={`py-2 px-2 rounded-lg text-center transition ${
             currentStep === 3
               ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"
               : "bg-black/30 text-gray-400"
@@ -248,7 +248,7 @@ https://alzavoz.pages.dev`;
             <AlertCircle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
               <p className="font-bold">Regla de Oro Ley 2251:</p>
-              <p className="text-[11px] text-gray-300">
+              <p className="text-xs text-gray-300">
                 Las aseguradoras están obligadas por ley a recibir estas 4 fotos digitales. Una vez tomadas, ¡muevan los vehículos al costado ya!
               </p>
             </div>
@@ -260,13 +260,13 @@ https://alzavoz.pages.dev`;
               type="button"
               onClick={() => togglePhoto("panoramic")}
               aria-pressed={photos.panoramic}
-              className={`touch-target-min min-h-[58px] flex items-center justify-between p-3 rounded-xl border text-left transition active:scale-95 ${
+              className={`touch-target-min min-h-[56px] flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border text-left transition active:scale-95 ${
                 photos.panoramic
                   ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-200"
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <span className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0 flex-1">
                 <Camera
                   aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
@@ -274,14 +274,14 @@ https://alzavoz.pages.dev`;
                   }`}
                 />
                 <span className="block min-w-0">
-                  <span className="block text-xs font-bold truncate">1. Panorámica 360°</span>
-                  <span className="block text-[10px] text-gray-400 truncate">Vía, carril y entorno</span>
+                  <span className="block text-xs font-bold break-words">1. Panorámica 360°</span>
+                  <span className="block text-xs text-gray-400 break-words">Vía, carril y entorno</span>
                 </span>
               </span>
               {photos.panoramic ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
-                <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
+                <span className="text-xs font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
                 </span>
               )}
@@ -292,13 +292,13 @@ https://alzavoz.pages.dev`;
               type="button"
               onClick={() => togglePhoto("roadPosition")}
               aria-pressed={photos.roadPosition}
-              className={`touch-target-min min-h-[58px] flex items-center justify-between p-3 rounded-xl border text-left transition active:scale-95 ${
+              className={`touch-target-min min-h-[56px] flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border text-left transition active:scale-95 ${
                 photos.roadPosition
                   ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-200"
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <span className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0 flex-1">
                 <Car
                   aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
@@ -306,14 +306,14 @@ https://alzavoz.pages.dev`;
                   }`}
                 />
                 <span className="block min-w-0">
-                  <span className="block text-xs font-bold truncate">2. Posición en Calzada</span>
-                  <span className="block text-[10px] text-gray-400 truncate">Ubicación relativa</span>
+                  <span className="block text-xs font-bold break-words">2. Posición en Calzada</span>
+                  <span className="block text-xs text-gray-400 break-words">Ubicación relativa</span>
                 </span>
               </span>
               {photos.roadPosition ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
-                <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
+                <span className="text-xs font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
                 </span>
               )}
@@ -324,13 +324,13 @@ https://alzavoz.pages.dev`;
               type="button"
               onClick={() => togglePhoto("damageDetail")}
               aria-pressed={photos.damageDetail}
-              className={`touch-target-min min-h-[58px] flex items-center justify-between p-3 rounded-xl border text-left transition active:scale-95 ${
+              className={`touch-target-min min-h-[56px] flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border text-left transition active:scale-95 ${
                 photos.damageDetail
                   ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-200"
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <span className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0 flex-1">
                 <ShieldAlert
                   aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
@@ -338,14 +338,14 @@ https://alzavoz.pages.dev`;
                   }`}
                 />
                 <span className="block min-w-0">
-                  <span className="block text-xs font-bold truncate">3. Detalle de Daños</span>
-                  <span className="block text-[10px] text-gray-400 truncate">Golpes y raspaduras</span>
+                  <span className="block text-xs font-bold break-words">3. Detalle de Daños</span>
+                  <span className="block text-xs text-gray-400 break-words">Golpes y raspaduras</span>
                 </span>
               </span>
               {photos.damageDetail ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
-                <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
+                <span className="text-xs font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
                 </span>
               )}
@@ -356,13 +356,13 @@ https://alzavoz.pages.dev`;
               type="button"
               onClick={() => togglePhoto("platesAndDocs")}
               aria-pressed={photos.platesAndDocs}
-              className={`touch-target-min min-h-[58px] flex items-center justify-between p-3 rounded-xl border text-left transition active:scale-95 ${
+              className={`touch-target-min min-h-[56px] flex flex-wrap items-center justify-between gap-2 p-3 rounded-xl border text-left transition active:scale-95 ${
                 photos.platesAndDocs
                   ? "bg-emerald-950/40 border-emerald-500/60 text-emerald-200"
                   : "bg-black/40 border-gray-800 text-gray-300 hover:bg-gray-800/60"
               }`}
             >
-              <span className="flex items-center gap-2.5 min-w-0">
+              <span className="flex items-center gap-2.5 min-w-0 flex-1">
                 <FileCheck2
                   aria-hidden="true"
                   className={`w-5 h-5 shrink-0 ${
@@ -370,14 +370,14 @@ https://alzavoz.pages.dev`;
                   }`}
                 />
                 <span className="block min-w-0">
-                  <span className="block text-xs font-bold truncate">4. Placas y SOAT</span>
-                  <span className="block text-[10px] text-gray-400 truncate">Ambos automotores</span>
+                  <span className="block text-xs font-bold break-words">4. Placas y SOAT</span>
+                  <span className="block text-xs text-gray-400 break-words">Ambos automotores</span>
                 </span>
               </span>
               {photos.platesAndDocs ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" aria-hidden="true" />
               ) : (
-                <span className="text-[10px] font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
+                <span className="text-xs font-bold px-2 py-1 bg-amber-950/80 text-amber-300 rounded border border-amber-700/60 shrink-0">
                   Tomar
                 </span>
               )}
@@ -442,7 +442,7 @@ https://alzavoz.pages.dev`;
           {/* Datos Vehículo A */}
           <div className="bg-black/40 rounded-xl p-3 border border-gray-800 space-y-2">
             <h3 className="text-xs font-bold text-amber-300">Vehículo A (Tu Vehículo)</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
                 type="text"
                 value={crashData.driverA.fullName}
@@ -454,7 +454,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Nombre Conductor A"
                 placeholder="Nombre completo"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -467,10 +467,10 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Placa Vehículo A"
                 placeholder="Placa (ej: ABC-123)"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-mono font-bold focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-amber-300 font-mono font-bold focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
                 type="tel"
                 value={crashData.driverA.phoneNumber}
@@ -482,7 +482,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Teléfono Conductor A"
                 placeholder="Celular"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -495,7 +495,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Aseguradora Conductor A"
                 placeholder="Aseguradora / SOAT"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
           </div>
@@ -503,7 +503,7 @@ https://alzavoz.pages.dev`;
           {/* Datos Vehículo B */}
           <div className="bg-black/40 rounded-xl p-3 border border-gray-800 space-y-2">
             <h3 className="text-xs font-bold text-amber-300">Vehículo B (Contraparte)</h3>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
                 type="text"
                 value={crashData.driverB.fullName}
@@ -515,7 +515,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Nombre Conductor B"
                 placeholder="Nombre conductor contraparte"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -528,10 +528,10 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Placa Vehículo B"
                 placeholder="Placa (ej: XYZ-789)"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-amber-300 font-mono font-bold focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-amber-300 font-mono font-bold focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <input
                 type="tel"
                 value={crashData.driverB.phoneNumber}
@@ -543,7 +543,7 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Teléfono Conductor B"
                 placeholder="Celular contraparte"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
               <input
                 type="text"
@@ -556,22 +556,22 @@ https://alzavoz.pages.dev`;
                 }
                 aria-label="Aseguradora Conductor B"
                 placeholder="Aseguradora / SOAT"
-                className="bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
+                className="min-h-[48px] bg-gray-900 border border-gray-700 rounded-lg px-2.5 py-1.5 text-sm text-white focus:border-amber-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => {
                 setCurrentStep(1);
                 setLiveAnnouncement("Paso 1 de 3: Fotos Obligatorias.");
               }}
-              className="touch-target-min min-h-[52px] px-4 flex items-center justify-center rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-bold active:scale-95 transition"
+              className="touch-target-min min-h-[56px] px-4 py-2 flex items-center justify-center rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-700 text-xs font-bold active:scale-95 transition"
             >
-              <ArrowLeft className="w-4 h-4 mr-1" aria-hidden="true" />
-              Atrás
+              <ArrowLeft className="w-4 h-4 mr-1 shrink-0" aria-hidden="true" />
+              <span>Atrás</span>
             </button>
             <button
               type="button"
@@ -580,10 +580,10 @@ https://alzavoz.pages.dev`;
                 setCurrentStep(3);
                 setLiveAnnouncement("Paso 3 de 3: Acta Amistosa generada.");
               }}
-              className="touch-target-min min-h-[52px] flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 active:scale-95 transition"
+              className="touch-target-min min-h-[56px] px-4 py-2 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-900/40 active:scale-95 transition"
             >
               <span>Generar Acta Rápida</span>
-              <FileCheck2 className="w-4 h-4" aria-hidden="true" />
+              <FileCheck2 className="w-4 h-4 shrink-0" aria-hidden="true" />
             </button>
           </div>
         </section>
@@ -599,33 +599,33 @@ https://alzavoz.pages.dev`;
             <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
             <div>
               <p className="font-bold">¡Acta Digital Generada Exitosamente!</p>
-              <p className="text-[11px] text-gray-300">
+              <p className="text-xs text-gray-300">
                 Documento respaldado por el Art. 16 de la Ley 2251 de 2022. Válido para radicación ante SURA, Bolívar, AXA, Equidad, Mapfre y demás aseguradoras.
               </p>
             </div>
           </div>
 
           {/* Vista previa del documento */}
-          <div className="bg-black/70 rounded-xl p-3 border border-gray-800 max-h-60 overflow-y-auto text-left font-mono text-[11px] text-gray-300 whitespace-pre-wrap leading-relaxed select-all">
+          <div className="bg-black/70 rounded-xl p-3 border border-gray-800 max-h-60 overflow-y-auto text-left font-mono text-xs text-gray-300 whitespace-pre-wrap break-words leading-relaxed select-all">
             {generateActaText()}
           </div>
 
           {/* Acciones de 1 Pulgar */}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handleCopyActa}
               aria-label="Copiar acta al portapapeles"
-              className="touch-target-min min-h-[52px] flex items-center justify-center gap-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-600 text-white text-xs font-bold active:scale-95 transition"
+              className="touch-target-min min-h-[56px] flex items-center justify-center gap-2 rounded-xl bg-gray-800 hover:bg-gray-700 border border-gray-600 px-3 py-2 text-white text-xs font-bold active:scale-95 transition"
             >
               {copiedActa ? (
                 <>
-                  <Check className="w-4 h-4 text-emerald-400" aria-hidden="true" />
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" aria-hidden="true" />
                   <span className="text-emerald-300">¡Copiada!</span>
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 text-amber-400" aria-hidden="true" />
+                  <Copy className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
                   <span>Copiar Acta</span>
                 </>
               )}
@@ -635,9 +635,9 @@ https://alzavoz.pages.dev`;
               type="button"
               onClick={handleShareWhatsApp}
               aria-label="Compartir acta por WhatsApp"
-              className="touch-target-min min-h-[52px] flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold active:scale-95 transition shadow-lg shadow-emerald-900/40"
+              className="touch-target-min min-h-[56px] flex items-center justify-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3 py-2 text-white text-xs font-bold active:scale-95 transition shadow-lg shadow-emerald-900/40"
             >
-              <Share2 className="w-4 h-4" aria-hidden="true" />
+              <Share2 className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>Enviar WhatsApp</span>
             </button>
           </div>
@@ -646,7 +646,7 @@ https://alzavoz.pages.dev`;
             type="button"
             onClick={handleRestart}
             aria-label="Iniciar nuevo reporte de choque"
-            className="touch-target-min min-h-[44px] w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-white transition active:scale-95"
+            className="touch-target-min min-h-[56px] w-full flex items-center justify-center gap-1.5 text-xs text-gray-400 hover:text-white transition active:scale-95"
           >
             <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Nuevo Reporte de Choque</span>

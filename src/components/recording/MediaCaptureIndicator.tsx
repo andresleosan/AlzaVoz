@@ -34,10 +34,10 @@ export function MediaCaptureIndicator() {
         role="status"
         aria-live="polite"
         data-testid="media-capture-stopped-banner"
-        className="sticky top-[88px] z-30 w-full bg-gray-900 border-b border-gray-700 px-4 py-2.5 text-xs sm:text-sm text-gray-300 flex items-center justify-between gap-3 animate-fade-in"
+        className="w-full bg-gray-900 border-b border-gray-700 px-4 py-2.5 text-xs sm:text-sm text-gray-300 flex flex-wrap items-center justify-between gap-2 sm:gap-3 animate-fade-in"
       >
-        <div className="flex items-center gap-2">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-gray-500" aria-hidden="true" />
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-gray-500" aria-hidden="true" />
           <span className="font-semibold text-gray-200">Sensores apagados</span>
           <span className="text-gray-400">· Cámara y micrófono liberados</span>
         </div>
@@ -50,18 +50,18 @@ export function MediaCaptureIndicator() {
       role="status"
       aria-live="polite"
       data-testid="media-capture-active-banner"
-      className="sticky top-[88px] z-30 w-full bg-[#111827] border-b-2 border-red-600/80 px-4 py-2.5 text-white shadow-xl transition-all"
+      className="w-full bg-[#111827] border-b-2 border-red-600/80 px-4 py-2.5 text-white shadow-xl transition-all"
     >
       <div className="mx-auto max-w-5xl flex flex-wrap items-center justify-between gap-2.5 sm:gap-4">
         {/* Indicador de estado y pistas activas */}
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <span className="relative flex h-3 w-3 shrink-0" aria-hidden="true">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600" />
           </span>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs sm:text-sm font-bold text-red-100 flex items-center gap-1.5">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="text-xs sm:text-sm font-bold text-red-100 flex flex-wrap items-center gap-1.5">
               {hasActiveVideo && <Video size={16} className="text-red-400 shrink-0" aria-hidden="true" />}
               {hasActiveAudio && <Mic size={16} className="text-amber-400 shrink-0" aria-hidden="true" />}
               <span data-testid="banner-status-text">En vivo: {statusLabel}</span>
@@ -91,15 +91,15 @@ export function MediaCaptureIndicator() {
         </div>
 
         {/* Control crítico accesible de Detener captura (Fitts' Law >= 56px de touch target en móvil o min-h-12 accesible) */}
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 ml-auto max-w-full">
           <button
             type="button"
             onClick={stopActiveCapture}
             data-testid="banner-stop-capture-button"
             aria-label="Detener captura y apagar cámara y micrófono"
-            className="inline-flex min-h-12 sm:min-h-14 items-center justify-center gap-2 rounded-xl bg-red-700 hover:bg-red-600 active:bg-red-800 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md border border-red-500/50 transition-transform active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300"
+            className="inline-flex min-h-[48px] sm:min-h-[56px] max-w-full items-center justify-center gap-2 rounded-xl bg-red-700 hover:bg-red-600 active:bg-red-800 px-4 py-2 text-xs sm:text-sm font-bold text-white shadow-md border border-red-500/50 transition-transform active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-300 text-center"
           >
-            <Square size={16} className="fill-white" aria-hidden="true" />
+            <Square size={16} className="fill-white shrink-0" aria-hidden="true" />
             <span>Detener captura</span>
           </button>
         </div>

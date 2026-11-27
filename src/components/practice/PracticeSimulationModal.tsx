@@ -30,24 +30,24 @@ export function PracticeSimulationModal() {
       aria-labelledby="simulation-modal-title"
       aria-describedby="simulation-modal-description"
       data-testid="practice-simulation-modal"
-      className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-black/80 p-4 pb-24 sm:pb-4 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center overflow-y-auto bg-black/80 p-2 sm:p-4 pb-24 sm:pb-4 backdrop-blur-sm animate-fade-in"
     >
       <div
         ref={dialogRef}
         tabIndex={-1}
-        className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl border-2 border-amber-500/80 bg-[#111827] p-5 sm:p-6 text-white shadow-2xl space-y-4 focus:outline-none"
+        className="relative my-auto w-full max-w-lg max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl border-2 border-amber-500/80 bg-[#111827] p-[16px] sm:p-6 text-white shadow-2xl space-y-4 focus:outline-none"
       >
         {/* Encabezado con badge pedagógico */}
         <div className="flex items-start justify-between gap-3 border-b border-gray-700/80 pb-3.5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-300">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-[40px] w-[40px] shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-300">
               {isCall ? <PhoneCall size={22} aria-hidden="true" /> : <Send size={22} aria-hidden="true" />}
             </span>
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-400">
+            <div className="min-w-0">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
                 Simulación Educativa · Sin Envíos
               </span>
-              <h2 id="simulation-modal-title" className="text-lg sm:text-xl font-bold text-white">
+              <h2 id="simulation-modal-title" className="text-lg sm:text-xl font-bold text-white break-words">
                 {simulationModal.title}
               </h2>
             </div>
@@ -57,7 +57,7 @@ export function PracticeSimulationModal() {
             type="button"
             onClick={closeSimulationModal}
             aria-label="Cerrar ventana de simulación"
-            className="touch-target-min flex min-h-14 min-w-14 shrink-0 items-center justify-center rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-amber-300"
+            className="touch-target-min flex min-h-[56px] min-w-[56px] shrink-0 items-center justify-center rounded-xl text-gray-300 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-amber-300"
           >
             <X size={20} aria-hidden="true" />
           </button>
@@ -95,7 +95,7 @@ export function PracticeSimulationModal() {
         {simulationModal.payloadText && (
           <div className="rounded-xl border border-gray-700 bg-gray-950 p-3 space-y-1">
             <span className="text-xs text-gray-400 font-semibold">Texto simulado del mensaje:</span>
-            <p className="text-xs font-mono text-gray-300 break-words line-clamp-3">
+            <p className="max-h-40 overflow-y-auto whitespace-pre-wrap break-words text-xs font-mono text-gray-300">
               {simulationModal.payloadText}
             </p>
           </div>
@@ -119,7 +119,7 @@ export function PracticeSimulationModal() {
             type="button"
             onClick={closeSimulationModal}
             data-testid="close-simulation-modal-button"
-            className="w-full min-h-14 inline-flex items-center justify-center rounded-xl bg-amber-600 hover:bg-amber-500 active:bg-amber-700 px-4 py-3 text-sm sm:text-base font-bold text-gray-950 shadow-lg transition-transform active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
+            className="touch-target-min w-full min-h-[56px] inline-flex items-center justify-center rounded-xl bg-amber-600 hover:bg-amber-500 active:bg-amber-700 px-4 py-3 text-sm sm:text-base font-bold text-gray-950 shadow-lg transition-transform active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200"
           >
             Entendido, continuar practicando
           </button>

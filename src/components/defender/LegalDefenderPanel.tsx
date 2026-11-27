@@ -174,7 +174,7 @@ export function LegalDefenderPanel({
       </div>
 
       {/* Selector Táctil de Pestañas (Fitts' Law >= 56px) */}
-      <div className="grid grid-cols-2 gap-2 rounded-xl border border-gray-800 bg-gray-900/50 p-1.5 sm:max-w-lg">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 rounded-xl border border-gray-800 bg-gray-900/50 p-1.5 sm:max-w-lg">
         <button
           type="button"
           onClick={() => {
@@ -219,17 +219,17 @@ export function LegalDefenderPanel({
             {/* Buscador Rápido con IA DeepSeek */}
             <form
               onSubmit={handleCustomSearch}
-              className="flex gap-2"
+              className="flex flex-wrap gap-2"
               aria-label="Buscar asesoría jurídica rápida"
             >
-              <div className="relative min-w-0 flex-1">
+              <div className="relative min-w-[10rem] flex-1">
                 <input
                   type="text"
                   value={userQuery}
                   onChange={(e) => setUserQuery(e.target.value)}
                   placeholder="¿Qué te dice el policía o agente de tránsito?"
                   aria-label="Pregunta sobre retén o procedimiento policial"
-                  className="min-h-14 w-full rounded-xl border border-gray-700 bg-gray-900 px-3.5 pr-12 text-base text-white placeholder-gray-400 focus:border-red-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
+                  className="min-h-[56px] w-full rounded-xl border border-gray-700 bg-gray-900 px-3.5 pr-12 text-base text-white placeholder-gray-400 focus:border-red-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300"
                 />
                 {userQuery && (
                   <button
@@ -247,7 +247,7 @@ export function LegalDefenderPanel({
                 type="submit"
                 disabled={isLoading || !userQuery.trim()}
                 aria-label="Consultar a Alza Bot Defensor"
-                className={`touch-target-min flex items-center justify-center rounded-xl px-4 text-sm font-semibold transition-colors ${
+                className={`touch-target-min min-h-[56px] min-w-[56px] flex items-center justify-center rounded-xl px-4 text-sm font-semibold transition-colors ${
                   isLoading || !userQuery.trim()
                     ? "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
                     : "bg-red-700 text-white hover:bg-red-600"

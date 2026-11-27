@@ -375,7 +375,7 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 
 ---
 
-### [ ] Tarea 22: Texto grande sin perder acciones
+### [x] Tarea 22: Texto grande sin perder acciones
 - **Área:** Accesibilidad y comprensión
 - **Idea de origen:** I012
 - **Prioridad original:** Esencial
@@ -383,7 +383,8 @@ Consultar este índice y las casillas de los encabezados para seleccionar la pri
 - **Dependencias:** T2
 - **Criterios de Éxito:** Al ampliar texto y zoom las acciones críticas permanecen operables y el contenido no se recorta ni exige desplazamiento lateral injustificado.
 - **Verificación requerida:** Revisar formularios y pantallas a 200 % y 400 %, además de anchos móviles; documentar excepciones justificadas.
-- **Plan:** docs/planes/T022.md (se redacta y audita al ejecutar; no se da por existente).
+- **Plan:** docs/planes/T022.md (cerrado).
+- **Resultado verificado (2026-11-26):** Escala fluida en `rem`, chrome unificado en `.app-sticky-chrome` con flujo bajo banners (`PracticeModeBanner`, `SharedDeviceBanner`), desanclaje `@media (max-height: 480px)` en `320×256` / `320×180`, rejillas y modales adaptativos sin truncamiento en `/sos`, `/defender`, `/record`, `/report`, `/device-check`, `/community`, `/search` y `/admin`, y regiones 2D enfocables documentadas en `/community` y `/admin`. Verificado con `tsc`, `eslint`, `pnpm build`, 175/175 en Next (`e2e/text-zoom-reflow.spec.ts`), 44/44 en `PLAYWRIGHT_PAGES=1` y subagente `browser`.
 
 ---
 

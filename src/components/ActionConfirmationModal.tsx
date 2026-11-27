@@ -112,19 +112,19 @@ export function ActionConfirmationModal({
             onCancel();
           }
         }}
-        className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center overflow-y-auto bg-black/85 p-3 sm:p-4 pb-24 sm:pb-4 backdrop-blur-sm"
+        className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center overflow-y-auto bg-black/85 p-2 sm:p-4 pb-24 sm:pb-4 backdrop-blur-sm"
       >
         <div
           ref={dialogRef}
           tabIndex={-1}
-          className={`relative w-full max-w-lg max-h-[86vh] overflow-y-auto rounded-2xl border bg-[#111827] p-5 sm:p-6 text-[#F9FAFB] shadow-2xl space-y-4 focus:outline-none ${
+          className={`relative my-auto w-full max-w-lg max-h-[calc(100dvh-1.5rem)] overflow-y-auto rounded-2xl border bg-[#111827] p-[16px] sm:p-6 text-[#F9FAFB] shadow-2xl space-y-4 focus:outline-none ${
             isDanger ? 'border-red-500/70' : 'border-emerald-400/70'
           }`}
         >
           <div className="flex items-start justify-between gap-3 border-b border-gray-700 pb-3.5">
             <div className="flex items-start gap-3 min-w-0">
               <span
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${
+                className={`flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-xl border ${
                   isDanger
                     ? 'border-red-500/40 bg-red-950/80 text-red-200'
                     : 'border-emerald-400/40 bg-emerald-950/80 text-emerald-200'
@@ -155,7 +155,7 @@ export function ActionConfirmationModal({
               disabled={busy}
               data-testid="confirm-action-close"
               aria-label="Cerrar revisión sin confirmar"
-              className="touch-target-min inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-gray-700 bg-[#0B0F19] text-gray-200 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 disabled:opacity-50"
+              className="touch-target-min inline-flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-xl border border-gray-700 bg-[#0B0F19] text-gray-200 hover:bg-gray-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 disabled:opacity-50"
             >
               <X size={20} aria-hidden="true" />
             </button>
@@ -205,7 +205,7 @@ export function ActionConfirmationModal({
                 triggerHaptic(20);
                 secondaryAction.onClick();
               }}
-              className="touch-target-min min-h-14 w-full inline-flex items-center justify-center rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-sm font-semibold text-cyan-200 hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 disabled:opacity-50 motion-safe:active:scale-95"
+              className="touch-target-min min-h-[56px] w-full inline-flex items-center justify-center rounded-xl border border-cyan-400/60 bg-[#0B0F19] px-4 py-3 text-center text-sm font-semibold text-cyan-200 break-words hover:bg-gray-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 disabled:opacity-50 motion-safe:active:scale-95"
             >
               {secondaryAction.label}
             </button>
@@ -230,7 +230,7 @@ export function ActionConfirmationModal({
                 triggerHaptic(20);
                 onCancel();
               }}
-              className="touch-target-min min-h-14 w-full inline-flex items-center justify-center rounded-xl border border-gray-500 bg-gray-800 px-4 py-3 text-sm sm:text-base font-semibold text-[#F9FAFB] hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 disabled:opacity-50 motion-safe:active:scale-95"
+              className="touch-target-min min-h-[56px] w-full inline-flex items-center justify-center rounded-xl border border-gray-500 bg-gray-800 px-4 py-3 text-center text-sm sm:text-base font-semibold text-[#F9FAFB] break-words hover:bg-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-300 disabled:opacity-50 motion-safe:active:scale-95"
             >
               {cancelLabel}
             </button>
@@ -243,7 +243,7 @@ export function ActionConfirmationModal({
                 triggerHaptic(40);
                 onConfirm();
               }}
-              className={`touch-target-min min-h-14 w-full inline-flex items-center justify-center rounded-xl border px-4 py-3 text-sm sm:text-base font-bold focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 motion-safe:active:scale-95 ${
+              className={`touch-target-min min-h-[56px] w-full inline-flex items-center justify-center rounded-xl border px-4 py-3 text-center text-sm sm:text-base font-bold break-words focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-50 motion-safe:active:scale-95 ${
                 isDanger
                   ? 'border-red-400/70 bg-red-800 text-white hover:bg-red-700 focus-visible:outline-red-200'
                   : 'border-emerald-200 bg-emerald-300 text-[#0B0F19] hover:bg-emerald-200 focus-visible:outline-emerald-200'
